@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.AnalysisAIController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button"/>
+                <Button text="📚  Gérer les Cours" styleClass="nav-button"/>
+                <Button text="📦  Gérer les Modules" styleClass="nav-button"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button"/>
+                <Button text="🛒  Boutique" styleClass="nav-button"/>
+                <Button text="📊  Bulletins" styleClass="nav-button"/>
+                <Button text="🏆  Certifications" styleClass="nav-button"/>
+                <Button text="🤖  Analyse AI" styleClass="nav-button active"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox styleClass="content-area" spacing="20">
+
+                <!-- Header -->
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <Label text="Analyse AI &amp; Statistiques" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="courseFilter" styleClass="combo-box"/>
+                    <ComboBox fx:id="periodFilter" styleClass="combo-box"/>
+                    <Button text="📄 Exporter" onAction="#handleExportReport" styleClass="btn-secondary"/>
+                </HBox>
+
+                <!-- KPI Row -->
+                <HBox spacing="16">
+                    <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="📊" styleClass="stat-icon"/>
+                        <Label fx:id="avgGradeLabel" text="--" styleClass="stat-value"/>
+                        <Label text="Moyenne Générale" styleClass="stat-label"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="✅" styleClass="stat-icon"/>
+                        <Label fx:id="passRateLabel" text="--" styleClass="stat-value"/>
+                        <Label text="Taux de Réussite" styleClass="stat-label"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="🏆" styleClass="stat-icon"/>
+                        <Label fx:id="topStudentLabel" text="--" styleClass="stat-value" style="-fx-font-size: 14px;"/>
+                        <Label text="Meilleur Étudiant" styleClass="stat-label"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Charts Row -->
+                <HBox spacing="16">
+                    <!-- Performance Chart -->
+                    <VBox styleClass="card" spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="📈 Évolution des Performances" styleClass="chart-title"/>
+                        <LineChart fx:id="performanceChart" prefHeight="250"
+                                   styleClass="chart">
+                            <xAxis><CategoryAxis label="Mois"/></xAxis>
+                            <yAxis><NumberAxis label="Moyenne"/></yAxis>
+                        </LineChart>
+                    </VBox>
+
+                    <!-- Grade Distribution -->
+                    <VBox styleClass="card" spacing="8" prefWidth="300">
+                        <Label text="🥧 Distribution des Notes" styleClass="chart-title"/>
+                        <PieChart fx:id="gradeDistributionChart" prefHeight="250" styleClass="chart"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Engagement Chart -->
+                <VBox styleClass="card" spacing="8">
+                    <Label text="📊 Engagement des Étudiants" styleClass="chart-title"/>
+                    <BarChart fx:id="engagementChart" prefHeight="220" styleClass="chart">
+                        <xAxis><CategoryAxis label="Jour"/></xAxis>
+                        <yAxis><NumberAxis label="Connexions"/></yAxis>
+                    </BarChart>
+                </VBox>
+
+                <!-- AI Insights -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="🤖 Insights IA" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #7C3AED;"/>
+                    <Separator/>
+                    <Label fx:id="aiInsightLabel" wrapText="true"
+                           style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-line-spacing: 4;"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

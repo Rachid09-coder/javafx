@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.ShopManagementController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button"/>
+                <Button text="📚  Gérer les Cours" styleClass="nav-button"/>
+                <Button text="📦  Gérer les Modules" styleClass="nav-button"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button"/>
+                <Button text="🛒  Boutique" styleClass="nav-button active"/>
+                <Button text="📊  Bulletins" styleClass="nav-button"/>
+                <Button text="🏆  Certifications" styleClass="nav-button"/>
+                <Button text="🤖  Analyse AI" styleClass="nav-button"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <HBox styleClass="content-area" spacing="16">
+
+            <VBox spacing="16" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Gestion Boutique" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="totalProductsLabel" style="-fx-text-fill: #64748B;"/>
+                </HBox>
+
+                <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+
+                <TableView fx:id="productsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="60"/>
+                        <TableColumn fx:id="nameColumn" text="Nom" prefWidth="200"/>
+                        <TableColumn fx:id="priceColumn" text="Prix (€)" prefWidth="100"/>
+                        <TableColumn fx:id="stockColumn" text="Stock" prefWidth="80"/>
+                        <TableColumn fx:id="categoryColumn" text="Catégorie" prefWidth="130"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucun produit" style="-fx-text-fill: #94A3B8;"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <VBox styleClass="card" spacing="12" minWidth="300" prefWidth="300" maxWidth="320">
+                <Label text="Formulaire Produit" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                <Separator/>
+
+                <VBox spacing="4">
+                    <Label text="Nom *" styleClass="form-label"/>
+                    <TextField fx:id="nameField" promptText="Nom du produit" styleClass="text-field"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Prix (€) *" styleClass="form-label"/>
+                    <TextField fx:id="priceField" promptText="0.00" styleClass="text-field"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Stock" styleClass="form-label"/>
+                    <Spinner fx:id="stockSpinner" styleClass="spinner" maxWidth="Infinity"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Catégorie" styleClass="form-label"/>
+                    <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Description" styleClass="form-label"/>
+                    <TextArea fx:id="descriptionArea" promptText="Description..." styleClass="text-area" prefHeight="80" wrapText="true"/>
+                </VBox>
+
+                <Separator/>
+                <HBox spacing="8">
+                    <Button text="➕ Créer" onAction="#handleCreate" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="✏ Modifier" onAction="#handleUpdate" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+                <HBox spacing="8">
+                    <Button text="🗑 Supprimer" onAction="#handleDelete" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="✖ Effacer" onAction="#handleClear" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+            </VBox>
+
+        </HBox>
+    </center>
+</BorderPane>

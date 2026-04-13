@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.StudentManagementController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button"/>
+                <Button text="📚  Gérer les Cours" styleClass="nav-button"/>
+                <Button text="📦  Gérer les Modules" styleClass="nav-button"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button"/>
+                <Button text="🛒  Boutique" styleClass="nav-button"/>
+                <Button text="📊  Bulletins" styleClass="nav-button"/>
+                <Button text="🏆  Certifications" styleClass="nav-button"/>
+                <Button text="🤖  Analyse AI" styleClass="nav-button"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button active"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <HBox styleClass="content-area" spacing="16">
+
+            <!-- Students Table -->
+            <VBox spacing="16" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Gestion des Élèves" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="studentsCountLabel" style="-fx-text-fill: #64748B;"/>
+                    <ComboBox fx:id="courseFilter" promptText="Filtrer par cours" onAction="#handleFilterChange" styleClass="combo-box"/>
+                    <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                </HBox>
+
+                <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+
+                <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="60"/>
+                        <TableColumn fx:id="firstNameColumn" text="Prénom" prefWidth="140"/>
+                        <TableColumn fx:id="lastNameColumn" text="Nom" prefWidth="140"/>
+                        <TableColumn fx:id="emailColumn" text="Email" prefWidth="220"/>
+                        <TableColumn fx:id="fullNameColumn" text="Nom complet" prefWidth="180"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucun étudiant" style="-fx-text-fill: #94A3B8;"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- Action Panel -->
+            <VBox styleClass="card" spacing="12" minWidth="280" prefWidth="280" maxWidth="300">
+                <Label text="Actions" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                <Separator/>
+
+                <!-- Enroll Student -->
+                <Label text="Inscrire à un cours" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                <VBox spacing="4">
+                    <Label text="Cours" styleClass="form-label"/>
+                    <ComboBox fx:id="enrollCourseComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                </VBox>
+                <Button text="📌 Inscrire" onAction="#handleEnroll" styleClass="btn-primary" maxWidth="Infinity"/>
+
+                <Separator/>
+
+                <!-- View Details -->
+                <Label text="Détails de l'étudiant" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                <VBox spacing="4">
+                    <Label text="Prénom" styleClass="form-label"/>
+                    <TextField fx:id="firstNameField" promptText="Prénom" styleClass="text-field" editable="false"
+                               style="-fx-background-color: #F1F5F9;"/>
+                </VBox>
+                <VBox spacing="4">
+                    <Label text="Nom" styleClass="form-label"/>
+                    <TextField fx:id="lastNameField" promptText="Nom" styleClass="text-field" editable="false"
+                               style="-fx-background-color: #F1F5F9;"/>
+                </VBox>
+                <VBox spacing="4">
+                    <Label text="Email" styleClass="form-label"/>
+                    <TextField fx:id="emailField" promptText="Email" styleClass="text-field" editable="false"
+                               style="-fx-background-color: #F1F5F9;"/>
+                </VBox>
+
+                <Separator/>
+                <Button text="🗑 Retirer l'étudiant" onAction="#handleRemoveStudent" styleClass="btn-danger" maxWidth="Infinity"/>
+                <Button text="✖ Effacer sélection" onAction="#handleClear" styleClass="btn-secondary" maxWidth="Infinity"/>
+            </VBox>
+
+        </HBox>
+    </center>
+</BorderPane>
