@@ -74,12 +74,12 @@
 
                 <!-- Quick Actions -->
                 <Label text="Actions rapides" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
-                <HBox spacing="16" wrap="true">
+                <FlowPane hgap="16" vgap="8">
                     <Button text="➕ Nouveau cours" onAction="#handleManageCourses" styleClass="btn-primary" prefHeight="44"/>
                     <Button text="📝 Créer un examen" onAction="#handleManageExams" styleClass="btn-purple" prefHeight="44"/>
                     <Button text="👥 Gérer les élèves" onAction="#handleStudentManagement" styleClass="btn-secondary" prefHeight="44"/>
                     <Button text="🤖 Analyse AI" onAction="#handleAnalysisAI" styleClass="btn-secondary" prefHeight="44"/>
-                </HBox>
+                </FlowPane>
 
             </VBox>
         </ScrollPane>
