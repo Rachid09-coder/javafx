@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.ManageCoursesController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
+                <Button text="📚  Gérer les Cours" styleClass="nav-button active" onAction="#handleManageCourses"/>
+                <Button text="📦  Gérer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
+                <Button text="📊  Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
+                <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
+                <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <HBox styleClass="content-area" spacing="16">
+
+            <!-- Table Section -->
+            <VBox spacing="16" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Gérer les Cours" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                </HBox>
+
+                <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+
+                <TableView fx:id="coursesTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="60"/>
+                        <TableColumn fx:id="titleColumn" text="Titre" prefWidth="160"/>
+                        <TableColumn fx:id="moduleColumn" text="Module" prefWidth="140"/>
+                        <TableColumn fx:id="priceColumn" text="Prix" prefWidth="90"/>
+                        <TableColumn fx:id="coefficientColumn" text="Coefficient" prefWidth="110"/>
+                        <TableColumn fx:id="createdAtColumn" text="Créé le" prefWidth="140"/>
+                        <TableColumn fx:id="statusColumn" text="Statut" prefWidth="100"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucun cours" style="-fx-text-fill: #94A3B8;"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- Form Section -->
+            <VBox styleClass="card" spacing="12" minWidth="300" prefWidth="300" maxWidth="320">
+                <Label text="Formulaire Cours" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                <Separator/>
+
+                <VBox spacing="4">
+                    <Label text="Titre *" styleClass="form-label"/>
+                    <TextField fx:id="titleField" promptText="Titre du cours" styleClass="text-field"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Prix *" styleClass="form-label"/>
+                    <TextField fx:id="priceField" promptText="Prix du cours (ex: 99.99)" styleClass="text-field"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Coefficient" styleClass="form-label"/>
+                    <TextField fx:id="coefficientField" promptText="Coefficient (optionnel)" styleClass="text-field"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Description" styleClass="form-label"/>
+                    <TextArea fx:id="descriptionArea" promptText="Description du cours..."
+                              styleClass="text-area" prefHeight="80" wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Module" styleClass="form-label"/>
+                    <ComboBox fx:id="moduleComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Statut" styleClass="form-label"/>
+                    <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                </VBox>
+
+                <Separator/>
+
+                <HBox spacing="8">
+                    <Button text="➕ Créer" onAction="#handleCreate" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="✏ Modifier" onAction="#handleUpdate" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+                <HBox spacing="8">
+                    <Button text="🗑 Supprimer" onAction="#handleDelete" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="✖ Effacer" onAction="#handleClear" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+            </VBox>
+
+        </HBox>
+    </center>
+</BorderPane>
