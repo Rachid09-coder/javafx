@@ -1,6 +1,7 @@
 package com.edusmart.controller.student;
 
 import com.edusmart.model.Product;
+import com.edusmart.util.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -152,5 +153,31 @@ public class ShopController implements Initializable {
 
     public Map<Product, Integer> getCartItems() {
         return cartItems;
+    }
+
+    // ── Navigation handlers ──────────────────────────────────────────────
+
+    @FXML private void handleCourses(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
+    }
+
+    @FXML private void handleExams(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_EXAMS);
+    }
+
+    @FXML private void handleBulletin(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_BULLETIN);
+    }
+
+    @FXML private void handleCertification(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_CERTIFICATION);
+    }
+
+    @FXML private void handleShop(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
+    }
+
+    @FXML private void handleLogout(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }
 }

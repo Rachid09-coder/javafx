@@ -1,5 +1,6 @@
 package com.edusmart.controller.teacher;
 
+import com.edusmart.util.SceneManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -133,5 +134,47 @@ public class AnalysisAIController implements Initializable {
     @FXML
     private void handleExportReport(ActionEvent event) {
         // TODO: Generate and export analytics report
+    }
+
+    // ── Navigation handlers ──────────────────────────────────────────────
+
+    @FXML private void handleDashboard(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
+    }
+
+    @FXML private void handleManageCourses(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES);
+    }
+
+    @FXML private void handleManageModules(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES);
+    }
+
+    @FXML private void handleManageExams(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS);
+    }
+
+    @FXML private void handleShopManagement(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT);
+    }
+
+    @FXML private void handleBulletins(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS);
+    }
+
+    @FXML private void handleCertifications(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS);
+    }
+
+    @FXML private void handleAnalysisAI(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI);
+    }
+
+    @FXML private void handleStudentManagement(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT);
+    }
+
+    @FXML private void handleLogout(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }
 }

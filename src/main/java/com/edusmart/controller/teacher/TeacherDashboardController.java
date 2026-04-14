@@ -56,6 +56,10 @@ public class TeacherDashboardController implements Initializable {
 
     // ── Navigation handlers ──────────────────────────────────────────────
 
+    @FXML private void handleDashboard(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
+    }
+
     @FXML private void handleManageCourses(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES);
     }
@@ -86,5 +90,9 @@ public class TeacherDashboardController implements Initializable {
 
     @FXML private void handleStudentManagement(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT);
+    }
+
+    @FXML private void handleLogout(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }
 }
