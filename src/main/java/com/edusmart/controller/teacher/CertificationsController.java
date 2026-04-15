@@ -140,7 +140,7 @@ public class CertificationsController implements Initializable {
         conf.showAndWait().ifPresent(res -> {
             if (res == ButtonType.YES) {
                 try {
-                    if (certService.revokeCertification(sel.getId())) {
+                    if (certService.revokeCertification(sel.getId(), "Révoquée par enseignant")) {
                         loadData(); showMessage("Certification révoquée !", false);
                     } else showMessage("Échec révocation.", true);
                 } catch (Exception ex) { showMessage("Erreur: " + rootCause(ex), true); }

@@ -86,6 +86,7 @@ public class BulletinController implements Initializable {
         if (averageLabel != null) {
             double avg = gradeList.stream().mapToDouble(Grade::getScore).average().orElse(0);
             averageLabel.setText(String.format("Moyenne: %.2f/20", avg));
+        }
         if (rankLabel != null) {
             rankLabel.setText("Rang: 3/35");
         }
