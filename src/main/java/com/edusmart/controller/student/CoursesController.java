@@ -75,6 +75,7 @@ public class CoursesController implements Initializable {
      */
     @FXML
     private void handleSearch(ActionEvent event) {
+        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
         System.out.println("Recherche cours: " + query);
     }
 
@@ -82,6 +83,7 @@ public class CoursesController implements Initializable {
      * Handles filter changes.
      */
     @FXML
+    private void handleFilterChange(ActionEvent event) {
         System.out.println("Filtres modifiés.");
     }
 
