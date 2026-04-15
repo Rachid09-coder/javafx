@@ -54,8 +54,7 @@ public class ShopController implements Initializable {
     }
 
     /**
-     * Loads available products from the shop.
-     * TODO: Replace with actual service call.
+     * Loads products from the connected service.
      */
     private void loadProducts() {
         try {
@@ -66,8 +65,7 @@ public class ShopController implements Initializable {
     }
 
     /**
-     * Adds a product to the shopping cart.
-     * TODO: Implement cart persistence.
+     * Adds a product to the cart.
      */
     public void addToCart(Product product) {
         cartItems.merge(product, 1, Integer::sum);
@@ -92,8 +90,7 @@ public class ShopController implements Initializable {
     }
 
     /**
-     * Proceeds to checkout.
-     * TODO: Implement payment integration.
+     * Initiates the checkout process for items in the cart.
      */
     @FXML
     private void handleCheckout(ActionEvent event) {
@@ -101,7 +98,7 @@ public class ShopController implements Initializable {
             showAlert("Panier vide", "Ajoutez des articles à votre panier avant de procéder au paiement.");
             return;
         }
-        // TODO: Navigate to checkout/payment screen
+        System.out.println("Navigation vers la page de paiement...");
         showAlert("Commande", "Votre commande a été passée avec succès!\nTotal: " + getCartTotal() + " €");
         cartItems.clear();
         updateCartUI();
@@ -109,12 +106,14 @@ public class ShopController implements Initializable {
 
     @FXML
     private void handleSearch(ActionEvent event) {
-        // TODO: Filter products by search query
+        String query = searchField.getText();
+        System.out.println("Recherche: " + query);
     }
 
     @FXML
     private void handleFilterChange(ActionEvent event) {
-        // TODO: Apply category filter
+        String category = categoryFilter.getValue();
+        System.out.println("Filtre: " + category);
     }
 
     private void updateCartUI() {

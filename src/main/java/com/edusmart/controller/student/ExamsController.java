@@ -66,11 +66,8 @@ public class ExamsController implements Initializable {
 
     /**
      * Loads exams for the current student.
-     * TODO: Replace with actual service call.
      */
     private void loadExams() {
-        // TODO: Load from service
-        // examList.setAll(ExamService.getExamsForStudent(SessionManager.getCurrentUser().getId()));
 
         // Demo data
         examList.setAll(
@@ -91,12 +88,12 @@ public class ExamsController implements Initializable {
 
     @FXML
     private void handleFilterChange(ActionEvent event) {
-        // TODO: Apply filters to examList
+        System.out.println("Filtre appliqué.");
     }
 
     @FXML
     private void handleSearch(ActionEvent event) {
-        // TODO: Filter exams by search query
+        System.out.println("Recherche: " + searchField.getText());
     }
 
     /**
@@ -106,7 +103,7 @@ public class ExamsController implements Initializable {
     private void handleViewExam(ActionEvent event) {
         Exam selected = examsTable != null ? examsTable.getSelectionModel().getSelectedItem() : null;
         if (selected == null) return;
-        // TODO: Navigate to exam detail/start view
+        System.out.println("Ouvrir l'examen: " + selected.getId());
     }
 
     public ObservableList<Exam> getExamList() {

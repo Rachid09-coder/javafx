@@ -40,7 +40,7 @@ public class CertificationsController implements Initializable {
     @FXML private TableColumn<Certification, String> statusColumn;
     @FXML private TableColumn<Certification, String> issuedAtColumn;
     @FXML private TableColumn<Certification, String> validUntilColumn;
-    @FXML private TableColumn<Certification, String> uniqueCodeColumn;
+    @FXML private TableColumn<Certification, String> uniqueNumberColumn;
 
     @FXML private TextField searchField;
     @FXML private Label messageLabel;
@@ -82,7 +82,7 @@ public class CertificationsController implements Initializable {
                 return new SimpleStringProperty(d != null ? d.format(FMT_DATE) : "-");
             });
         }
-        if (uniqueCodeColumn != null) uniqueCodeColumn.setCellValueFactory(new PropertyValueFactory<>("uniqueCode"));
+        if (uniqueNumberColumn != null) uniqueNumberColumn.setCellValueFactory(new PropertyValueFactory<>("uniqueNumber"));
 
         if (certificationsTable != null) certificationsTable.setItems(certList);
     }
@@ -153,7 +153,7 @@ public class CertificationsController implements Initializable {
         String q = searchField != null ? searchField.getText().trim().toLowerCase() : "";
         if (q.isEmpty()) { loadData(); return; }
         List<Certification> filtered = certService.getAllCertifications().stream()
-                .filter(c -> (c.getUniqueCode() != null && c.getUniqueCode().toLowerCase().contains(q))
+                .filter(c -> (c.getUniqueNumber() != null && c.getUniqueNumber().toLowerCase().contains(q))
                           || (c.getCertificationType() != null && c.getCertificationType().toLowerCase().contains(q))
                           || studentNames.getOrDefault(c.getStudentId(), "").toLowerCase().contains(q))
                 .collect(Collectors.toList());

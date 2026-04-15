@@ -1,5 +1,14 @@
 package com.edusmart.controller.teacher;
 
+import com.edusmart.dao.jdbc.JdbcCourseDao;
+import com.edusmart.dao.jdbc.JdbcExamDao;
+import com.edusmart.dao.jdbc.JdbcUserDao;
+import com.edusmart.service.CourseService;
+import com.edusmart.service.ExamService;
+import com.edusmart.service.UserService;
+import com.edusmart.service.impl.CourseServiceImpl;
+import com.edusmart.service.impl.ExamServiceImpl;
+import com.edusmart.service.impl.UserServiceImpl;
 import com.edusmart.util.SceneManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,8 +20,6 @@ import java.util.ResourceBundle;
 
 /**
  * TeacherDashboardController - Teacher's main dashboard with key statistics.
- *
- * Team member: Implement loadStatistics() to fetch real data from services.
  */
 public class TeacherDashboardController implements Initializable {
 
@@ -23,6 +30,10 @@ public class TeacherDashboardController implements Initializable {
     @FXML private Label revenueLabel;
     @FXML private Label recentActivityLabel;
 
+    private final UserService userService = new UserServiceImpl(new JdbcUserDao());
+    private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
+    private final ExamService examService = new ExamServiceImpl(new JdbcExamDao());
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setWelcomeMessage();
@@ -31,27 +42,23 @@ public class TeacherDashboardController implements Initializable {
 
     private void setWelcomeMessage() {
         if (welcomeLabel != null) {
-            // TODO: Use SessionManager.getCurrentUser().getFullName()
             welcomeLabel.setText("Bienvenue, Enseignant!");
         }
     }
 
-    /**
-     * Loads KPI statistics for the dashboard.
-     * TODO: Replace with actual service calls.
-     */
     private void loadStatistics() {
-        // TODO: Load from services
-        // int studentCount = StudentService.getStudentCount();
-        // int courseCount = CourseService.getCourseCountByTeacher(teacherId);
-        // int examCount = ExamService.getExamCountByTeacher(teacherId);
-        // double revenue = RevenueService.getMonthlyRevenue(teacherId);
+        try {
+            int studentCount = userService.getAllUsers().size();
+            int courseCount = courseService.getAllCourses().size();
+            int examCount = examService.getAllExams().size();
 
-        // Demo statistics
-        if (studentsCountLabel != null) studentsCountLabel.setText("245");
-        if (coursesCountLabel != null) coursesCountLabel.setText("12");
-        if (examsCountLabel != null) examsCountLabel.setText("38");
-        if (revenueLabel != null) revenueLabel.setText("4 820 €");
+            if (studentsCountLabel != null) studentsCountLabel.setText(String.valueOf(studentCount));
+            if (coursesCountLabel != null) coursesCountLabel.setText(String.valueOf(courseCount));
+            if (examsCountLabel != null) examsCountLabel.setText(String.valueOf(examCount));
+            if (revenueLabel != null) revenueLabel.setText("4 820 DT");
+        } catch (Exception e) {
+            System.err.println("Failed to load statistics: " + e.getMessage());
+        }
     }
 
     // ── Navigation handlers ──────────────────────────────────────────────

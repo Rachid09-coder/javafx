@@ -32,7 +32,6 @@ public class LoginController implements Initializable {
 
     /**
      * Handles the login button click.
-     * TODO: Connect to database/authentication service.
      */
     @FXML
     private void handleLogin(ActionEvent event) {
@@ -49,21 +48,21 @@ public class LoginController implements Initializable {
             return;
         }
 
-        // TODO: Call authentication service
-        // boolean success = AuthService.login(email, password);
-        // if (success) {
-        //     User user = SessionManager.getCurrentUser();
-        //     if (user.getRole() == User.Role.TEACHER) {
-        //         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
-        //     } else {
-        //         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
-        //     }
-        // } else {
-        //     showError("Email ou mot de passe incorrect.");
-        // }
-
-        // Demo navigation (remove when implementing real auth)
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
+        try {
+            com.edusmart.service.UserService userService = new com.edusmart.service.impl.UserServiceImpl(new com.edusmart.dao.jdbc.JdbcUserDao());
+            java.util.Optional<com.edusmart.model.User> optUser = userService.getUserByEmail(email);
+            if (optUser.isPresent() && optUser.get().getPasswordHash().equals(password)) {
+                 if (optUser.get().getRole() == com.edusmart.model.User.Role.TEACHER) {
+                     SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
+                 } else {
+                     SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
+                 }
+            } else {
+                showError("Email ou mot de passe incorrect.");
+            }
+        } catch (Exception ex) {
+            showError("Erreur système.");
+        }
     }
 
     /**

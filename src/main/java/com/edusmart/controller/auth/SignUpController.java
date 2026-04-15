@@ -49,7 +49,6 @@ public class SignUpController implements Initializable {
 
     /**
      * Handles the registration form submission.
-     * TODO: Connect to user registration service/database.
      */
     @FXML
     private void handleRegister(ActionEvent event) {

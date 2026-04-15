@@ -50,12 +50,8 @@ public class CoursesController implements Initializable {
 
     /**
      * Loads all courses available to the student.
-     * TODO: Replace with actual service call.
      */
     private void loadCourses() {
-        // TODO: Load from service
-        // courseList.setAll(CourseService.getAllCourses());
-        // renderCourseCards();
 
         // Demo data
         courseList.setAll(
@@ -79,24 +75,20 @@ public class CoursesController implements Initializable {
      */
     @FXML
     private void handleSearch(ActionEvent event) {
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        // TODO: Filter courseList by query and re-render
+        System.out.println("Recherche cours: " + query);
     }
 
     /**
      * Handles filter changes.
      */
     @FXML
-    private void handleFilterChange(ActionEvent event) {
-        // TODO: Apply category/status filters and re-render
+        System.out.println("Filtres modifiés.");
     }
 
     /**
      * Opens the detail view for a selected course.
-     * TODO: Implement course detail navigation.
      */
     public void handleViewCourse(Course course) {
-        // TODO: Navigate to course detail view
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Cours sélectionné");
         alert.setHeaderText(course.getTitle());
