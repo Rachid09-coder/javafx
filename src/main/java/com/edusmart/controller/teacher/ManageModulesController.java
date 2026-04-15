@@ -1,8 +1,12 @@
 package com.edusmart.controller.teacher;
 
+import com.edusmart.dao.jdbc.JdbcCourseDao;
 import com.edusmart.dao.jdbc.JdbcModuleDao;
+import com.edusmart.model.Course;
 import com.edusmart.model.Module;
+import com.edusmart.service.CourseService;
 import com.edusmart.service.ModuleService;
+import com.edusmart.service.impl.CourseServiceImpl;
 import com.edusmart.service.impl.ModuleServiceImpl;
 import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
@@ -13,277 +17,171 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 /**
- * Teacher UI for CRUD on the {@code module} table (id, title, description, thumbnail, created_at).
+ * ManageModulesController - Gestion de liste des modules (version table + boutons).
  */
 public class ManageModulesController implements Initializable {
 
     @FXML private TableView<Module> modulesTable;
     @FXML private TableColumn<Module, Integer> idColumn;
     @FXML private TableColumn<Module, String> titleColumn;
-    @FXML private TableColumn<Module, String> thumbnailColumn;
+    @FXML private TableColumn<Module, String> descriptionColumn;
+    @FXML private TableColumn<Module, Integer> durationColumn;
+    @FXML private TableColumn<Module, String> courseColumn;
     @FXML private TableColumn<Module, String> createdAtColumn;
 
-    @FXML private TextField titleField;
-    @FXML private TextField thumbnailField;
-    @FXML private TextArea descriptionArea;
-    @FXML private Label messageLabel;
     @FXML private TextField searchField;
+    @FXML private Label messageLabel;
 
-    private ObservableList<Module> moduleList = FXCollections.observableArrayList();
-    private Module selectedModule;
     private final ModuleService moduleService = new ModuleServiceImpl(new JdbcModuleDao());
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
+
+    private final ObservableList<Module> moduleList = FXCollections.observableArrayList();
+    private Map<Integer, String> courseTitles = new HashMap<>();
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
+    public void initialize(URL url, ResourceBundle rb) {
         setupTable();
-        loadModules();
+        loadData();
     }
 
     private void setupTable() {
         if (idColumn != null) idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         if (titleColumn != null) titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-        if (thumbnailColumn != null) {
-            thumbnailColumn.setCellValueFactory(cellData -> {
-                String t = cellData.getValue().getThumbnail();
-                return new SimpleStringProperty(t != null && !t.isBlank() ? t : "-");
+        if (descriptionColumn != null) descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
+        if (durationColumn != null) durationColumn.setCellValueFactory(new PropertyValueFactory<>("durationHours"));
+        if (courseColumn != null) {
+            courseColumn.setCellValueFactory(cellData -> {
+                int cId = cellData.getValue().getCourseId();
+                if (cId > 0) {
+                    return new SimpleStringProperty(courseTitles.getOrDefault(cId, "Cours #" + cId));
+                }
+                return new SimpleStringProperty("-");
             });
         }
         if (createdAtColumn != null) {
             createdAtColumn.setCellValueFactory(cellData -> {
-                LocalDateTime createdAt = cellData.getValue().getCreatedAt();
-                return new SimpleStringProperty(
-                        createdAt != null ? createdAt.format(DATE_TIME_FORMATTER) : "-"
-                );
+                LocalDateTime cd = cellData.getValue().getCreatedAt();
+                return new SimpleStringProperty(cd != null ? cd.format(FORMATTER) : "");
             });
         }
-        if (modulesTable != null) {
-            modulesTable.setItems(moduleList);
-            modulesTable.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> populateForm(newVal));
-        }
+        if (modulesTable != null) modulesTable.setItems(moduleList);
     }
 
-    private void loadModules() {
+    private void loadData() {
         try {
+            courseTitles = courseService.getAllCourses().stream()
+                    .collect(Collectors.toMap(Course::getId, Course::getTitle, (a, b) -> a));
+            
             moduleList.setAll(moduleService.getAllModules());
-        } catch (RuntimeException ex) {
-            showMessage("Erreur chargement modules: " + rootCauseMessage(ex), true);
-        }
-    }
-
-    private void populateForm(Module module) {
-        selectedModule = module;
-        if (module == null) return;
-        if (titleField != null) titleField.setText(module.getTitle());
-        if (thumbnailField != null) {
-            thumbnailField.setText(module.getThumbnail() != null ? module.getThumbnail() : "");
-        }
-        if (descriptionArea != null) {
-            descriptionArea.setText(module.getDescription() != null ? module.getDescription() : "");
+            if (modulesTable != null) modulesTable.refresh();
+        } catch (Exception ex) {
+            showMessage("Erreur de chargement: " + rootCause(ex), true);
         }
     }
 
     @FXML
-    private void handleCreate(ActionEvent event) {
-        if (!validateForm()) return;
-        try {
-            Module module = buildModuleFromForm(false);
-            if (moduleService.createModule(module)) {
-                showMessage("Module créé avec succès!", false);
-                clearForm();
-                loadModules();
-            } else {
-                showMessage("Création du module échouée.", true);
-            }
-        } catch (RuntimeException ex) {
-            showMessage("Erreur création module: " + rootCauseMessage(ex), true);
+    private void handleAdd(ActionEvent e) {
+        Stage owner = (Stage) modulesTable.getScene().getWindow();
+        if (ModuleFormController.openDialog(owner, null)) {
+            loadData();
+            showMessage("Module ajouté avec succès !", false);
         }
     }
 
     @FXML
-    private void handleUpdate(ActionEvent event) {
-        if (selectedModule == null) {
-            showMessage("Sélectionnez un module.", true);
+    private void handleEdit(ActionEvent e) {
+        Module selected = modulesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showMessage("Veuillez sélectionner un module à modifier.", true);
             return;
         }
-        if (!validateForm()) return;
+        Stage owner = (Stage) modulesTable.getScene().getWindow();
+        if (ModuleFormController.openDialog(owner, selected)) {
+            loadData();
+            showMessage("Module modifié avec succès !", false);
+        }
+    }
+
+    @FXML
+    private void handleDelete(ActionEvent e) {
+        Module selected = modulesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showMessage("Veuillez sélectionner un module à supprimer.", true);
+            return;
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Confirmer la modification du module \"" + selectedModule.getTitle() + "\" ?",
+                "Voulez-vous vraiment supprimer le module \"" + selected.getTitle() + "\" ?",
                 ButtonType.YES, ButtonType.NO);
+        confirm.setTitle("Confirmation de suppression");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    Module module = buildModuleFromForm(true);
-                    if (moduleService.updateModule(module)) {
-                        showMessage("Module mis à jour!", false);
-                        loadModules();
+                    if (moduleService.deleteModule(selected.getId())) {
+                        moduleList.remove(selected);
+                        showMessage("Module supprimé avec succès.", false);
                     } else {
-                        showMessage("Mise à jour du module échouée.", true);
+                        showMessage("La suppression a échoué.", true);
                     }
-                } catch (RuntimeException ex) {
-                    showMessage("Erreur mise à jour module: " + rootCauseMessage(ex), true);
+                } catch (Exception ex) {
+                    showMessage("Erreur : " + rootCause(ex), true);
                 }
             }
         });
     }
 
     @FXML
-    private void handleDelete(ActionEvent event) {
-        if (selectedModule == null) {
-            showMessage("Sélectionnez un module.", true);
-            return;
-        }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer le module \"" + selectedModule.getTitle() + "\" ? "
-                        + "Tous les cours associés à ce module seront supprimés, ainsi que les examens liés à ces cours.",
-                ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                try {
-                    if (moduleService.deleteModule(selectedModule.getId())) {
-                        clearForm();
-                        loadModules();
-                        showMessage("Module supprimé.", false);
-                    } else {
-                        showMessage("Suppression du module échouée.", true);
-                    }
-                } catch (RuntimeException ex) {
-                    showMessage("Erreur suppression module: " + rootCauseMessage(ex), true);
-                }
-            }
-        });
-    }
-
-    @FXML
-    private void handleClear(ActionEvent event) {
-        clearForm();
-        selectedModule = null;
-        if (modulesTable != null) modulesTable.getSelectionModel().clearSelection();
-    }
-
-    @FXML
-    private void handleSearch(ActionEvent event) {
+    private void handleSearch(ActionEvent e) {
         String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
         if (query.isEmpty()) {
-            loadModules();
+            loadData();
             return;
         }
         List<Module> filtered = moduleService.getAllModules().stream()
-                .filter(this::matchesSearch)
+                .filter(m -> (m.getTitle() != null && m.getTitle().toLowerCase().contains(query))
+                          || (m.getDescription() != null && m.getDescription().toLowerCase().contains(query)))
                 .collect(Collectors.toList());
         moduleList.setAll(filtered);
+        if (modulesTable != null) modulesTable.refresh();
     }
 
-    private boolean matchesSearch(Module m) {
-        String q = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (q.isEmpty()) return true;
-        return (m.getTitle() != null && m.getTitle().toLowerCase().contains(q))
-                || (m.getDescription() != null && m.getDescription().toLowerCase().contains(q))
-                || (m.getThumbnail() != null && m.getThumbnail().toLowerCase().contains(q));
-    }
-
-    private boolean validateForm() {
-        if (titleField != null && titleField.getText().trim().isEmpty()) {
-            showMessage("Le titre du module est obligatoire.", true);
-            return false;
-        }
-        return true;
-    }
-
-    private Module buildModuleFromForm(boolean updating) {
-        Module module = new Module();
-        String title = titleField != null ? titleField.getText().trim() : "";
-        String descRaw = descriptionArea != null ? descriptionArea.getText() : "";
-        String desc = descRaw != null && !descRaw.isBlank() ? descRaw.trim() : null;
-        String thumbRaw = thumbnailField != null ? thumbnailField.getText().trim() : "";
-        String thumb = thumbRaw != null && !thumbRaw.isBlank() ? thumbRaw : null;
-
-        module.setTitle(title);
-        module.setDescription(desc);
-        module.setThumbnail(thumb);
-
-        if (updating && selectedModule != null) {
-            module.setId(selectedModule.getId());
-            module.setCreatedAt(selectedModule.getCreatedAt());
-        } else {
-            module.setCreatedAt(LocalDateTime.now());
-        }
-        return module;
-    }
-
-    private void clearForm() {
-        if (titleField != null) titleField.clear();
-        if (thumbnailField != null) thumbnailField.clear();
-        if (descriptionArea != null) descriptionArea.clear();
-    }
-
-    private void showMessage(String message, boolean isError) {
+    private void showMessage(String msg, boolean isError) {
         if (messageLabel != null) {
-            messageLabel.setText(message);
+            messageLabel.setText(msg);
             messageLabel.setStyle(isError ? "-fx-text-fill: #EF4444;" : "-fx-text-fill: #10B981;");
             messageLabel.setVisible(true);
         }
     }
 
-    private String rootCauseMessage(Throwable throwable) {
-        Throwable current = throwable;
-        while (current.getCause() != null) {
-            current = current.getCause();
-        }
-        return current.getMessage() != null ? current.getMessage() : throwable.getMessage();
+    private String rootCause(Throwable t) {
+        while (t.getCause() != null) t = t.getCause();
+        return t.getMessage() != null ? t.getMessage() : "Erreur inconnue";
     }
 
-    public ObservableList<Module> getModuleList() {
-        return moduleList;
-    }
-
-    @FXML private void handleDashboard(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
-    }
-
-    @FXML private void handleManageCourses(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES);
-    }
-
-    @FXML private void handleManageModules(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES);
-    }
-
-    @FXML private void handleManageExams(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS);
-    }
-
-    @FXML private void handleShopManagement(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT);
-    }
-
-    @FXML private void handleBulletins(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS);
-    }
-
-    @FXML private void handleCertifications(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS);
-    }
-
-    @FXML private void handleAnalysisAI(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI);
-    }
-
-    @FXML private void handleStudentManagement(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT);
-    }
-
-    @FXML private void handleLogout(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
-    }
+    // Navigation
+    @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
+    @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
+    @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
+    @FXML private void handleManageExams(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS); }
+    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
+    @FXML private void handleShopManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT); }
+    @FXML private void handleBulletins(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS); }
+    @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
+    @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
+    @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
+    @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

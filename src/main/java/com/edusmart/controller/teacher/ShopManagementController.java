@@ -1,13 +1,13 @@
 package com.edusmart.controller.teacher;
 
-import com.edusmart.dao.jdbc.JdbcCategoryDao;
 import com.edusmart.dao.jdbc.JdbcProductDao;
-import com.edusmart.model.Category;
+import com.edusmart.dao.jdbc.JdbcCategoryDao;
 import com.edusmart.model.Product;
-import com.edusmart.service.CategoryService;
+import com.edusmart.model.Category;
 import com.edusmart.service.ProductService;
-import com.edusmart.service.impl.CategoryServiceImpl;
+import com.edusmart.service.CategoryService;
 import com.edusmart.service.impl.ProductServiceImpl;
+import com.edusmart.service.impl.CategoryServiceImpl;
 import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -17,6 +17,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -25,9 +26,6 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-/**
- * Teacher CRUD for the {@code product} table (boutique).
- */
 public class ShopManagementController implements Initializable {
 
     @FXML private TableView<Product> productsTable;
@@ -35,64 +33,21 @@ public class ShopManagementController implements Initializable {
     @FXML private TableColumn<Product, String> nameColumn;
     @FXML private TableColumn<Product, Double> priceColumn;
     @FXML private TableColumn<Product, Integer> stockColumn;
-    @FXML private TableColumn<Product, String> imageColumn;
-    @FXML private TableColumn<Product, String> categoryNameColumn;
+    @FXML private TableColumn<Product, String> categoryColumn;
 
     @FXML private TextField searchField;
-    @FXML private TextField nameField;
-    @FXML private TextField priceField;
-    @FXML private TextField stockField;
-    @FXML private TextField imageField;
-    @FXML private ComboBox<Category> categoryComboBox;
     @FXML private Label messageLabel;
-    @FXML private Label totalProductsLabel;
 
-    private ObservableList<Product> productList = FXCollections.observableArrayList();
-    private final ObservableList<Category> categoriesForCombo = FXCollections.observableArrayList();
-    private final Map<Integer, String> categoryNameById = new HashMap<>();
-    private Product selectedProduct;
     private final ProductService productService = new ProductServiceImpl(new JdbcProductDao());
     private final CategoryService categoryService = new CategoryServiceImpl(new JdbcCategoryDao());
 
+    private final ObservableList<Product> productList = FXCollections.observableArrayList();
+    private Map<Integer, String> categoryNames = new HashMap<>();
+
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        setupCategoryCombo();
-        loadCategories();
+    public void initialize(URL url, ResourceBundle rb) {
         setupTable();
-        loadProducts();
-    }
-
-    private void setupCategoryCombo() {
-        if (categoryComboBox == null) return;
-        categoryComboBox.setItems(categoriesForCombo);
-        categoryComboBox.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(Category item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName());
-            }
-        });
-        categoryComboBox.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(Category item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName());
-            }
-        });
-    }
-
-    /** Reload categories (names map + combo) — call before listing products so labels stay correct. */
-    private void loadCategories() {
-        try {
-            List<Category> all = categoryService.getAllCategories();
-            categoriesForCombo.setAll(all);
-            categoryNameById.clear();
-            for (Category c : all) {
-                categoryNameById.put(c.getId(), c.getName());
-            }
-        } catch (RuntimeException ex) {
-            showMessage("Erreur chargement categories: " + rootCauseMessage(ex), true);
-        }
+        loadData();
     }
 
     private void setupTable() {
@@ -100,285 +55,89 @@ public class ShopManagementController implements Initializable {
         if (nameColumn != null) nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         if (priceColumn != null) priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
         if (stockColumn != null) stockColumn.setCellValueFactory(new PropertyValueFactory<>("stock"));
-        if (imageColumn != null) {
-            imageColumn.setCellValueFactory(data -> {
-                String img = data.getValue().getImage();
-                return new SimpleStringProperty(img != null ? img : "-");
+        if (categoryColumn != null) {
+            categoryColumn.setCellValueFactory(cd -> {
+                int cId = cd.getValue().getCategoryId();
+                return new SimpleStringProperty(categoryNames.getOrDefault(cId, "Catégorie #" + cId));
             });
         }
-        if (categoryNameColumn != null) {
-            categoryNameColumn.setCellValueFactory(data -> {
-                int cid = data.getValue().getCategoryId();
-                String n = categoryNameById.get(cid);
-                return new SimpleStringProperty(n != null ? n : ("#" + cid));
-            });
-        }
-        if (productsTable != null) {
-            productsTable.setItems(productList);
-            productsTable.getSelectionModel().selectedItemProperty().addListener(
-                    (obs, oldVal, newVal) -> populateForm(newVal));
-        }
+        if (productsTable != null) productsTable.setItems(productList);
     }
 
-    private void loadProducts() {
-        loadCategories();
+    private void loadData() {
         try {
+            categoryNames = categoryService.getAllCategories().stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName, (a,b)->a));
             productList.setAll(productService.getAllProducts());
-        } catch (RuntimeException ex) {
-            showMessage("Erreur chargement produits: " + rootCauseMessage(ex), true);
-        }
-        if (productsTable != null) {
-            productsTable.refresh();
-        }
-        updateCount();
+            if (productsTable != null) productsTable.refresh();
+        } catch(Exception ex) { showMessage("Erreur chargement: " + rootCause(ex), true); }
     }
 
-    private void populateForm(Product product) {
-        selectedProduct = product;
-        if (product == null) return;
-        if (nameField != null) nameField.setText(product.getName());
-        if (priceField != null) priceField.setText(String.valueOf(product.getPrice()));
-        if (stockField != null) stockField.setText(String.valueOf(product.getStock()));
-        if (imageField != null) imageField.setText(product.getImage() != null ? product.getImage() : "");
-        if (categoryComboBox != null) {
-            Category match = categoriesForCombo.stream()
-                    .filter(c -> c.getId() == product.getCategoryId())
-                    .findFirst()
-                    .orElse(null);
-            categoryComboBox.setValue(match);
+    @FXML
+    private void handleAdd(ActionEvent e) {
+        Stage owner = (Stage) productsTable.getScene().getWindow();
+        if (ProductFormController.openDialog(owner, null)) {
+            loadData();
+            showMessage("Produit ajouté.", false);
         }
     }
 
     @FXML
-    private void handleCreate(ActionEvent event) {
-        if (!validateForm()) return;
-        try {
-            if (productService.createProduct(buildProductFromForm(false))) {
-                showMessage("Produit cree avec succes!", false);
-                clearForm();
-                selectedProduct = null;
-                if (productsTable != null) productsTable.getSelectionModel().clearSelection();
-                loadProducts();
-            } else {
-                showMessage("Creation du produit echouee.", true);
-            }
-        } catch (RuntimeException ex) {
-            showMessage("Erreur creation: " + rootCauseMessage(ex), true);
+    private void handleEdit(ActionEvent e) {
+        Product sel = productsTable.getSelectionModel().getSelectedItem();
+        if (sel == null) { showMessage("Sélectionnez un produit.", true); return; }
+        Stage owner = (Stage) productsTable.getScene().getWindow();
+        if (ProductFormController.openDialog(owner, sel)) {
+            loadData();
+            showMessage("Produit modifié.", false);
         }
     }
 
     @FXML
-    private void handleUpdate(ActionEvent event) {
-        if (selectedProduct == null) {
-            showMessage("Selectionnez un produit.", true);
-            return;
-        }
-        if (!validateForm()) return;
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Confirmer la modification du produit \"" + selectedProduct.getName() + "\" ?",
-                ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
+    private void handleDelete(ActionEvent e) {
+        Product sel = productsTable.getSelectionModel().getSelectedItem();
+        if (sel == null) { showMessage("Sélectionnez un produit.", true); return; }
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer produit ?", ButtonType.YES, ButtonType.NO);
+        conf.showAndWait().ifPresent(r -> {
+            if (r == ButtonType.YES) {
                 try {
-                    Product p = buildProductFromForm(true);
-                    p.setId(selectedProduct.getId());
-                    if (productService.updateProduct(p)) {
-                        showMessage("Produit mis a jour!", false);
-                        loadProducts();
-                    } else {
-                        showMessage("Mise a jour echouee.", true);
-                    }
-                } catch (RuntimeException ex) {
-                    showMessage("Erreur mise a jour: " + rootCauseMessage(ex), true);
-                }
+                    if (productService.deleteProduct(sel.getId())) {
+                        productList.remove(sel); showMessage("Supprimé.", false);
+                    } else showMessage("Échec.", true);
+                } catch (Exception ex) { showMessage("Erreur: "+rootCause(ex), true); }
             }
         });
     }
 
     @FXML
-    private void handleDelete(ActionEvent event) {
-        if (selectedProduct == null) {
-            showMessage("Selectionnez un produit.", true);
-            return;
-        }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer le produit \"" + selectedProduct.getName() + "\" ?",
-                ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                try {
-                    if (productService.deleteProduct(selectedProduct.getId())) {
-                        productList.remove(selectedProduct);
-                        clearForm();
-                        selectedProduct = null;
-                        updateCount();
-                        showMessage("Produit supprime.", false);
-                    } else {
-                        showMessage("Suppression echouee.", true);
-                    }
-                } catch (RuntimeException ex) {
-                    showMessage("Erreur suppression: " + rootCauseMessage(ex), true);
-                }
-            }
-        });
-    }
-
-    @FXML
-    private void handleClear(ActionEvent event) {
-        clearForm();
-        selectedProduct = null;
-        if (productsTable != null) productsTable.getSelectionModel().clearSelection();
-    }
-
-    @FXML
-    private void handleSearch(ActionEvent event) {
-        loadCategories();
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (query.isEmpty()) {
-            loadProducts();
-            return;
-        }
+    private void handleSearch(ActionEvent e) {
+        String q = searchField != null ? searchField.getText().trim().toLowerCase() : "";
+        if (q.isEmpty()) { loadData(); return; }
         List<Product> filtered = productService.getAllProducts().stream()
-                .filter(p -> {
-                    if (p.getName() != null && p.getName().toLowerCase().contains(query)) {
-                        return true;
-                    }
-                    String catName = categoryNameById.get(p.getCategoryId());
-                    return catName != null && catName.toLowerCase().contains(query);
-                })
+                .filter(p -> p.getName() != null && p.getName().toLowerCase().contains(q))
                 .collect(Collectors.toList());
         productList.setAll(filtered);
-        if (productsTable != null) {
-            productsTable.refresh();
-        }
-        updateCount();
     }
 
-    private boolean validateForm() {
-        if (nameField == null || nameField.getText().trim().isEmpty()) {
-            showMessage("Le nom du produit est obligatoire.", true);
-            return false;
-        }
-        try {
-            double price = Double.parseDouble(priceField.getText().trim().replace(",", "."));
-            if (price < 0) {
-                showMessage("Le prix doit etre positif ou nul.", true);
-                return false;
-            }
-        } catch (NumberFormatException | NullPointerException e) {
-            showMessage("Prix invalide.", true);
-            return false;
-        }
-        try {
-            int stock = Integer.parseInt(stockField.getText().trim());
-            if (stock < 0) {
-                showMessage("Le stock doit etre positif ou nul.", true);
-                return false;
-            }
-        } catch (NumberFormatException | NullPointerException e) {
-            showMessage("Stock invalide (entier).", true);
-            return false;
-        }
-        if (categoryComboBox == null || categoryComboBox.getValue() == null) {
-            showMessage("Selectionnez une categorie.", true);
-            return false;
-        }
-        if (categoriesForCombo.isEmpty()) {
-            showMessage("Aucune categorie en base. Creez-en une via le bouton Categories.", true);
-            return false;
-        }
-        return true;
-    }
-
-    private Product buildProductFromForm(boolean forUpdate) {
-        Product p = new Product();
-        p.setName(nameField.getText().trim());
-        p.setPrice(Double.parseDouble(priceField.getText().trim().replace(",", ".")));
-        p.setStock(Integer.parseInt(stockField.getText().trim()));
-        String img = imageField != null ? imageField.getText().trim() : "";
-        p.setImage(img.isEmpty() ? null : img);
-        p.setCategoryId(categoryComboBox.getValue().getId());
-        return p;
-    }
-
-    private void clearForm() {
-        if (nameField != null) nameField.clear();
-        if (priceField != null) priceField.clear();
-        if (stockField != null) stockField.clear();
-        if (imageField != null) imageField.clear();
-        if (categoryComboBox != null) categoryComboBox.setValue(null);
-    }
-
-    private void updateCount() {
-        if (totalProductsLabel != null)
-            totalProductsLabel.setText(productList.size() + " produit(s)");
-    }
-
-    private void showMessage(String msg, boolean isError) {
+    private void showMessage(String msg, boolean isErr) {
         if (messageLabel != null) {
             messageLabel.setText(msg);
-            messageLabel.setStyle(isError ? "-fx-text-fill: #EF4444;" : "-fx-text-fill: #10B981;");
+            messageLabel.setStyle(isErr ? "-fx-text-fill: #EF4444;" : "-fx-text-fill: #10B981;");
             messageLabel.setVisible(true);
         }
     }
+    private String rootCause(Throwable t) { while(t.getCause()!=null) t=t.getCause(); return t.getMessage(); }
 
-    private String rootCauseMessage(Throwable throwable) {
-        Throwable current = throwable;
-        while (current.getCause() != null) {
-            current = current.getCause();
-        }
-        return current.getMessage() != null ? current.getMessage() : throwable.getMessage();
-    }
-
-    public ObservableList<Product> getProductList() {
-        return productList;
-    }
-
-    @FXML private void handleDashboard(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
-    }
-
-    @FXML private void handleManageCourses(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES);
-    }
-
-    @FXML private void handleManageModules(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES);
-    }
-
-    @FXML private void handleManageExams(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS);
-    }
-
-    @FXML private void handleShopManagement(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT);
-    }
-
-    /**
-     * Opens the category CRUD screen (liste + formulaire).
-     */
-    @FXML
-    private void handleManageCategories(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CATEGORY_MANAGEMENT);
-    }
-
-    @FXML private void handleBulletins(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS);
-    }
-
-    @FXML private void handleCertifications(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS);
-    }
-
-    @FXML private void handleAnalysisAI(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI);
-    }
-
-    @FXML private void handleStudentManagement(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT);
-    }
-
-    @FXML private void handleLogout(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
-    }
+    @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
+    @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
+    @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
+    @FXML private void handleManageExams(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS); }
+    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
+    @FXML private void handleShopManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT); }
+    @FXML private void handleCategoryManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CATEGORY_MANAGEMENT); }
+    @FXML private void handleBulletins(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS); }
+    @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
+    @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
+    @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
+    @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

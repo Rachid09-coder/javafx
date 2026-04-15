@@ -5,7 +5,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
             styleClass="main-container"
-            fx:controller="com.edusmart.controller.teacher.BulletinsController">
+            fx:controller="com.edusmart.controller.teacher.GradeManagementController">
 
     <left>
         <VBox styleClass="sidebar">
@@ -19,9 +19,9 @@
                 <Button text="📚  Gérer les Cours" styleClass="nav-button" onAction="#handleManageCourses"/>
                 <Button text="📦  Gérer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
                 <Button text="📝  Gérer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
-                <Button text="📊  Notes" styleClass="nav-button" onAction="#handleGradeManagement"/>
+                <Button text="📊  Notes" styleClass="nav-button active" onAction="#handleGradeManagement"/>
                 <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
-                <Button text="📋  Bulletins" styleClass="nav-button active" onAction="#handleBulletins"/>
+                <Button text="📋  Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
                 <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
                 <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
@@ -35,9 +35,11 @@
 
     <center>
         <VBox styleClass="content-area" spacing="16">
+            <!-- Header -->
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="📋 Bulletins de notes" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                <Label text="📊 Gestion des Notes" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"
+                           onAction="#handleSearch"/>
                 <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
                 <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
                 <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
@@ -45,19 +47,19 @@
 
             <Label fx:id="messageLabel" visible="false" wrapText="true"/>
 
-            <TableView fx:id="bulletinsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+            <TableView fx:id="gradesTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                 <columns>
-                    <TableColumn fx:id="idColumn"      text="ID"        prefWidth="50"  />
-                    <TableColumn fx:id="studentColumn" text="Étudiant"  prefWidth="160" />
-                    <TableColumn fx:id="yearColumn"    text="Année"     prefWidth="100" />
-                    <TableColumn fx:id="semesterColumn" text="Semestre" prefWidth="80"  />
-                    <TableColumn fx:id="averageColumn" text="Moyenne"   prefWidth="80"  />
-                    <TableColumn fx:id="statusColumn"  text="Statut"    prefWidth="100" />
-                    <TableColumn fx:id="mentionColumn" text="Mention"   prefWidth="100" />
-                    <TableColumn fx:id="rankColumn"    text="Rang"      prefWidth="60"  />
+                    <TableColumn fx:id="idColumn" text="ID" prefWidth="55"/>
+                    <TableColumn fx:id="studentColumn" text="Étudiant" prefWidth="160"/>
+                    <TableColumn fx:id="subjectColumn" text="Matière" prefWidth="140"/>
+                    <TableColumn fx:id="scoreColumn" text="Note" prefWidth="80"/>
+                    <TableColumn fx:id="maxScoreColumn" text="Note Max" prefWidth="90"/>
+                    <TableColumn fx:id="percentageColumn" text="%" prefWidth="70"/>
+                    <TableColumn fx:id="semesterColumn" text="Semestre" prefWidth="90"/>
+                    <TableColumn fx:id="courseColumn" text="Cours" prefWidth="140"/>
                 </columns>
                 <placeholder>
-                    <Label text="Aucun bulletin trouvé" style="-fx-text-fill: #94A3B8;"/>
+                    <Label text="Aucune note enregistrée" style="-fx-text-fill: #94A3B8;"/>
                 </placeholder>
             </TableView>
         </VBox>
