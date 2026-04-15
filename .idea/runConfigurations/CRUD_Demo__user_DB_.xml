@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CRUD Demo (user DB)" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="com.edusmart.CrudExampleMain" />
+    <module name="EduSmart" />
+    <option name="VM_PARAMETERS" value="-Ddb.url=jdbc:mysql://localhost:3306/user?useSSL=false&amp;serverTimezone=UTC -Ddb.user=root -Ddb.password=" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -1,0 +1,29 @@
+# Maven build output
+target/
+
+# Bundled Maven distribution (use system Maven instead)
+apache-maven-*/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Runtime
+*.pid
+
+# Compiled class files
+*.class
+
+# JavaFX generated files
+*.fxbuild
