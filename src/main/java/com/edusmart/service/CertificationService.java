@@ -15,5 +15,11 @@ public interface CertificationService {
 
     boolean issueCertification(Certification certification);
 
+    /** Met à jour une certification existante. */
+    boolean updateCertification(Certification certification);
+
+    /** Supprime une certification par son id. */
+    boolean deleteCertification(int id);
+
     boolean revokeCertification(int id, String revocationReason);
 }

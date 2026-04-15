@@ -99,6 +99,33 @@ public class JdbcCertificationDao implements CertificationDao {
     }
 
     @Override
+    public boolean update(Certification c) {
+        String sql = "UPDATE " + TABLE + " SET `type` = ?, issued_at = ?, verification_code = ?, pdf_path = ?, "
+                + "status = ?, unique_number = ?, valid_until = ?, hmac_hash = ?, revoked_at = ?, "
+                + "revocation_reason = ?, student_id = ?, bulletin_id = ? WHERE id = ?";
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            fillInsert(ps, c);
+            ps.setInt(13, c.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to update certification", ex);
+        }
+    }
+
+    @Override
+    public boolean delete(int id) {
+        String sql = "DELETE FROM " + TABLE + " WHERE id = ?";
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to delete certification", ex);
+        }
+    }
+
+    @Override
     public boolean updateRevocation(int id, String status, LocalDateTime revokedAt, String revocationReason) {
         String sql = "UPDATE " + TABLE + " SET status = ?, revoked_at = ?, revocation_reason = ? WHERE id = ?";
         try (Connection connection = DbConnection.getConnection();

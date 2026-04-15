@@ -18,5 +18,11 @@ public interface CertificationDao {
      */
     boolean create(Certification certification);
 
+    /** Met à jour tous les champs d'une certification existante. */
+    boolean update(Certification certification);
+
+    /** Supprime une certification par son id. */
+    boolean delete(int id);
+
     boolean updateRevocation(int id, String status, java.time.LocalDateTime revokedAt, String revocationReason);
 }
