@@ -44,47 +44,14 @@
 
             <!-- Filters -->
             <HBox spacing="12" alignment="CENTER_LEFT">
-                <TextField fx:id="searchField" promptText="🔍  Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                <TextField fx:id="searchField" promptText="🔍  Rechercher (type, code)..." styleClass="search-bar" onAction="#handleSearch"/>
                 <ComboBox fx:id="statusFilter" onAction="#handleFilterChange" styleClass="combo-box"/>
             </HBox>
 
-            <!-- Certifications Grid -->
             <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
                         style="-fx-background: transparent; -fx-background-color: transparent;">
                 <FlowPane fx:id="certificationsContainer" hgap="16" vgap="16"
                           style="-fx-background-color: transparent; -fx-padding: 4;">
-
-                    <!-- Sample Certificate Cards -->
-                    <VBox styleClass="card" spacing="10" prefWidth="300">
-                        <Label text="🏆" style="-fx-font-size: 36px;"/>
-                        <Label text="Certificat Java Fondamentaux" styleClass="course-title"/>
-                        <Label text="Délivré le: 14 Mars 2025" styleClass="course-meta"/>
-                        <HBox spacing="8">
-                            <Label text="Émis" styleClass="badge badge-success"/>
-                        </HBox>
-                        <Button text="⬇ Télécharger" styleClass="btn-primary" maxWidth="Infinity"/>
-                    </VBox>
-
-                    <VBox styleClass="card" spacing="10" prefWidth="300">
-                        <Label text="🎖" style="-fx-font-size: 36px;"/>
-                        <Label text="Certificat Mathématiques Avancées" styleClass="course-title"/>
-                        <Label text="Délivré le: 12 Février 2025" styleClass="course-meta"/>
-                        <HBox spacing="8">
-                            <Label text="Émis" styleClass="badge badge-success"/>
-                        </HBox>
-                        <Button text="⬇ Télécharger" styleClass="btn-primary" maxWidth="Infinity"/>
-                    </VBox>
-
-                    <VBox styleClass="card" spacing="10" prefWidth="300">
-                        <Label text="⏳" style="-fx-font-size: 36px;"/>
-                        <Label text="Certificat Physique - Niveau 1" styleClass="course-title"/>
-                        <Label text="En cours d'émission" styleClass="course-meta"/>
-                        <HBox spacing="8">
-                            <Label text="En attente" styleClass="badge badge-warning"/>
-                        </HBox>
-                        <Button text="En cours..." styleClass="btn-secondary" maxWidth="Infinity" disable="true"/>
-                    </VBox>
-
                 </FlowPane>
             </ScrollPane>
 
