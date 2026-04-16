@@ -36,15 +36,25 @@ public class SceneManager {
         TEACHER_CERTIFICATIONS,
         TEACHER_ANALYSIS_AI,
         TEACHER_STUDENT_MANAGEMENT,
-        TEACHER_GRADE_MANAGEMENT
+        TEACHER_GRADE_MANAGEMENT,
+        PROFILE
     }
 
     private static SceneManager instance;
     private Stage primaryStage;
     private javafx.scene.Scene mainScene;
     private BorderPane root;
+    private com.edusmart.model.User currentUser;
 
     private SceneManager() {}
+
+    public com.edusmart.model.User getCurrentUser() {
+        return currentUser;
+    }
+
+    public void setCurrentUser(com.edusmart.model.User currentUser) {
+        this.currentUser = currentUser;
+    }
 
     public static SceneManager getInstance() {
         if (instance == null) {
@@ -117,6 +127,7 @@ public class SceneManager {
             case TEACHER_ANALYSIS_AI          -> "/fxml/teacher/analysis-ai.fxml";
             case TEACHER_STUDENT_MANAGEMENT   -> "/fxml/teacher/student-management.fxml";
             case TEACHER_GRADE_MANAGEMENT     -> "/fxml/teacher/grade-management.fxml";
+            case PROFILE                     -> "/fxml/shared/profile.fxml";
         };
     }
 }

@@ -10,6 +10,7 @@ public interface UserDao {
     List<User> findAll();
     Optional<User> findById(int id);
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailAssoc(String emailAssoc);
     boolean update(User user);
     boolean delete(int id);
 }

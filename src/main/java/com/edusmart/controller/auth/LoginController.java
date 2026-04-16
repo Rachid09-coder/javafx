@@ -51,11 +51,14 @@ public class LoginController implements Initializable {
         try {
             com.edusmart.service.UserService userService = new com.edusmart.service.impl.UserServiceImpl(new com.edusmart.dao.jdbc.JdbcUserDao());
             java.util.Optional<com.edusmart.model.User> optUser = userService.getUserByEmail(email);
-            if (optUser.isPresent() && optUser.get().getPasswordHash().equals(password)) {
-                 if (optUser.get().getRole() == com.edusmart.model.User.Role.TEACHER) {
-                     SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
+            if (optUser.isPresent() && optUser.get().getPassword() != null && optUser.get().getPassword().equals(password)) {
+                 com.edusmart.model.User user = optUser.get();
+                 SceneManager.getInstance().setCurrentUser(user);
+                 
+                 if (user.getRole() == com.edusmart.model.User.Role.TEACHER) {
+                      SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
                  } else {
-                     SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
+                      SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
                  }
             } else {
                 showError("Email ou mot de passe incorrect.");
@@ -73,18 +76,46 @@ public class LoginController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.SIGNUP);
     }
 
-    /**
-     * Handles the "Forgot Password" link.
-     * TODO: Implement password reset flow.
-     */
     @FXML
     private void handleForgotPassword(ActionEvent event) {
-        // TODO: Navigate to password reset screen or open dialog
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Mot de passe oublié");
-        alert.setHeaderText(null);
-        alert.setContentText("Veuillez contacter l'administrateur pour réinitialiser votre mot de passe.");
-        alert.showAndWait();
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Récupération de mot de passe");
+        dialog.setHeaderText("Mot de passe oublié");
+        dialog.setContentText("Saisissez votre e-mail de RÉCUPÉRATION (E-mail associé) :");
+
+        dialog.showAndWait().ifPresent(emailAssoc -> {
+            if (emailAssoc.trim().isEmpty() || !isValidEmail(emailAssoc)) {
+                showError("Veuillez saisir une adresse e-mail valide.");
+                return;
+            }
+
+            try {
+                com.edusmart.service.UserService userService = new com.edusmart.service.impl.UserServiceImpl(new com.edusmart.dao.jdbc.JdbcUserDao());
+                java.util.Optional<com.edusmart.model.User> optUser = userService.getUserByEmailAssoc(emailAssoc);
+
+                if (optUser.isPresent()) {
+                    com.edusmart.model.User user = optUser.get();
+                    String subject = "Récupération de votre compte EduSmart";
+                    String body = "Bonjour " + user.getFirstName() + ",\n\n" +
+                            "Vous avez utilisé cet e-mail pour récupérer votre compte EduSmart (" + user.getEmail() + ").\n" +
+                            "Votre mot de passe actuel est : " + user.getPassword() + "\n\n" +
+                            "Cordialement,\nL'équipe EduSmart";
+
+                    com.edusmart.util.MailSender.sendEmailWithAttachment(emailAssoc, subject, body, null);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("E-mail envoyé");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Votre mot de passe a été envoyé à votre adresse de récupération.");
+                    alert.showAndWait();
+                } else {
+                    showError("Aucun compte n'est associé à cette adresse de récupération.");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showError("Erreur lors de l'envoi de l'e-mail.");
+            }
+        });
     }
 
     private void showError(String message) {

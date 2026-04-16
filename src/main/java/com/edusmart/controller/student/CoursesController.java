@@ -2,7 +2,6 @@ package com.edusmart.controller.student;
 
 import com.edusmart.model.Course;
 import com.edusmart.util.SceneManager;
-import com.edusmart.util.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -124,6 +123,10 @@ public class CoursesController implements Initializable {
 
     @FXML private void handleShop(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
+    }
+
+    @FXML private void handleProfile(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE);
     }
 
     @FXML private void handleLogout(ActionEvent event) {

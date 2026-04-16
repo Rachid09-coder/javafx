@@ -41,6 +41,7 @@
                 <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
                 <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
                 <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
+                <Button text="📄 PDF" styleClass="btn-secondary" onAction="#handleDownloadPdf" style="-fx-background-color:#6366F1; -fx-text-fill:white;"/>
             </HBox>
 
             <Label fx:id="messageLabel" visible="false" wrapText="true"/>

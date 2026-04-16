@@ -12,6 +12,8 @@ import com.edusmart.service.UserService;
 import com.edusmart.service.impl.CertificationServiceImpl;
 import com.edusmart.service.impl.BulletinServiceImpl;
 import com.edusmart.service.impl.UserServiceImpl;
+import com.edusmart.util.MailSender;
+import com.edusmart.util.PdfGenerator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -22,6 +24,7 @@ import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -132,7 +135,28 @@ public class CertificationFormController implements Initializable {
             boolean ok;
             if (certToEdit == null) ok = certService.issueCertification(cert);
             else { cert.setId(certToEdit.getId()); ok = certService.updateCertification(cert); }
-            if (ok) { saved = true; closeStage(); }
+            if (ok) {
+                saved = true;
+                // NEW: Generate PDF and send Email
+                try {
+                    User student = studentComboBox.getValue();
+                    if (student != null && student.getEmail() != null) {
+                        File pdf = PdfGenerator.generateCertificationPdf(cert, student);
+                        cert.setPdfPath(pdf.getAbsolutePath());
+                        certService.updateCertification(cert); // Update with PDF path
+
+                        MailSender.sendEmailWithAttachment(
+                            student.getEmail(),
+                            "Votre Certification EduSmart",
+                            "Félicitations " + student.getFullName() + ",\n\nVous trouverez ci-joint votre certificat.",
+                            pdf
+                        );
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace(); // Log but don't block
+                }
+                closeStage();
+            }
             else showGlobalError("Opération échouée.");
         } catch (IllegalArgumentException ex) { showGlobalError(ex.getMessage()); }
         catch (Exception ex) { showGlobalError("Erreur : " + rootCause(ex)); }
@@ -155,16 +179,34 @@ public class CertificationFormController implements Initializable {
 
     private Certification buildCertification() {
         Certification c = new Certification();
+        
+        // Preserve existing fields if editing
+        if (certToEdit != null) {
+            c.setId(certToEdit.getId());
+            c.setVerificationCode(certToEdit.getVerificationCode());
+            c.setPdfPath(certToEdit.getPdfPath());
+            c.setUniqueNumber(certToEdit.getUniqueNumber());
+            c.setHmacHash(certToEdit.getHmacHash());
+            c.setRevokedAt(certToEdit.getRevokedAt());
+            c.setRevocationReason(certToEdit.getRevocationReason());
+            c.setIssuedAt(certToEdit.getIssuedAt());
+        } else {
+            c.setIssuedAt(LocalDateTime.now());
+        }
+        
+        // Update fields from form
         c.setCertificationType(typeField.getText().trim());
         c.setStatus(statusComboBox.getValue());
+        
         User student = studentComboBox.getValue();
         if (student != null) c.setStudentId(student.getId());
+        
         LocalDate validUntil = validUntilPicker.getValue();
-        if (validUntil != null) c.setValidUntil(validUntil.atStartOfDay());
+        c.setValidUntil(validUntil != null ? validUntil.atStartOfDay() : null);
+        
         Bulletin b = bulletinComboBox.getValue();
         c.setBulletinId(b != null ? b.getId() : null);
-        if (certToEdit == null) c.setIssuedAt(LocalDateTime.now());
-        else c.setIssuedAt(certToEdit.getIssuedAt());
+        
         return c;
     }
 

@@ -10,12 +10,13 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -24,16 +25,21 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 /**
- * Student view — lists {@link Certification} rows for the current student (see {@link #resolveStudentId()}).
+ * Student view — lists {@link Certification} rows for the current student (see
+ * {@link #resolveStudentId()}).
  */
 public class CertificationController implements Initializable {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
 
-    @FXML private FlowPane certificationsContainer;
-    @FXML private Label totalCertificationsLabel;
-    @FXML private ComboBox<String> statusFilter;
-    @FXML private TextField searchField;
+    @FXML
+    private FlowPane certificationsContainer;
+    @FXML
+    private Label totalCertificationsLabel;
+    @FXML
+    private ComboBox<String> statusFilter;
+    @FXML
+    private TextField searchField;
 
     private final CertificationService certificationService = new CertificationServiceImpl(new JdbcCertificationDao());
     private ObservableList<Certification> certificationList = FXCollections.observableArrayList();
@@ -68,7 +74,8 @@ public class CertificationController implements Initializable {
             certificationList.setAll(certificationService.getCertificationsForStudent(resolveStudentId()));
         } catch (RuntimeException ex) {
             if (certificationsContainer != null) {
-                certificationsContainer.getChildren().setAll(new Label("Erreur de chargement: " + rootCauseMessage(ex)));
+                certificationsContainer.getChildren()
+                        .setAll(new Label("Erreur de chargement: " + rootCauseMessage(ex)));
             }
             return;
         }
@@ -213,15 +220,28 @@ public class CertificationController implements Initializable {
     }
 
     public void handleDownloadCertification(Certification certification) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Certification");
-        alert.setHeaderText(certification.getCertificationType());
         if (certification.getPdfPath() != null && !certification.getPdfPath().isBlank()) {
-            alert.setContentText("Fichier PDF:\n" + certification.getPdfPath());
+            try {
+                File file = new File(certification.getPdfPath());
+                if (file.exists()) {
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop.getDesktop().open(file);
+                    }
+                } else {
+                    // Maybe regenerate if file missing?
+                    // For now just show error
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Le fichier PDF est introuvable sur le disque.");
+                    alert.showAndWait();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Erreur lors de l'ouverture du PDF: " + ex.getMessage());
+                alert.showAndWait();
+            }
         } else {
-            alert.setContentText("Aucun fichier PDF n'est associé à cette certification.");
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Aucun PDF n'a été généré pour cette certification.");
+            alert.showAndWait();
         }
-        alert.showAndWait();
     }
 
     public ObservableList<Certification> getCertificationList() {
@@ -236,27 +256,33 @@ public class CertificationController implements Initializable {
         return t.getMessage() != null ? t.getMessage() : t.toString();
     }
 
-    @FXML private void handleCourses(ActionEvent event) {
+    @FXML
+    private void handleCourses(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
     }
 
-    @FXML private void handleExams(ActionEvent event) {
+    @FXML
+    private void handleExams(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_EXAMS);
     }
 
-    @FXML private void handleBulletin(ActionEvent event) {
+    @FXML
+    private void handleBulletin(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_BULLETIN);
     }
 
-    @FXML private void handleCertification(ActionEvent event) {
+    @FXML
+    private void handleCertification(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_CERTIFICATION);
     }
 
-    @FXML private void handleShop(ActionEvent event) {
+    @FXML
+    private void handleShop(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
     }
 
-    @FXML private void handleLogout(ActionEvent event) {
+    @FXML
+    private void handleLogout(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }
 }

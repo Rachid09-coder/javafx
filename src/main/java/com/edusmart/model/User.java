@@ -28,6 +28,7 @@ public class User {
     private LocalDateTime resetTokenExpiresAt;
     private String googleId;
     private String faceDescriptor;
+    private String emailAssoc;
 
     /** Legacy alias used by older code paths. */
     private String avatarUrl;
@@ -182,6 +183,14 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getEmailAssoc() {
+        return emailAssoc;
+    }
+
+    public void setEmailAssoc(String emailAssoc) {
+        this.emailAssoc = emailAssoc;
     }
 
     public String getFullName() {

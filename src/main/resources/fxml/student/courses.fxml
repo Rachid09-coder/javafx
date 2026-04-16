@@ -23,6 +23,7 @@
                 <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
                 <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">
                 <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>

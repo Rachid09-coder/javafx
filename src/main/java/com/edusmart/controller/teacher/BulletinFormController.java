@@ -8,6 +8,8 @@ import com.edusmart.service.BulletinService;
 import com.edusmart.service.UserService;
 import com.edusmart.service.impl.BulletinServiceImpl;
 import com.edusmart.service.impl.UserServiceImpl;
+import com.edusmart.util.MailSender;
+import com.edusmart.util.PdfGenerator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,8 +20,10 @@ import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -134,7 +138,28 @@ public class BulletinFormController implements Initializable {
             boolean ok;
             if (bulletinToEdit == null) ok = bulletinService.createBulletin(b);
             else { b.setId(bulletinToEdit.getId()); ok = bulletinService.updateBulletin(b); }
-            if (ok) { saved = true; closeStage(); }
+            if (ok) {
+                saved = true;
+                // NEW: Generate PDF and send Email
+                try {
+                    User student = studentComboBox.getValue();
+                    if (student != null && student.getEmail() != null) {
+                        File pdf = PdfGenerator.generateBulletinPdf(b, student);
+                        b.setPdfPath(pdf.getAbsolutePath());
+                        bulletinService.updateBulletin(b); // Update with PDF path
+
+                        MailSender.sendEmailWithAttachment(
+                            student.getEmail(),
+                            "Votre Bulletin de Notes EduSmart",
+                            "Bonjour " + student.getFullName() + ",\n\nVous trouverez ci-joint votre bulletin pour l'année " + b.getAcademicYear() + ".",
+                            pdf
+                        );
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                closeStage();
+            }
             else showGlobalError("Opération échouée.");
         } catch (IllegalArgumentException ex) { showGlobalError(ex.getMessage()); }
         catch (Exception ex) { showGlobalError("Erreur : " + rootCause(ex)); }
@@ -175,16 +200,40 @@ public class BulletinFormController implements Initializable {
 
     private Bulletin buildBulletin() {
         Bulletin b = new Bulletin();
+        
+        // Preserve existing fields if editing
+        if (bulletinToEdit != null) {
+            b.setId(bulletinToEdit.getId());
+            b.setHmacHash(bulletinToEdit.getHmacHash());
+            b.setPdfPath(bulletinToEdit.getPdfPath());
+            b.setVerificationCode(bulletinToEdit.getVerificationCode());
+            b.setValidatedAt(bulletinToEdit.getValidatedAt());
+            b.setPublishedAt(bulletinToEdit.getPublishedAt());
+            b.setRevokedAt(bulletinToEdit.getRevokedAt());
+            b.setRevocationReason(bulletinToEdit.getRevocationReason());
+            b.setCreatedAt(bulletinToEdit.getCreatedAt());
+            b.setValidatedById(bulletinToEdit.getValidatedById());
+            b.setPublishedById(bulletinToEdit.getPublishedById());
+        } else {
+            b.setCreatedAt(LocalDateTime.now());
+        }
+        b.setUpdatedAt(LocalDateTime.now());
+        
+        // Update fields from form
         User student = studentComboBox.getValue();
         if (student != null) b.setStudentId(student.getId());
+        
         b.setStatus(statusComboBox.getValue());
         b.setAcademicYear(academicYearField.getText().trim());
         b.setSemester(semesterComboBox.getValue());
+        
         String avgText = averageField.getText().trim();
         b.setAverage(avgText.isEmpty() ? null : Double.parseDouble(avgText));
         b.setMention(mentionField.getText().trim().isEmpty() ? null : mentionField.getText().trim());
+        
         String rankText = classRankField.getText().trim();
         b.setClassRank(rankText.isEmpty() ? null : Integer.parseInt(rankText));
+        
         return b;
     }
 

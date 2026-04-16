@@ -10,6 +10,7 @@ public interface UserService {
     List<User> getAllUsers();
     Optional<User> getUserById(int id);
     Optional<User> getUserByEmail(String email);
+    Optional<User> getUserByEmailAssoc(String emailAssoc);
     boolean updateUser(User user);
     boolean deleteUser(int id);
 }

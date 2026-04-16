@@ -21,8 +21,9 @@
         <Button text="📚  Mes Cours" styleClass="nav-button"/>
         <Button text="📝  Examens" styleClass="nav-button"/>
         <Button text="📊  Bulletin" styleClass="nav-button"/>
-        <Button text="🏆  Certifications" styleClass="nav-button"/>
-        <Button text="🛒  Boutique" styleClass="nav-button"/>
+        <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
+        <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+        <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
     </VBox>
 
     <!-- Logout -->

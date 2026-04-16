@@ -46,6 +46,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> getUserByEmailAssoc(String emailAssoc) {
+        return userDao.findByEmailAssoc(emailAssoc);
+    }
+
+    @Override
     public boolean updateUser(User user) {
         validateUser(user, false);
         return userDao.update(user);

@@ -1,6 +1,15 @@
 package com.edusmart.controller.student;
 
+import com.edusmart.dao.jdbc.JdbcBulletinDao;
+import com.edusmart.dao.jdbc.JdbcUserDao;
+import com.edusmart.model.Bulletin;
 import com.edusmart.model.Grade;
+import com.edusmart.model.User;
+import com.edusmart.service.BulletinService;
+import com.edusmart.service.UserService;
+import com.edusmart.service.impl.BulletinServiceImpl;
+import com.edusmart.service.impl.UserServiceImpl;
+import com.edusmart.util.PdfGenerator;
 import com.edusmart.util.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,7 +19,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -33,6 +46,10 @@ public class BulletinController implements Initializable {
     @FXML private Label rankLabel;
     @FXML private Button printButton;
     @FXML private Button downloadButton;
+
+    private final BulletinService bulletinService = new BulletinServiceImpl(new JdbcBulletinDao());
+    private final UserService userService = new UserServiceImpl(new JdbcUserDao());
+    private Bulletin currentBulletin;
 
     private ObservableList<Grade> gradeList = FXCollections.observableArrayList();
 
@@ -63,31 +80,42 @@ public class BulletinController implements Initializable {
         }
     }
 
-    /**
-     * Loads grades for the current student.
-     */
+    private int resolveStudentId() {
+        String p = System.getProperty("edusmart.studentId");
+        if (p != null) {
+            try { return Integer.parseInt(p.trim()); } catch (NumberFormatException ignored) {}
+        }
+        return 1; // Default for demo
+    }
+
     private void loadGrades() {
+        int sId = resolveStudentId();
+        // Load latest bulletin for student
+        List<Bulletin> bulletins = bulletinService.getAllBulletins().stream()
+                .filter(b -> b.getStudentId() == sId)
+                .sorted((b1, b2) -> b2.getAcademicYear().compareTo(b1.getAcademicYear()))
+                .toList();
 
-        // Demo data
-        Grade g1 = new Grade(1, 1, 1, "Mathématiques", 16.5, 20.0, "Semestre 1");
-        Grade g2 = new Grade(2, 1, 2, "Informatique", 18.0, 20.0, "Semestre 1");
-        Grade g3 = new Grade(3, 1, 3, "Physique", 14.0, 20.0, "Semestre 1");
-        Grade g4 = new Grade(4, 1, 4, "Anglais", 15.5, 20.0, "Semestre 1");
-        g1.setComment("Très bien");
-        g2.setComment("Excellent");
-        g3.setComment("Bien");
-        g4.setComment("Bien");
-        gradeList.setAll(g1, g2, g3, g4);
-
-        updateStatistics();
+        if (!bulletins.isEmpty()) {
+            currentBulletin = bulletins.get(0);
+            updateStatistics();
+        } else {
+            // Demo data if none found
+            Grade g1 = new Grade(1, sId, 1, "Mathématiques", 16.5, 20.0, "Semestre 1");
+            Grade g2 = new Grade(2, sId, 2, "Informatique", 18.0, 20.0, "Semestre 1");
+            g1.setComment("Très bien");
+            g2.setComment("Excellent");
+            gradeList.setAll(g1, g2);
+        }
     }
 
     private void updateStatistics() {
-        if (averageLabel != null) {
+        if (currentBulletin != null) {
+            averageLabel.setText(String.format("Moyenne: %.2f/20", currentBulletin.getAverage()));
+            rankLabel.setText("Rang: " + (currentBulletin.getClassRank() != null ? currentBulletin.getClassRank() : "N/A"));
+        } else if (averageLabel != null) {
             double avg = gradeList.stream().mapToDouble(Grade::getScore).average().orElse(0);
             averageLabel.setText(String.format("Moyenne: %.2f/20", avg));
-        }
-        if (rankLabel != null) {
             rankLabel.setText("Rang: 3/35");
         }
     }
@@ -110,7 +138,34 @@ public class BulletinController implements Initializable {
      */
     @FXML
     private void handleDownload(ActionEvent event) {
-        System.out.println("Téléchargement du PDF...");
+        if (currentBulletin == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Aucun bulletin disponible pour téléchargement.");
+            alert.showAndWait();
+            return;
+        }
+        try {
+            File pdfFile;
+            if (currentBulletin.getPdfPath() != null && new File(currentBulletin.getPdfPath()).exists()) {
+                pdfFile = new File(currentBulletin.getPdfPath());
+            } else {
+                // Generate on the fly if missing
+                Optional<User> student = userService.getAllUsers().stream()
+                        .filter(u -> u.getId() == resolveStudentId())
+                        .findFirst();
+                if (student.isPresent()) {
+                    pdfFile = PdfGenerator.generateBulletinPdf(currentBulletin, student.get());
+                } else {
+                    throw new Exception("Utilisateur introuvable");
+                }
+            }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(pdfFile);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Erreur PDF: " + ex.getMessage());
+            alert.showAndWait();
+        }
     }
 
     public ObservableList<Grade> getGradeList() {

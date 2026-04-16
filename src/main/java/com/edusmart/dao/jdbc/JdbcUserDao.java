@@ -22,8 +22,8 @@ public class JdbcUserDao implements UserDao {
     @Override
     public boolean create(User user) {
         String sql = "INSERT INTO " + TABLE + " (name, prenom, email, role, password, numtel, is_active, "
-                + "reset_token, reset_token_expires_at, google_id, face_descriptor) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "reset_token, reset_token_expires_at, google_id, face_descriptor, email_assoc) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -88,15 +88,33 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
+    public Optional<User> findByEmailAssoc(String emailAssoc) {
+        String sql = "SELECT * FROM " + TABLE + " WHERE email_assoc = ?";
+
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, emailAssoc);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to fetch user by associated email", ex);
+        }
+    }
+
+    @Override
     public boolean update(User user) {
         String sql = "UPDATE " + TABLE + " SET name = ?, prenom = ?, email = ?, role = ?, password = ?, numtel = ?, "
-                + "is_active = ?, reset_token = ?, reset_token_expires_at = ?, google_id = ?, face_descriptor = ? "
+                + "is_active = ?, reset_token = ?, reset_token_expires_at = ?, google_id = ?, face_descriptor = ?, email_assoc = ? "
                 + "WHERE id = ?";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             fillMutableColumns(ps, user);
-            ps.setInt(12, user.getId());
+            ps.setInt(13, user.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update user", ex);
@@ -130,6 +148,7 @@ public class JdbcUserDao implements UserDao {
         u.setResetTokenExpiresAt(toLocalDateTime(rs.getTimestamp("reset_token_expires_at")));
         u.setGoogleId(rs.getString("google_id"));
         u.setFaceDescriptor(rs.getString("face_descriptor"));
+        u.setEmailAssoc(rs.getString("email_assoc"));
         return u;
     }
 
@@ -157,5 +176,6 @@ public class JdbcUserDao implements UserDao {
         } else {
             ps.setNull(11, Types.LONGVARCHAR);
         }
+        ps.setString(12, u.getEmailAssoc());
     }
 }

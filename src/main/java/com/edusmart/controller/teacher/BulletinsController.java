@@ -8,6 +8,7 @@ import com.edusmart.service.BulletinService;
 import com.edusmart.service.UserService;
 import com.edusmart.service.impl.BulletinServiceImpl;
 import com.edusmart.service.impl.UserServiceImpl;
+import com.edusmart.util.PdfGenerator;
 import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,10 +20,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -120,6 +124,24 @@ public class BulletinsController implements Initializable {
                 } catch (Exception ex) { showMessage("Erreur : " + rootCause(ex), true); }
             }
         });
+    }
+
+    @FXML
+    private void handleDownloadPdf(ActionEvent e) {
+        Bulletin sel = bulletinsTable.getSelectionModel().getSelectedItem();
+        if (sel == null) { showMessage("Sélectionnez un bulletin.", true); return; }
+        try {
+            Optional<User> studentOpt = userService.getAllUsers().stream()
+                .filter(u -> u.getId() == sel.getStudentId())
+                .findFirst();
+            if (studentOpt.isPresent()) {
+                File pdf = PdfGenerator.generateBulletinPdf(sel, studentOpt.get());
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(pdf);
+                }
+                showMessage("PDF ouvert : " + pdf.getName(), false);
+            }
+        } catch (Exception ex) { showMessage("Erreur PDF: " + rootCause(ex), true); }
     }
 
     @FXML
