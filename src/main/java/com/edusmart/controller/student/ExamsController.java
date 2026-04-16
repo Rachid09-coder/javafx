@@ -128,11 +128,7 @@ public class ExamsController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_CERTIFICATION);
     }
 
-    @FXML private void handleShop(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
-    }
-
-    @FXML private void handleLogout(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
-    }
+    @FXML private void handleShop(ActionEvent event) { SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP); }
+    @FXML private void handleProfile(ActionEvent event) { SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE); }
+    @FXML private void handleLogout(ActionEvent event) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

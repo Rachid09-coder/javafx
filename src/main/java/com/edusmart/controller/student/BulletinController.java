@@ -194,6 +194,10 @@ public class BulletinController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
     }
 
+    @FXML private void handleProfile(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE);
+    }
+
     @FXML private void handleLogout(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }

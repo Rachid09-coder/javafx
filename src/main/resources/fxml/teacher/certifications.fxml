@@ -25,6 +25,7 @@
                 <Button text="🏆  Certifications" styleClass="nav-button active" onAction="#handleCertifications"/>
                 <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
                 <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">
                 <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>

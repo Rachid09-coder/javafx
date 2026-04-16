@@ -18,6 +18,30 @@ import java.util.Optional;
 public class JdbcUserDao implements UserDao {
 
     private static final String TABLE = "`user`";
+    private static boolean columnChecked = false;
+
+    public JdbcUserDao() {
+        ensureEmailAssocColumnExists();
+    }
+
+    private synchronized void ensureEmailAssocColumnExists() {
+        if (columnChecked) return;
+        String sqlCheck = "SHOW COLUMNS FROM " + TABLE + " LIKE 'email_assoc'";
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sqlCheck);
+             ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                String sqlAdd = "ALTER TABLE " + TABLE + " ADD COLUMN email_assoc VARCHAR(255) DEFAULT NULL";
+                try (PreparedStatement psAdd = connection.prepareStatement(sqlAdd)) {
+                    psAdd.executeUpdate();
+                }
+            }
+            columnChecked = true;
+        } catch (SQLException ex) {
+            // If we can't check/add, we log it but don't crash everything
+            System.err.println("Warning: Could not verify/add email_assoc column: " + ex.getMessage());
+        }
+    }
 
     @Override
     public boolean create(User user) {
