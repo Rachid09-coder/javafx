@@ -13,6 +13,12 @@
         <Insets top="30" right="40" bottom="30" left="40"/>
     </padding>
 
+    <!-- Top Navigation -->
+    <HBox>
+        <Button text="⬅ Retour" onAction="#handleCancel" 
+                style="-fx-background-color: #E2E8F0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-background-radius: 5;"/>
+    </HBox>
+
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="20">
         <StackPane>

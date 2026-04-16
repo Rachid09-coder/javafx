@@ -38,6 +38,7 @@
 
             <!-- Header -->
             <HBox alignment="CENTER_LEFT" spacing="16" styleClass="top-header">
+                <Button text="⬅ Retour" onAction="#handleCourses" style="-fx-background-color: #E2E8F0; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
                 <Label text="Mes Certifications" styleClass="page-title"/>
                 <Pane HBox.hgrow="ALWAYS"/>
                 <Label fx:id="totalCertificationsLabel" style="-fx-text-fill: #64748B;"/>

@@ -19,13 +19,14 @@ public class MailSender {
     // - Gmail: smtp.gmail.com (Port 587)
     // - Outlook/Hotmail: smtp.office365.com (Port 587)
     // - Yahoo: smtp.mail.yahoo.com (Port 465 or 587)
-    
+
     private static final String HOST = "smtp.gmail.com";
     private static final String PORT = "587";
-    private static final String USERNAME = "votre-email@exemple.com";
-    private static final String PASSWORD = "votre-mot-de-passe-application";
+    private static final String USERNAME = "rachidgharbi09@gmail.com";
+    private static final String PASSWORD = "qzzx ssrv njuw wmat";
 
-    public static void sendEmailWithAttachment(String to, String subject, String body, File attachment) throws MessagingException {
+    public static void sendEmailWithAttachment(String to, String subject, String body, File attachment)
+            throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
