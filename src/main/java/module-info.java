@@ -2,7 +2,7 @@ module com.edusmart {
     requires transitive javafx.controls;
     requires transitive javafx.fxml;
     requires transitive javafx.graphics;
-    requires java.sql;
+    requires transitive java.sql;
     requires java.desktop;
     requires jakarta.mail;
     requires com.github.librepdf.openpdf;

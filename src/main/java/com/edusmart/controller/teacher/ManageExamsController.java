@@ -8,6 +8,8 @@ import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -16,9 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 /**
  * ManageExamsController - Gestion des examens avec dialogs.
@@ -36,15 +36,29 @@ public class ManageExamsController implements Initializable {
     @FXML private TableColumn<Exam, String> semesterColumn;
 
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> typeFilter;
     @FXML private Label messageLabel;
 
     private final ExamService examService = new ExamServiceImpl(new JdbcExamDao());
     private final ObservableList<Exam> examList = FXCollections.observableArrayList();
+    private FilteredList<Exam> filteredExams;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
+        setupFilters();
         loadData();
+    }
+
+    private void setupFilters() {
+        if (typeFilter != null) {
+            typeFilter.setItems(FXCollections.observableArrayList("Tous", "Examen Final", "DS", "CC", "Quiz", "TP", "Projet"));
+            typeFilter.setValue("Tous");
+            typeFilter.setOnAction(e -> applyFilters());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
     }
 
     private void setupTable() {
@@ -61,16 +75,36 @@ public class ManageExamsController implements Initializable {
                 return new SimpleStringProperty(s != null ? "S" + s : "");
             });
         }
-        if (examsTable != null) examsTable.setItems(examList);
+        
+        filteredExams = new FilteredList<>(examList, p -> true);
+        SortedList<Exam> sortedExams = new SortedList<>(filteredExams);
+        sortedExams.comparatorProperty().bind(examsTable.comparatorProperty());
+        examsTable.setItems(sortedExams);
     }
 
     private void loadData() {
         try {
             examList.setAll(examService.getAllExams());
-            if (examsTable != null) examsTable.refresh();
         } catch (Exception ex) {
             showMessage("Erreur chargement: " + rootCause(ex), true);
         }
+    }
+
+    private void applyFilters() {
+        if (filteredExams == null) return;
+        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String type = typeFilter != null ? typeFilter.getValue() : "Tous";
+
+        filteredExams.setPredicate(ex -> {
+            boolean matchesSearch = query.isEmpty() ||
+                    (ex.getTitle() != null && ex.getTitle().toLowerCase().contains(query)) ||
+                    (ex.getModuleName() != null && ex.getModuleName().toLowerCase().contains(query));
+
+            boolean matchesType = type == null || type.equals("Tous") ||
+                    (ex.getType() != null && ex.getType().equalsIgnoreCase(type));
+
+            return matchesSearch && matchesType;
+        });
     }
 
     @FXML
@@ -119,18 +153,6 @@ public class ManageExamsController implements Initializable {
         });
     }
 
-    @FXML
-    private void handleSearch(ActionEvent e) {
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (query.isEmpty()) { loadData(); return; }
-        List<Exam> filtered = examService.getAllExams().stream()
-                .filter(ex -> (ex.getTitle() != null && ex.getTitle().toLowerCase().contains(query))
-                        || (ex.getModuleName() != null && ex.getModuleName().toLowerCase().contains(query)))
-                .collect(Collectors.toList());
-        examList.setAll(filtered);
-        if (examsTable != null) examsTable.refresh();
-    }
-
     private void showMessage(String msg, boolean isError) {
         if (messageLabel != null) {
             messageLabel.setText(msg);
@@ -145,6 +167,7 @@ public class ManageExamsController implements Initializable {
     }
 
     // Navigation
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }

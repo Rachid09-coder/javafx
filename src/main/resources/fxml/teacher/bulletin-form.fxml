@@ -26,7 +26,7 @@
     </HBox>
 
     <HBox spacing="12">
-        <VBox spacing="4" HBox.hgrow="ALWAYS">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" visible="false" managed="false">
             <Label text="Année académique *" styleClass="form-label"/>
             <TextField fx:id="academicYearField" promptText="Ex: 2024-2025" styleClass="text-field"/>
             <Label fx:id="yearError" styleClass="error-label" visible="false" managed="false"/>

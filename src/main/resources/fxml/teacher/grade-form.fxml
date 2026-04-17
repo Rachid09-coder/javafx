@@ -26,9 +26,9 @@
         </VBox>
     </HBox>
 
-    <VBox spacing="4">
+    <VBox spacing="4" visible="false" managed="false">
         <Label text="Matière *" styleClass="form-label"/>
-        <TextField fx:id="subjectField" promptText="Nom de la matière" styleClass="text-field"/>
+        <TextField fx:id="subjectField" promptText="Nom de la matière" styleClass="text-field" editable="false"/>
         <Label fx:id="subjectError" styleClass="error-label" visible="false" managed="false"/>
     </VBox>
 
@@ -38,11 +38,6 @@
             <TextField fx:id="scoreField" promptText="Ex: 14.5" styleClass="text-field"/>
             <Label fx:id="scoreError" styleClass="error-label" visible="false" managed="false"/>
         </VBox>
-        <VBox spacing="4" HBox.hgrow="ALWAYS">
-            <Label text="Note max *" styleClass="form-label"/>
-            <TextField fx:id="maxScoreField" promptText="Ex: 20" styleClass="text-field"/>
-            <Label fx:id="maxScoreError" styleClass="error-label" visible="false" managed="false"/>
-        </VBox>
     </HBox>
 
     <HBox spacing="12">
@@ -51,17 +46,13 @@
             <ComboBox fx:id="semesterComboBox" maxWidth="Infinity" styleClass="combo-box"/>
             <Label fx:id="semesterError" styleClass="error-label" visible="false" managed="false"/>
         </VBox>
-        <VBox spacing="4" HBox.hgrow="ALWAYS">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" visible="false" managed="false">
             <Label text="Année académique" styleClass="form-label"/>
             <TextField fx:id="academicYearField" promptText="Ex: 2024-2025" styleClass="text-field"/>
         </VBox>
     </HBox>
 
-    <VBox spacing="4">
-        <Label text="Commentaire" styleClass="form-label"/>
-        <TextArea fx:id="commentArea" promptText="Commentaire optionnel..."
-                  styleClass="text-area" prefHeight="60" wrapText="true"/>
-    </VBox>
+
 
     <Label fx:id="globalError" styleClass="error-label" wrapText="true"
            visible="false" managed="false"/>

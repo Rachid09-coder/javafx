@@ -38,8 +38,6 @@ public class GradeFormController implements Initializable {
     @FXML private Label subjectError;
     @FXML private TextField scoreField;
     @FXML private Label scoreError;
-    @FXML private TextField maxScoreField;
-    @FXML private Label maxScoreError;
     @FXML private ComboBox<String> semesterComboBox;
     @FXML private Label semesterError;
     @FXML private TextField academicYearField;
@@ -61,7 +59,16 @@ public class GradeFormController implements Initializable {
         setupCourseCombo();
         subjectField.textProperty().addListener((o, ov, nv) -> clearError(subjectField, subjectError));
         scoreField.textProperty().addListener((o, ov, nv) -> clearError(scoreField, scoreError));
-        maxScoreField.textProperty().addListener((o, ov, nv) -> clearError(maxScoreField, maxScoreError));
+        
+        // Automation: Subject follows Course
+        courseComboBox.valueProperty().addListener((o, ov, nv) -> {
+            if (nv != null && nv.getId() != 0) {
+                subjectField.setText(nv.getTitle());
+            }
+        });
+
+        // Current Year Default
+        academicYearField.setText("2024-2025");
     }
 
     private void setupStudentCombo() {
@@ -108,12 +115,17 @@ public class GradeFormController implements Initializable {
     public void setEditMode(Grade grade) {
         titleLabel.setText("Modifier la Note");
         gradeToEdit = grade;
-        subjectField.setText(grade.getSubject() != null ? grade.getSubject() : "");
-        scoreField.setText(String.valueOf(grade.getScore()));
-        maxScoreField.setText(String.valueOf(grade.getMaxScore()));
+        // The subject is derived from the course or a map in real use
+        // For now, if we don't have it in Grade model, we can try to find it in courseComboBox
+        courseComboBox.getItems().stream()
+            .filter(c -> c.getId() == grade.getCourseId())
+            .findFirst().ifPresent(c -> {
+                courseComboBox.setValue(c);
+                subjectField.setText(c.getTitle());
+            });
+        scoreField.setText(String.valueOf(grade.getNote()));
         semesterComboBox.setValue(grade.getSemester() != null ? grade.getSemester() : "S1");
         academicYearField.setText(grade.getAcademicYear() != null ? grade.getAcademicYear() : "");
-        commentArea.setText(grade.getComment() != null ? grade.getComment() : "");
         studentComboBox.getItems().stream()
             .filter(u -> u.getId() == grade.getStudentId())
             .findFirst().ifPresent(studentComboBox::setValue);
@@ -150,18 +162,11 @@ public class GradeFormController implements Initializable {
         if (subjectField.getText().trim().isEmpty()) {
             showFieldError(subjectField, subjectError, "Matière obligatoire."); valid = false;
         }
-        double scoreVal = 0, maxVal = 0;
+        double scoreVal = 0;
         String scoreText = scoreField.getText().trim();
         if (scoreText.isEmpty()) {
             showFieldError(scoreField, scoreError, "Note obligatoire."); valid = false;
         } else { try { scoreVal = Double.parseDouble(scoreText); if (scoreVal < 0) { showFieldError(scoreField, scoreError, "Note doit être ≥ 0."); valid = false; } } catch (NumberFormatException ex) { showFieldError(scoreField, scoreError, "Nombre invalide."); valid = false; } }
-        String maxText = maxScoreField.getText().trim();
-        if (maxText.isEmpty()) {
-            showFieldError(maxScoreField, maxScoreError, "Note max obligatoire."); valid = false;
-        } else { try { maxVal = Double.parseDouble(maxText); if (maxVal <= 0) { showFieldError(maxScoreField, maxScoreError, "Note max doit être > 0."); valid = false; } } catch (NumberFormatException ex) { showFieldError(maxScoreField, maxScoreError, "Nombre invalide."); valid = false; } }
-        if (valid && scoreVal > maxVal) {
-            showFieldError(scoreField, scoreError, "Note > note maximale !"); valid = false;
-        }
         if (semesterComboBox.getValue() == null) {
             semesterError.setText("Semestre obligatoire."); semesterError.setVisible(true); semesterError.setManaged(true); valid = false;
         }
@@ -174,12 +179,12 @@ public class GradeFormController implements Initializable {
         if (student != null) g.setStudentId(student.getId());
         Course course = courseComboBox.getValue();
         g.setCourseId(course != null && course.getId() != 0 ? course.getId() : 0);
-        g.setSubject(subjectField.getText().trim());
-        g.setScore(Double.parseDouble(scoreField.getText().trim()));
-        g.setMaxScore(Double.parseDouble(maxScoreField.getText().trim()));
+        g.setModuleId(course != null ? course.getModuleId() : null);
+        g.setNote(Double.parseDouble(scoreField.getText().trim()));
         g.setSemester(semesterComboBox.getValue());
         g.setAcademicYear(academicYearField.getText().trim());
-        g.setComment(commentArea.getText().trim());
+        g.setCoefficient(1.0); // Default coefficient
+        g.setSession("Principale"); // Default session
         return g;
     }
 

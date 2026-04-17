@@ -16,6 +16,8 @@ import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -25,7 +27,6 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -40,11 +41,11 @@ public class GradeManagementController implements Initializable {
     @FXML private TableColumn<Grade, String> studentColumn;
     @FXML private TableColumn<Grade, String> subjectColumn;
     @FXML private TableColumn<Grade, Double> scoreColumn;
-    @FXML private TableColumn<Grade, Double> maxScoreColumn;
-    @FXML private TableColumn<Grade, String> percentageColumn;
     @FXML private TableColumn<Grade, String> semesterColumn;
     @FXML private TableColumn<Grade, String> courseColumn;
+    
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> semesterFilter;
     @FXML private Label messageLabel;
 
     private final GradeService gradeService = new GradeServiceImpl(new JdbcGradeDao());
@@ -52,13 +53,26 @@ public class GradeManagementController implements Initializable {
     private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
 
     private final ObservableList<Grade> gradeList = FXCollections.observableArrayList();
+    private FilteredList<Grade> filteredGrades;
     private Map<Integer, String> studentNames = new HashMap<>();
     private Map<Integer, String> courseTitles = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
+        setupFilters();
         loadData();
+    }
+
+    private void setupFilters() {
+        if (semesterFilter != null) {
+            semesterFilter.setItems(FXCollections.observableArrayList("Tous", "S1", "S2", "S3", "S4"));
+            semesterFilter.setValue("Tous");
+            semesterFilter.setOnAction(e -> applyFilters());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
     }
 
     private void setupTable() {
@@ -67,20 +81,23 @@ public class GradeManagementController implements Initializable {
             String name = studentNames.getOrDefault(cd.getValue().getStudentId(), "#" + cd.getValue().getStudentId());
             return new SimpleStringProperty(name);
         });
-        if (subjectColumn != null) subjectColumn.setCellValueFactory(new PropertyValueFactory<>("subject"));
-        if (scoreColumn != null) scoreColumn.setCellValueFactory(new PropertyValueFactory<>("score"));
-        if (maxScoreColumn != null) maxScoreColumn.setCellValueFactory(new PropertyValueFactory<>("maxScore"));
-        if (percentageColumn != null) percentageColumn.setCellValueFactory(cd -> {
-            double pct = cd.getValue().getPercentage();
-            return new SimpleStringProperty(String.format("%.1f%%", pct));
+        if (subjectColumn != null) subjectColumn.setCellValueFactory(cd -> {
+            int cid = cd.getValue().getCourseId();
+            String title = cid > 0 ? courseTitles.getOrDefault(cid, "#" + cid) : "-";
+            return new SimpleStringProperty(title);
         });
+        if (scoreColumn != null) scoreColumn.setCellValueFactory(new PropertyValueFactory<>("note"));
         if (semesterColumn != null) semesterColumn.setCellValueFactory(new PropertyValueFactory<>("semester"));
         if (courseColumn != null) courseColumn.setCellValueFactory(cd -> {
             int cid = cd.getValue().getCourseId();
             String title = cid > 0 ? courseTitles.getOrDefault(cid, "#" + cid) : "-";
             return new SimpleStringProperty(title);
         });
-        if (gradesTable != null) gradesTable.setItems(gradeList);
+        
+        filteredGrades = new FilteredList<>(gradeList, p -> true);
+        SortedList<Grade> sortedGrades = new SortedList<>(filteredGrades);
+        sortedGrades.comparatorProperty().bind(gradesTable.comparatorProperty());
+        gradesTable.setItems(sortedGrades);
     }
 
     private void loadData() {
@@ -91,10 +108,27 @@ public class GradeManagementController implements Initializable {
             courseTitles = courseService.getAllCourses().stream()
                     .collect(Collectors.toMap(Course::getId, Course::getTitle, (a, b) -> a));
             gradeList.setAll(gradeService.getAllGrades());
-            if (gradesTable != null) gradesTable.refresh();
         } catch (Exception ex) {
             showMessage("Erreur chargement : " + rootCause(ex), true);
         }
+    }
+
+    private void applyFilters() {
+        if (filteredGrades == null) return;
+        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String sem = semesterFilter != null ? semesterFilter.getValue() : "Tous";
+
+        filteredGrades.setPredicate(g -> {
+            String subName = courseTitles.getOrDefault(g.getCourseId(), "");
+            boolean matchesSearch = query.isEmpty() ||
+                subName.toLowerCase().contains(query) ||
+                studentNames.getOrDefault(g.getStudentId(), "").toLowerCase().contains(query);
+
+            boolean matchesSem = sem == null || sem.equals("Tous") ||
+                (g.getSemester() != null && g.getSemester().equalsIgnoreCase(sem));
+
+            return matchesSearch && matchesSem;
+        });
     }
 
     @FXML
@@ -121,8 +155,9 @@ public class GradeManagementController implements Initializable {
     private void handleDelete(ActionEvent e) {
         Grade selected = gradesTable.getSelectionModel().getSelectedItem();
         if (selected == null) { showMessage("Sélectionnez une note à supprimer.", true); return; }
+        String subName = courseTitles.getOrDefault(selected.getCourseId(), "cette note");
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer la note de \"" + selected.getSubject() + "\" ?",
+                "Supprimer la note de \"" + subName + "\" ?",
                 ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmation de suppression");
         confirm.showAndWait().ifPresent(r -> {
@@ -135,19 +170,6 @@ public class GradeManagementController implements Initializable {
                 } catch (Exception ex) { showMessage("Erreur : " + rootCause(ex), true); }
             }
         });
-    }
-
-    @FXML
-    private void handleSearch(ActionEvent e) {
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (query.isEmpty()) { loadData(); return; }
-        List<Grade> filtered = gradeService.getAllGrades().stream()
-                .filter(g -> (g.getSubject() != null && g.getSubject().toLowerCase().contains(query))
-                        || studentNames.getOrDefault(g.getStudentId(), "").toLowerCase().contains(query)
-                        || (g.getSemester() != null && g.getSemester().toLowerCase().contains(query)))
-                .collect(Collectors.toList());
-        gradeList.setAll(filtered);
-        if (gradesTable != null) gradesTable.refresh();
     }
 
     private void showMessage(String msg, boolean isError) {
@@ -164,6 +186,7 @@ public class GradeManagementController implements Initializable {
     }
 
     // ── Navigation ────────────────────────────────────────────────────────
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleDashboard(ActionEvent e)        { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e)    { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e)    { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }

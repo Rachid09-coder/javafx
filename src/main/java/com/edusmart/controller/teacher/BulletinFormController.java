@@ -68,6 +68,32 @@ public class BulletinFormController implements Initializable {
             updateMentionPreview(nv);
         });
         academicYearField.textProperty().addListener((o, ov, nv) -> clearError(academicYearField, yearError));
+        
+        // Listeners for auto-calculation
+        studentComboBox.valueProperty().addListener((o, ov, nv) -> autoCalculateAverageAndRank());
+        semesterComboBox.valueProperty().addListener((o, ov, nv) -> autoCalculateAverageAndRank());
+
+        // Current Year Default
+        academicYearField.setText("2024-2025");
+    }
+
+    private void autoCalculateAverageAndRank() {
+        User student = studentComboBox.getValue();
+        String semester = semesterComboBox.getValue();
+        
+        if (student != null && semester != null) {
+            Double avg = bulletinService.calculateStudentAverage(student.getId(), semester);
+            if (avg != null) {
+                averageField.setText(String.format("%.2f", avg).replace(",", "."));
+                Integer rank = bulletinService.calculateStudentRank(student.getId(), semester, avg);
+                if (rank != null) {
+                    classRankField.setText(String.valueOf(rank));
+                }
+            } else {
+                averageField.setText("");
+                classRankField.setText("");
+            }
+        }
     }
 
     private void setupStudentCombo() {

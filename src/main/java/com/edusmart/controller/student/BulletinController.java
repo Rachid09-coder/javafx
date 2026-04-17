@@ -61,11 +61,8 @@ public class BulletinController implements Initializable {
     }
 
     private void setupTable() {
-        if (subjectColumn != null) subjectColumn.setCellValueFactory(new PropertyValueFactory<>("subject"));
-        if (scoreColumn != null) scoreColumn.setCellValueFactory(new PropertyValueFactory<>("score"));
-        if (maxScoreColumn != null) maxScoreColumn.setCellValueFactory(new PropertyValueFactory<>("maxScore"));
+        if (scoreColumn != null) scoreColumn.setCellValueFactory(new PropertyValueFactory<>("note"));
         if (semesterColumn != null) semesterColumn.setCellValueFactory(new PropertyValueFactory<>("semester"));
-        if (commentColumn != null) commentColumn.setCellValueFactory(new PropertyValueFactory<>("comment"));
         if (gradesTable != null) gradesTable.setItems(gradeList);
     }
 
@@ -101,10 +98,8 @@ public class BulletinController implements Initializable {
             updateStatistics();
         } else {
             // Demo data if none found
-            Grade g1 = new Grade(1, sId, 1, "Mathématiques", 16.5, 20.0, "Semestre 1");
-            Grade g2 = new Grade(2, sId, 2, "Informatique", 18.0, 20.0, "Semestre 1");
-            g1.setComment("Très bien");
-            g2.setComment("Excellent");
+            Grade g1 = new Grade(1, sId, 1, 16.5, "Semestre 1", "2024-2025");
+            Grade g2 = new Grade(2, sId, 2, 18.0, "Semestre 1", "2024-2025");
             gradeList.setAll(g1, g2);
         }
     }
@@ -114,7 +109,7 @@ public class BulletinController implements Initializable {
             averageLabel.setText(String.format("Moyenne: %.2f/20", currentBulletin.getAverage()));
             rankLabel.setText("Rang: " + (currentBulletin.getClassRank() != null ? currentBulletin.getClassRank() : "N/A"));
         } else if (averageLabel != null) {
-            double avg = gradeList.stream().mapToDouble(Grade::getScore).average().orElse(0);
+            double avg = gradeList.stream().mapToDouble(Grade::getNote).average().orElse(0);
             averageLabel.setText(String.format("Moyenne: %.2f/20", avg));
             rankLabel.setText("Rang: 3/35");
         }

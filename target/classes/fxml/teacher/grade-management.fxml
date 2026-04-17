@@ -38,8 +38,8 @@
             <!-- Header -->
             <HBox alignment="CENTER_LEFT" spacing="12">
                 <Label text="📊 Gestion des Notes" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"
-                           onAction="#handleSearch"/>
+                <ComboBox fx:id="semesterFilter" promptText="Semestre" styleClass="combo-box" prefWidth="120"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"/>
                 <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
                 <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
                 <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
@@ -53,8 +53,7 @@
                     <TableColumn fx:id="studentColumn" text="Étudiant" prefWidth="160"/>
                     <TableColumn fx:id="subjectColumn" text="Matière" prefWidth="140"/>
                     <TableColumn fx:id="scoreColumn" text="Note" prefWidth="80"/>
-                    <TableColumn fx:id="maxScoreColumn" text="Note Max" prefWidth="90"/>
-                    <TableColumn fx:id="percentageColumn" text="%" prefWidth="70"/>
+                    <TableColumn fx:id="scoreColumn" text="Note" prefWidth="80"/>
                     <TableColumn fx:id="semesterColumn" text="Semestre" prefWidth="90"/>
                     <TableColumn fx:id="courseColumn" text="Cours" prefWidth="140"/>
                 </columns>

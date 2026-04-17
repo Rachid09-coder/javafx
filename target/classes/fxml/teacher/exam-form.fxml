@@ -42,7 +42,7 @@
             <TextField fx:id="coefficientField" promptText="Ex: 2.0" styleClass="text-field"/>
             <Label fx:id="coefficientError" styleClass="error-label" visible="false" managed="false"/>
         </VBox>
-        <VBox spacing="4" HBox.hgrow="ALWAYS">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" visible="false" managed="false">
             <Label text="Année académique" styleClass="form-label"/>
             <TextField fx:id="academicYearField" promptText="Ex: 2024-2025" styleClass="text-field"/>
         </VBox>

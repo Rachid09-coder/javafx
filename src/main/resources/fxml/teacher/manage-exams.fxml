@@ -37,7 +37,8 @@
         <VBox styleClass="content-area" spacing="16">
             <HBox alignment="CENTER_LEFT" spacing="12">
                 <Label text="📝 Gérer les Examens" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                <ComboBox fx:id="typeFilter" promptText="Type" styleClass="combo-box" prefWidth="120"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"/>
                 <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
                 <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
                 <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>

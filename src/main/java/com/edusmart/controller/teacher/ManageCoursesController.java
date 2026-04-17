@@ -12,6 +12,8 @@ import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -23,7 +25,6 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -43,12 +44,14 @@ public class ManageCoursesController implements Initializable {
     @FXML private TableColumn<Course, String> createdAtColumn;
 
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> statusFilter;
     @FXML private Label messageLabel;
 
     private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
     private final ModuleService moduleService = new ModuleServiceImpl(new JdbcModuleDao());
 
     private final ObservableList<Course> courseList = FXCollections.observableArrayList();
+    private FilteredList<Course> filteredCourses;
     private Map<Integer, String> moduleTitles = new HashMap<>();
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -56,7 +59,19 @@ public class ManageCoursesController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
+        setupFilters();
         loadData();
+    }
+
+    private void setupFilters() {
+        if (statusFilter != null) {
+            statusFilter.setItems(FXCollections.observableArrayList("Tous", "DRAFT", "PUBLISHED", "ARCHIVED"));
+            statusFilter.setValue("Tous");
+            statusFilter.setOnAction(e -> applyFilters());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
     }
 
     private void setupTable() {
@@ -80,7 +95,11 @@ public class ManageCoursesController implements Initializable {
                 return new SimpleStringProperty(cd != null ? cd.format(FORMATTER) : "");
             });
         }
-        if (coursesTable != null) coursesTable.setItems(courseList);
+        
+        filteredCourses = new FilteredList<>(courseList, p -> true);
+        SortedList<Course> sortedCourses = new SortedList<>(filteredCourses);
+        sortedCourses.comparatorProperty().bind(coursesTable.comparatorProperty());
+        coursesTable.setItems(sortedCourses);
     }
 
     private void loadData() {
@@ -90,10 +109,26 @@ public class ManageCoursesController implements Initializable {
                     .collect(Collectors.toMap(Module::getId, Module::getTitle, (a, b) -> a));
             
             courseList.setAll(courseService.getAllCourses());
-            if (coursesTable != null) coursesTable.refresh();
         } catch (Exception ex) {
             showMessage("Erreur de chargement: " + rootCause(ex), true);
         }
+    }
+
+    private void applyFilters() {
+        if (filteredCourses == null) return;
+        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String status = statusFilter != null ? statusFilter.getValue() : "Tous";
+
+        filteredCourses.setPredicate(c -> {
+            boolean matchesSearch = query.isEmpty() ||
+                (c.getTitle() != null && c.getTitle().toLowerCase().contains(query)) ||
+                (c.getDescription() != null && c.getDescription().toLowerCase().contains(query));
+
+            boolean matchesStatus = status == null || status.equals("Tous") ||
+                (c.getStatusValue() != null && c.getStatusValue().equalsIgnoreCase(status));
+
+            return matchesSearch && matchesStatus;
+        });
     }
 
     @FXML
@@ -147,21 +182,6 @@ public class ManageCoursesController implements Initializable {
         });
     }
 
-    @FXML
-    private void handleSearch(ActionEvent e) {
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (query.isEmpty()) {
-            loadData();
-            return;
-        }
-        List<Course> filtered = courseService.getAllCourses().stream()
-                .filter(c -> (c.getTitle() != null && c.getTitle().toLowerCase().contains(query))
-                          || (c.getDescription() != null && c.getDescription().toLowerCase().contains(query)))
-                .collect(Collectors.toList());
-        courseList.setAll(filtered);
-        if (coursesTable != null) coursesTable.refresh();
-    }
-
     private void showMessage(String msg, boolean isError) {
         if (messageLabel != null) {
             messageLabel.setText(msg);
@@ -176,6 +196,7 @@ public class ManageCoursesController implements Initializable {
     }
 
     // ── Navigation ────────────────────────────────────────────────────────
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
