@@ -10,6 +10,7 @@ public interface GradeService {
     List<Grade> getAllGrades();
     Optional<Grade> getGradeById(int id);
     List<Grade> getGradesByStudentId(int studentId);
+    List<Grade> getGradesByStudentAndSemester(int studentId, String semester);
     boolean updateGrade(Grade grade);
     boolean deleteGrade(int id);
 }

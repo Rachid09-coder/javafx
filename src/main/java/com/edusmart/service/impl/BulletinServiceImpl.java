@@ -1,7 +1,13 @@
 package com.edusmart.service.impl;
 
 import com.edusmart.dao.BulletinDao;
+import com.edusmart.dao.CourseDao;
+import com.edusmart.dao.GradeDao;
+import com.edusmart.dao.jdbc.JdbcCourseDao;
+import com.edusmart.dao.jdbc.JdbcGradeDao;
 import com.edusmart.model.Bulletin;
+import com.edusmart.model.Course;
+import com.edusmart.model.Grade;
 import com.edusmart.service.BulletinService;
 
 import java.time.LocalDateTime;
@@ -11,9 +17,19 @@ import java.util.Optional;
 public class BulletinServiceImpl implements BulletinService {
 
     private final BulletinDao bulletinDao;
+    private final GradeDao gradeDao;
+    private final CourseDao courseDao;
 
     public BulletinServiceImpl(BulletinDao bulletinDao) {
         this.bulletinDao = bulletinDao;
+        this.gradeDao = new JdbcGradeDao();
+        this.courseDao = new JdbcCourseDao();
+    }
+
+    public BulletinServiceImpl(BulletinDao bulletinDao, GradeDao gradeDao, CourseDao courseDao) {
+        this.bulletinDao = bulletinDao;
+        this.gradeDao = gradeDao;
+        this.courseDao = courseDao;
     }
 
     @Override
@@ -94,8 +110,39 @@ public class BulletinServiceImpl implements BulletinService {
             throw new IllegalArgumentException("L'étudiant est obligatoire.");
         }
         Double avg = bulletin.getAverage();
-        if (avg != null && (avg < 0 || avg > 20)) {
+        if (bulletin.getAverage() != null && (avg < 0 || avg > 20)) {
             throw new IllegalArgumentException("La moyenne doit être comprise entre 0 et 20.");
         }
+    }
+
+    @Override
+    public Double calculateStudentAverage(int studentId, String semester) {
+        List<Grade> grades = gradeDao.findByStudentId(studentId).stream()
+                .filter(g -> semester == null || semester.equalsIgnoreCase(g.getSemester()))
+                .toList();
+        
+        if (grades.isEmpty()) return null;
+
+        double totalWeightedScore = 0;
+        double totalCoefficients = 0;
+
+        for (Grade g : grades) {
+            double coeff = 1.0;
+            Optional<Course> course = courseDao.findById(g.getCourseId());
+            if (course.isPresent() && course.get().getCoefficient() != null) {
+                coeff = course.get().getCoefficient();
+            }
+            totalWeightedScore += g.getNote() * coeff;
+            totalCoefficients += coeff;
+        }
+
+        if (totalCoefficients == 0) return 0.0;
+        return totalWeightedScore / totalCoefficients;
+    }
+
+    @Override
+    public Integer calculateStudentRank(int studentId, String semester, Double average) {
+        if (average == null) return null;
+        return bulletinDao.findRankByAverage(semester, average);
     }
 }

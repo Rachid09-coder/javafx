@@ -98,6 +98,24 @@ public class JdbcBulletinDao implements BulletinDao {
         }
     }
 
+    @Override
+    public int findRankByAverage(String semester, double average) {
+        String sql = "SELECT COUNT(*) + 1 FROM bulletin WHERE semester = ? AND average > ?";
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, semester);
+            ps.setDouble(2, average);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to calculate rank", ex);
+        }
+        return 1;
+    }
+
     private Bulletin mapRow(ResultSet rs) throws SQLException {
         Bulletin b = new Bulletin();
         b.setId(rs.getInt("id"));

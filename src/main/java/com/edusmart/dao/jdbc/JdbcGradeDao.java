@@ -15,8 +15,8 @@ public class JdbcGradeDao implements GradeDao {
 
     @Override
     public boolean create(Grade grade) {
-        String sql = "INSERT INTO " + TABLE + " (student_id, course_id, subject, score, max_score, semester, academic_year, comment) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO " + TABLE + " (note, coefficient, session, academic_year, semester, created_at, student_id, module_id, course_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             fillStatement(ps, grade);
@@ -88,11 +88,18 @@ public class JdbcGradeDao implements GradeDao {
 
     @Override
     public boolean update(Grade grade) {
-        String sql = "UPDATE " + TABLE + " SET student_id = ?, course_id = ?, subject = ?, score = ?, "
-                + "max_score = ?, semester = ?, academic_year = ?, comment = ? WHERE id = ?";
+        String sql = "UPDATE " + TABLE + " SET note = ?, coefficient = ?, session = ?, academic_year = ?, "
+                + "semester = ?, student_id = ?, module_id = ?, course_id = ? WHERE id = ?";
         try (Connection conn = DbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            fillStatement(ps, grade);
+            ps.setDouble(1, grade.getNote());
+            ps.setDouble(2, grade.getCoefficient() != null ? grade.getCoefficient() : 1.0);
+            ps.setString(3, grade.getSession() != null ? grade.getSession() : "Principale");
+            ps.setString(4, grade.getAcademicYear());
+            ps.setString(5, grade.getSemester());
+            ps.setInt(6, grade.getStudentId());
+            ps.setObject(7, grade.getModuleId() != null ? grade.getModuleId() : 0);
+            ps.setInt(8, grade.getCourseId());
             ps.setInt(9, grade.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -113,27 +120,28 @@ public class JdbcGradeDao implements GradeDao {
     }
 
     private void fillStatement(PreparedStatement ps, Grade g) throws SQLException {
-        ps.setInt(1, g.getStudentId());
-        ps.setInt(2, g.getCourseId());
-        ps.setString(3, g.getSubject());
-        ps.setDouble(4, g.getScore());
-        ps.setDouble(5, g.getMaxScore());
-        ps.setString(6, g.getSemester());
-        ps.setString(7, g.getAcademicYear());
-        ps.setString(8, g.getComment());
+        ps.setDouble(1, g.getNote());
+        ps.setDouble(2, g.getCoefficient() != null ? g.getCoefficient() : 1.0);
+        ps.setString(3, g.getSession() != null ? g.getSession() : "Principale");
+        ps.setString(4, g.getAcademicYear());
+        ps.setString(5, g.getSemester());
+        ps.setTimestamp(6, new java.sql.Timestamp(System.currentTimeMillis()));
+        ps.setInt(7, g.getStudentId());
+        ps.setObject(8, g.getModuleId() != null ? g.getModuleId() : 0); // fallback to 0 to avoid field error
+        ps.setInt(9, g.getCourseId());
     }
 
     private Grade mapRow(ResultSet rs) throws SQLException {
         Grade g = new Grade();
         g.setId(rs.getInt("id"));
-        g.setStudentId(rs.getInt("student_id"));
-        g.setCourseId(rs.getInt("course_id"));
-        g.setSubject(rs.getString("subject"));
-        g.setScore(rs.getDouble("score"));
-        g.setMaxScore(rs.getDouble("max_score"));
-        g.setSemester(rs.getString("semester"));
+        g.setNote(rs.getDouble("note"));
+        g.setCoefficient(rs.getDouble("coefficient"));
+        g.setSession(rs.getString("session"));
         g.setAcademicYear(rs.getString("academic_year"));
-        g.setComment(rs.getString("comment"));
+        g.setSemester(rs.getString("semester"));
+        g.setStudentId(rs.getInt("student_id"));
+        g.setModuleId(rs.getObject("module_id") != null ? rs.getInt("module_id") : null);
+        g.setCourseId(rs.getInt("course_id"));
         return g;
     }
 }

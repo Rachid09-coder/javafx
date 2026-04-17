@@ -11,4 +11,5 @@ public interface BulletinDao {
     Optional<Bulletin> findById(int id);
     boolean update(Bulletin bulletin);
     boolean delete(int id);
+    int findRankByAverage(String semester, double average);
 }

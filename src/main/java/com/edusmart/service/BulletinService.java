@@ -11,4 +11,7 @@ public interface BulletinService {
     Optional<Bulletin> getBulletinById(int id);
     boolean updateBulletin(Bulletin bulletin);
     boolean deleteBulletin(int id);
+
+    Double calculateStudentAverage(int studentId, String semester);
+    Integer calculateStudentRank(int studentId, String semester, Double average);
 }

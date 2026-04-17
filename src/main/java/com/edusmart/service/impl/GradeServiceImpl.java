@@ -37,6 +37,14 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
+    public List<Grade> getGradesByStudentAndSemester(int studentId, String semester) {
+        if (semester == null) return getGradesByStudentId(studentId);
+        return gradeDao.findByStudentId(studentId).stream()
+                .filter(g -> semester.equalsIgnoreCase(g.getSemester()))
+                .toList();
+    }
+
+    @Override
     public boolean updateGrade(Grade grade) {
         validateGrade(grade);
         return gradeDao.update(grade);
@@ -51,17 +59,8 @@ public class GradeServiceImpl implements GradeService {
      * Logique métier : valide les données d'une note.
      */
     private void validateGrade(Grade grade) {
-        if (grade.getSubject() == null || grade.getSubject().trim().isEmpty()) {
-            throw new IllegalArgumentException("La matière est obligatoire.");
-        }
-        if (grade.getScore() < 0) {
+        if (grade.getNote() < 0) {
             throw new IllegalArgumentException("La note ne peut pas être négative.");
-        }
-        if (grade.getMaxScore() <= 0) {
-            throw new IllegalArgumentException("La note maximale doit être supérieure à 0.");
-        }
-        if (grade.getScore() > grade.getMaxScore()) {
-            throw new IllegalArgumentException("La note ne peut pas dépasser la note maximale.");
         }
         if (grade.getStudentId() <= 0) {
             throw new IllegalArgumentException("L'étudiant est obligatoire.");
