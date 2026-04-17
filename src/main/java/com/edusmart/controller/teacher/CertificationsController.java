@@ -13,6 +13,8 @@ import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,7 +28,6 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -47,12 +48,14 @@ public class CertificationsController implements Initializable {
     @FXML private TableColumn<Certification, String> uniqueNumberColumn;
 
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> statusFilter;
     @FXML private Label messageLabel;
 
     private final CertificationService certService = new CertificationServiceImpl(new JdbcCertificationDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
 
     private final ObservableList<Certification> certList = FXCollections.observableArrayList();
+    private FilteredList<Certification> filteredCerts;
     private Map<Integer, String> studentNames = new HashMap<>();
 
     private static final DateTimeFormatter FMT_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -61,7 +64,19 @@ public class CertificationsController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
+        setupFilters();
         loadData();
+    }
+
+    private void setupFilters() {
+        if (statusFilter != null) {
+            statusFilter.setItems(FXCollections.observableArrayList("Tous", "PENDING", "ISSUED", "EXPIRED", "REVOKED"));
+            statusFilter.setValue("Tous");
+            statusFilter.setOnAction(e -> applyFilters());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
     }
 
     private void setupTable() {
@@ -88,7 +103,10 @@ public class CertificationsController implements Initializable {
         }
         if (uniqueNumberColumn != null) uniqueNumberColumn.setCellValueFactory(new PropertyValueFactory<>("uniqueNumber"));
 
-        if (certificationsTable != null) certificationsTable.setItems(certList);
+        filteredCerts = new FilteredList<>(certList, p -> true);
+        SortedList<Certification> sortedCerts = new SortedList<>(filteredCerts);
+        sortedCerts.comparatorProperty().bind(certificationsTable.comparatorProperty());
+        certificationsTable.setItems(sortedCerts);
     }
 
     private void loadData() {
@@ -96,8 +114,25 @@ public class CertificationsController implements Initializable {
             studentNames = userService.getAllUsers().stream()
                 .collect(Collectors.toMap(User::getId, User::getFullName, (a,b)->a));
             certList.setAll(certService.getAllCertifications());
-            if (certificationsTable != null) certificationsTable.refresh();
         } catch (Exception ex) { showMessage("Erreur chargement: " + rootCause(ex), true); }
+    }
+
+    private void applyFilters() {
+        if (filteredCerts == null) return;
+        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String status = statusFilter != null ? statusFilter.getValue() : "Tous";
+
+        filteredCerts.setPredicate(c -> {
+            boolean matchesSearch = query.isEmpty() ||
+                (c.getUniqueNumber() != null && c.getUniqueNumber().toLowerCase().contains(query)) ||
+                (c.getCertificationType() != null && c.getCertificationType().toLowerCase().contains(query)) ||
+                studentNames.getOrDefault(c.getStudentId(), "").toLowerCase().contains(query);
+
+            boolean matchesStatus = status == null || status.equals("Tous") ||
+                (c.getStatus() != null && c.getStatus().equalsIgnoreCase(status));
+
+            return matchesSearch && matchesStatus;
+        });
     }
 
     @FXML
@@ -144,7 +179,6 @@ public class CertificationsController implements Initializable {
         conf.showAndWait().ifPresent(res -> {
             if (res == ButtonType.YES) {
                 try {
-                    // Fix: Method requires two arguments: id and reason
                     if (certService.revokeCertification(sel.getId(), "Révoquée par enseignant")) {
                         loadData(); showMessage("Certification révoquée !", false);
                     } else showMessage("Échec révocation.", true);
@@ -156,7 +190,7 @@ public class CertificationsController implements Initializable {
     @FXML
     private void handleDownloadPdf(ActionEvent e) {
         Certification sel = certificationsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez une certification.", true); return; }
+        if (sel == null) { showMessage("Sélectionnez un certification.", true); return; }
         try {
             Optional<User> studentOpt = userService.getAllUsers().stream()
                     .filter(u -> u.getId() == sel.getStudentId())
@@ -171,18 +205,6 @@ public class CertificationsController implements Initializable {
         } catch (Exception ex) { showMessage("Erreur PDF: " + rootCause(ex), true); }
     }
 
-    @FXML
-    private void handleSearch(ActionEvent e) {
-        String q = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (q.isEmpty()) { loadData(); return; }
-        List<Certification> filtered = certService.getAllCertifications().stream()
-                .filter(c -> (c.getUniqueNumber() != null && c.getUniqueNumber().toLowerCase().contains(q))
-                          || (c.getCertificationType() != null && c.getCertificationType().toLowerCase().contains(q))
-                          || studentNames.getOrDefault(c.getStudentId(), "").toLowerCase().contains(q))
-                .collect(Collectors.toList());
-        certList.setAll(filtered);
-    }
-
     private void showMessage(String msg, boolean isErr) {
         if (messageLabel != null) {
             messageLabel.setText(msg);
@@ -192,6 +214,7 @@ public class CertificationsController implements Initializable {
     }
     private String rootCause(Throwable t) { while(t.getCause()!=null) t=t.getCause(); return t.getMessage(); }
 
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }

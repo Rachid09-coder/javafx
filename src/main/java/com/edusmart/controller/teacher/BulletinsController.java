@@ -18,13 +18,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -46,18 +47,38 @@ public class BulletinsController implements Initializable {
     @FXML private TableColumn<Bulletin, Integer> rankColumn;
 
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> semesterFilter;
+    @FXML private ComboBox<String> statusFilter;
     @FXML private Label messageLabel;
 
     private final BulletinService bulletinService = new BulletinServiceImpl(new JdbcBulletinDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
 
     private final ObservableList<Bulletin> bulletinList = FXCollections.observableArrayList();
+    private FilteredList<Bulletin> filteredBulletins;
     private Map<Integer, String> studentNames = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
+        setupFilters();
         loadData();
+    }
+
+    private void setupFilters() {
+        if (semesterFilter != null) {
+            semesterFilter.setItems(FXCollections.observableArrayList("Tous", "1", "2", "3", "4"));
+            semesterFilter.setValue("Tous");
+            semesterFilter.setOnAction(e -> applyFilters());
+        }
+        if (statusFilter != null) {
+            statusFilter.setItems(FXCollections.observableArrayList("Tous", "DRAFT", "PUBLISHED", "ARCHIVED"));
+            statusFilter.setValue("Tous");
+            statusFilter.setOnAction(e -> applyFilters());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
     }
 
     private void setupTable() {
@@ -75,7 +96,10 @@ public class BulletinsController implements Initializable {
         if (mentionColumn != null) mentionColumn.setCellValueFactory(new PropertyValueFactory<>("mention"));
         if (rankColumn != null) rankColumn.setCellValueFactory(new PropertyValueFactory<>("classRank"));
 
-        if (bulletinsTable != null) bulletinsTable.setItems(bulletinList);
+        filteredBulletins = new FilteredList<>(bulletinList, p -> true);
+        SortedList<Bulletin> sortedBulletins = new SortedList<>(filteredBulletins);
+        sortedBulletins.comparatorProperty().bind(bulletinsTable.comparatorProperty());
+        bulletinsTable.setItems(sortedBulletins);
     }
 
     private void loadData() {
@@ -83,7 +107,7 @@ public class BulletinsController implements Initializable {
             studentNames = userService.getAllUsers().stream()
                 .collect(Collectors.toMap(User::getId, User::getFullName, (a, b) -> a));
             bulletinList.setAll(bulletinService.getAllBulletins());
-            if (bulletinsTable != null) bulletinsTable.refresh();
+            // Table updates automatically through FilteredList/SortedList
         } catch (Exception ex) {
             showMessage("Erreur chargement: " + rootCause(ex), true);
         }
@@ -144,15 +168,25 @@ public class BulletinsController implements Initializable {
         } catch (Exception ex) { showMessage("Erreur PDF: " + rootCause(ex), true); }
     }
 
-    @FXML
-    private void handleSearch(ActionEvent e) {
-        String q = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (q.isEmpty()) { loadData(); return; }
-        List<Bulletin> filtered = bulletinService.getAllBulletins().stream()
-            .filter(b -> studentNames.getOrDefault(b.getStudentId(), "").toLowerCase().contains(q)
-                      || (b.getAcademicYear() != null && b.getAcademicYear().toLowerCase().contains(q)))
-            .collect(Collectors.toList());
-        bulletinList.setAll(filtered);
+    private void applyFilters() {
+        if (filteredBulletins == null) return;
+        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String sem = semesterFilter != null ? semesterFilter.getValue() : "Tous";
+        String status = statusFilter != null ? statusFilter.getValue() : "Tous";
+
+        filteredBulletins.setPredicate(b -> {
+            boolean matchesSearch = query.isEmpty() ||
+                studentNames.getOrDefault(b.getStudentId(), "").toLowerCase().contains(query) ||
+                (b.getAcademicYear() != null && b.getAcademicYear().toLowerCase().contains(query));
+
+            boolean matchesSem = sem == null || sem.equals("Tous") ||
+                (b.getSemester() != null && b.getSemester().equals(sem));
+
+            boolean matchesStatus = status == null || status.equals("Tous") ||
+                (b.getStatus() != null && b.getStatus().equalsIgnoreCase(status));
+
+            return matchesSearch && matchesSem && matchesStatus;
+        });
     }
 
     private void showMessage(String msg, boolean isErr) {
@@ -164,6 +198,7 @@ public class BulletinsController implements Initializable {
     }
     private String rootCause(Throwable t) { while(t.getCause()!=null) t=t.getCause(); return t.getMessage(); }
 
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
