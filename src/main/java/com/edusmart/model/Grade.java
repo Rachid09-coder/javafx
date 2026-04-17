@@ -8,23 +8,22 @@ public class Grade {
     private int id;
     private int studentId;
     private int courseId;
-    private String subject;
-    private double score;
-    private double maxScore;
+    private double note;
+    private Double coefficient;
+    private String session; // e.g. "Principale"
     private String semester;
     private String academicYear;
-    private String comment;
+    private Integer moduleId;
 
     public Grade() {}
 
-    public Grade(int id, int studentId, int courseId, String subject, double score, double maxScore, String semester) {
+    public Grade(int id, int studentId, int courseId, double note, String semester, String academicYear) {
         this.id = id;
         this.studentId = studentId;
         this.courseId = courseId;
-        this.subject = subject;
-        this.score = score;
-        this.maxScore = maxScore;
+        this.note = note;
         this.semester = semester;
+        this.academicYear = academicYear;
     }
 
     // Getters & setters
@@ -37,14 +36,14 @@ public class Grade {
     public int getCourseId() { return courseId; }
     public void setCourseId(int courseId) { this.courseId = courseId; }
 
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
+    public double getNote() { return note; }
+    public void setNote(double note) { this.note = note; }
 
-    public double getScore() { return score; }
-    public void setScore(double score) { this.score = score; }
+    public Double getCoefficient() { return coefficient; }
+    public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
 
-    public double getMaxScore() { return maxScore; }
-    public void setMaxScore(double maxScore) { this.maxScore = maxScore; }
+    public String getSession() { return session; }
+    public void setSession(String session) { this.session = session; }
 
     public String getSemester() { return semester; }
     public void setSemester(String semester) { this.semester = semester; }
@@ -52,16 +51,11 @@ public class Grade {
     public String getAcademicYear() { return academicYear; }
     public void setAcademicYear(String academicYear) { this.academicYear = academicYear; }
 
-    public String getComment() { return comment; }
-    public void setComment(String comment) { this.comment = comment; }
-
-    public double getPercentage() {
-        if (maxScore == 0) return 0;
-        return (score / maxScore) * 100;
-    }
+    public Integer getModuleId() { return moduleId; }
+    public void setModuleId(Integer moduleId) { this.moduleId = moduleId; }
 
     @Override
     public String toString() {
-        return "Grade{studentId=" + studentId + ", subject='" + subject + "', score=" + score + "/" + maxScore + "}";
+        return "Grade{id=" + id + ", studentId=" + studentId + ", note=" + note + "}";
     }
 }

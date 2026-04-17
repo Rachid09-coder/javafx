@@ -45,12 +45,35 @@ public class ExamFormController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         typeComboBox.setItems(FXCollections.observableArrayList(
-                "Examen Final", "Contrôle Continu", "TP", "Projet", "Devoir", "Rattrapage"));
+                "Examen Final", "DS", "CC", "Quiz", "TP", "Projet", "Devoir", "Rattrapage"));
         semesterComboBox.setItems(FXCollections.observableArrayList("1", "2", "3", "4"));
         semesterComboBox.setValue("1");
+        
+        typeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                switch (newVal) {
+                    case "Quiz":
+                        coefficientField.setText("0.05");
+                        break;
+                    case "CC":
+                        coefficientField.setText("0.15");
+                        break;
+                    case "DS":
+                        coefficientField.setText("0.30");
+                        break;
+                    case "Examen Final":
+                        coefficientField.setText("0.50");
+                        break;
+                }
+            }
+        });
+
         titleField.textProperty().addListener((o, ov, nv) -> clearError(titleField, titleError));
         durationField.textProperty().addListener((o, ov, nv) -> clearError(durationField, durationError));
         coefficientField.textProperty().addListener((o, ov, nv) -> clearError(coefficientField, coefficientError));
+        
+        // Current Year Default
+        academicYearField.setText("2024-2025");
     }
 
     public void setAddMode() { titleLabel.setText("Nouvel Examen"); examToEdit = null; }
