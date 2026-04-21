@@ -4,6 +4,7 @@ import com.edusmart.dao.jdbc.JdbcUserDao;
 import com.edusmart.model.User;
 import com.edusmart.service.UserService;
 import com.edusmart.service.impl.UserServiceImpl;
+import com.edusmart.util.ModernActionCell;
 import com.edusmart.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -11,8 +12,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -33,6 +36,7 @@ public class StudentManagementController implements Initializable {
     @FXML private TableColumn<User, String> phoneColumn;
     @FXML private TableColumn<User, String> roleColumn;
     @FXML private TableColumn<User, String> activeColumn;
+    @FXML private TableColumn<User, Void> actionsColumn;
 
     @FXML private TextField searchField;
     @FXML private Label messageLabel;
@@ -56,6 +60,17 @@ public class StudentManagementController implements Initializable {
         if (activeColumn != null) {
             activeColumn.setCellValueFactory(cd -> 
                 new SimpleStringProperty(cd.getValue().isActive() ? "Oui" : "Non")
+            );
+        }
+        // Use Modern Action Cell for edit/delete buttons
+        if (actionsColumn != null) {
+            actionsColumn.setCellFactory(col -> 
+                new ModernActionCell.Builder<User>()
+                    .onEdit(this::handleEditRow)
+                    .onDelete(this::handleDeleteRow)
+                    .editTooltip("Modifier l'utilisateur")
+                    .deleteTooltip("Supprimer l'utilisateur")
+                    .build()
             );
         }
         if (studentsTable != null) studentsTable.setItems(userList);
@@ -86,8 +101,16 @@ public class StudentManagementController implements Initializable {
             showMessage("Veuillez sélectionner un utilisateur à modifier.", true);
             return;
         }
+        editUser(selected);
+    }
+
+    private void handleEditRow(User user) {
+        editUser(user);
+    }
+
+    private void editUser(User user) {
         Stage owner = (Stage) studentsTable.getScene().getWindow();
-        if (StudentFormController.openDialog(owner, selected)) {
+        if (StudentFormController.openDialog(owner, user)) {
             loadData();
             showMessage("Utilisateur modifié avec succès !", false);
         }
@@ -100,15 +123,23 @@ public class StudentManagementController implements Initializable {
             showMessage("Veuillez sélectionner un utilisateur à supprimer.", true);
             return;
         }
+        confirmAndDelete(selected);
+    }
+
+    private void handleDeleteRow(User user) {
+        confirmAndDelete(user);
+    }
+
+    private void confirmAndDelete(User user) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer l'utilisateur \"" + selected.getFullName() + "\" ?",
+                "Supprimer l'utilisateur \"" + user.getFullName() + "\" ?",
                 ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmation de suppression");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    if (userService.deleteUser(selected.getId())) {
-                        userList.remove(selected);
+                    if (userService.deleteUser(user.getId())) {
+                        userList.remove(user);
                         showMessage("Utilisateur supprimé.", false);
                     } else showMessage("Suppression échouée.", true);
                 } catch (Exception ex) { showMessage("Erreur : " + rootCause(ex), true); }

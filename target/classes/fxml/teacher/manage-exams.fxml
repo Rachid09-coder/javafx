@@ -5,7 +5,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
             styleClass="main-container"
-            fx:controller="com.edusmart.controller.teacher.StudentManagementController">
+            fx:controller="com.edusmart.controller.teacher.ManageExamsController">
 
     <left>
         <VBox styleClass="sidebar">
@@ -18,13 +18,13 @@
                 <Button text="🏠  Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
                 <Button text="📚  Gérer les Cours" styleClass="nav-button" onAction="#handleManageCourses"/>
                 <Button text="📦  Gérer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
-                <Button text="📝  Gérer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button active" onAction="#handleManageExams"/>
                 <Button text="📊  Notes" styleClass="nav-button" onAction="#handleGradeManagement"/>
                 <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
                 <Button text="📋  Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
                 <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
-                <Button text="👥  Gestion des Élèves" styleClass="nav-button active" onAction="#handleStudentManagement"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">
                 <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
@@ -36,26 +36,29 @@
     <center>
         <VBox styleClass="content-area" spacing="16">
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="👥 Gestion des Utilisateurs" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                <Label text="📝 Gérer les Examens" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="typeFilter" promptText="Type" styleClass="combo-box" prefWidth="120"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"/>
                 <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
+                <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
+                <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
             </HBox>
 
             <Label fx:id="messageLabel" visible="false" wrapText="true"/>
 
-            <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+            <TableView fx:id="examsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                 <columns>
-                    <TableColumn fx:id="idColumn"        text="ID"       prefWidth="55"/>
-                    <TableColumn fx:id="firstNameColumn" text="Prénom"   prefWidth="130"/>
-                    <TableColumn fx:id="lastNameColumn"  text="Nom"      prefWidth="130"/>
-                    <TableColumn fx:id="emailColumn"     text="Email"    prefWidth="200"/>
-                    <TableColumn fx:id="phoneColumn"     text="Téléphone" prefWidth="120"/>
-                    <TableColumn fx:id="roleColumn"      text="Rôle"     prefWidth="100"/>
-                    <TableColumn fx:id="activeColumn"    text="Actif"    prefWidth="70"/>
-                    <TableColumn fx:id="actionsColumn"   text="Actions"  prefWidth="120"/>
+                    <TableColumn fx:id="idColumn"       text="ID"          prefWidth="55"/>
+                    <TableColumn fx:id="titleColumn"    text="Titre"       prefWidth="180"/>
+                    <TableColumn fx:id="typeColumn"     text="Type"        prefWidth="130"/>
+                    <TableColumn fx:id="moduleColumn"   text="Module"      prefWidth="140"/>
+                    <TableColumn fx:id="durationColumn" text="Durée (min)" prefWidth="100"/>
+                    <TableColumn fx:id="coeffColumn"    text="Coefficient" prefWidth="100"/>
+                    <TableColumn fx:id="yearColumn"     text="Année"       prefWidth="100"/>
+                    <TableColumn fx:id="semesterColumn" text="Semestre"    prefWidth="90"/>
                 </columns>
                 <placeholder>
-                    <Label text="Aucun utilisateur enregistré" style="-fx-text-fill: #94A3B8;"/>
+                    <Label text="Aucun examen enregistré" style="-fx-text-fill: #94A3B8;"/>
                 </placeholder>
             </TableView>
         </VBox>
