@@ -145,10 +145,18 @@ public class CertificationFormController implements Initializable {
                         cert.setPdfPath(pdf.getAbsolutePath());
                         certService.updateCertification(cert); // Update with PDF path
 
+                        String issuedDate  = cert.getIssuedAt()  != null ? cert.getIssuedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))  : "N/A";
+                        String validUntil  = cert.getValidUntil() != null ? cert.getValidUntil().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A";
+                        String htmlBody = MailSender.buildCertificationEmailBody(
+                            student.getFullName(),
+                            cert.getCertificationType(),
+                            issuedDate,
+                            validUntil,
+                            cert.getUniqueNumber() != null ? cert.getUniqueNumber() : String.valueOf(cert.getId()));
                         MailSender.sendEmailWithAttachment(
                             student.getEmail(),
-                            "Votre Certification EduSmart",
-                            "Félicitations " + student.getFullName() + ",\n\nVous trouverez ci-joint votre certificat.",
+                            "Votre Certification EduSmart — " + cert.getCertificationType(),
+                            htmlBody,
                             pdf
                         );
                     }

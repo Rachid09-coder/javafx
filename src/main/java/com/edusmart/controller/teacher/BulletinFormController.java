@@ -174,10 +174,17 @@ public class BulletinFormController implements Initializable {
                         b.setPdfPath(pdf.getAbsolutePath());
                         bulletinService.updateBulletin(b); // Update with PDF path
 
+                        String htmlBody = MailSender.buildBulletinEmailBody(
+                            student.getFullName(),
+                            b.getAcademicYear(),
+                            b.getSemester(),
+                            b.getAverage() != null ? String.format("%.2f / 20", b.getAverage()) : "N/A",
+                            b.getMention() != null ? b.getMention() : "N/A",
+                            b.getClassRank() != null ? b.getClassRank() + "ème" : "N/A");
                         MailSender.sendEmailWithAttachment(
                             student.getEmail(),
-                            "Votre Bulletin de Notes EduSmart",
-                            "Bonjour " + student.getFullName() + ",\n\nVous trouverez ci-joint votre bulletin pour l'année " + b.getAcademicYear() + ".",
+                            "Votre Bulletin de Notes EduSmart — " + b.getAcademicYear(),
+                            htmlBody,
                             pdf
                         );
                     }
