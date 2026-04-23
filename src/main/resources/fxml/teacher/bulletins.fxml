@@ -23,6 +23,7 @@
                 <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
                 <Button text="📋  Bulletins" styleClass="nav-button active" onAction="#handleBulletins"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
+                <Button text="💼  Métiers" styleClass="nav-button" onAction="#handleMetierManagement"/>
                 <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
                 <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
                 <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
@@ -35,35 +36,49 @@
     </left>
 
     <center>
-        <VBox styleClass="content-area" spacing="16">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="📋 Bulletins de notes" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <ComboBox fx:id="semesterFilter" promptText="Semestre" styleClass="combo-box" prefWidth="120"/>
-                <ComboBox fx:id="statusFilter" promptText="Statut" styleClass="combo-box" prefWidth="100"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"/>
-                <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
-                <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
-                <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
-                <Button text="📄 PDF" styleClass="btn-secondary" onAction="#handleDownloadPdf" style="-fx-background-color:#6366F1; -fx-text-fill:white;"/>
+        <VBox styleClass="content-area" spacing="20">
+            <!-- Glassmorphism Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="card" style="-fx-padding: 15 25;">
+                <VBox spacing="2">
+                    <Label text="📋 Répertoire des Bulletins" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -edu-blue;"/>
+                    <Label text="Gérez les cycles académiques et la publication des résultats" style="-fx-text-fill: -edu-text-muted; -fx-font-size: 13px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="10">
+                    <Button text="🔄 Recalculer Rangs" onAction="#handleRecalculateRanks" styleClass="btn-secondary"/>
+                    <Button text="➕ Nouveau" onAction="#handleAdd" styleClass="btn-primary"/>
+                </HBox>
             </HBox>
 
-            <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+            <!-- Filters Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="card" style="-fx-padding: 12 20;">
+                <TextField fx:id="searchField" promptText="🔍 Rechercher un étudiant..." styleClass="search-bar" HBox.hgrow="ALWAYS" prefWidth="300"/>
+                <ComboBox fx:id="semesterFilter" promptText="Semestre" styleClass="combo-box" prefWidth="130"/>
+                <ComboBox fx:id="statusFilter" promptText="Statut" styleClass="combo-box" prefWidth="130"/>
+                <Button text="Filtrer" onAction="#applyFilters" styleClass="btn-primary"/>
+            </HBox>
 
-            <TableView fx:id="bulletinsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
-                <columns>
-                    <TableColumn fx:id="idColumn"      text="ID"        prefWidth="50"  />
-                    <TableColumn fx:id="studentColumn" text="Étudiant"  prefWidth="160" />
-                    <TableColumn fx:id="yearColumn"    text="Année"     prefWidth="100" />
-                    <TableColumn fx:id="semesterColumn" text="Semestre" prefWidth="80"  />
-                    <TableColumn fx:id="averageColumn" text="Moyenne"   prefWidth="80"  />
-                    <TableColumn fx:id="statusColumn"  text="Statut"    prefWidth="100" />
-                    <TableColumn fx:id="mentionColumn" text="Mention"   prefWidth="100" />
-                    <TableColumn fx:id="rankColumn"    text="Rang"      prefWidth="60"  />
-                </columns>
-                <placeholder>
-                    <Label text="Aucun bulletin trouvé" style="-fx-text-fill: #94A3B8;"/>
-                </placeholder>
-            </TableView>
+            <!-- Table Section -->
+            <VBox VBox.vgrow="ALWAYS" styleClass="card" style="-fx-padding: 0;">
+                <TableView fx:id="bulletinsTable" VBox.vgrow="ALWAYS" styleClass="table-view" style="-fx-background-radius: 12; -fx-border-radius: 12;">
+                    <columns>
+                        <TableColumn fx:id="studentColumn" text="ÉTUDIANT"  prefWidth="220" />
+                        <TableColumn fx:id="periodColumn"  text="CYCLE / SEM" prefWidth="140" />
+                        <TableColumn fx:id="averageColumn" text="MOYENNE"   prefWidth="80" />
+                        <TableColumn fx:id="rankColumn"    text="RANG"      prefWidth="60"  />
+                        <TableColumn fx:id="metierColumn"  text="MÉTIER"    prefWidth="130" />
+                        <TableColumn fx:id="statusColumn"  text="STATUT"    prefWidth="100" />
+                        <TableColumn fx:id="mentionColumn" text="MENTION"   prefWidth="120" />
+                        <TableColumn fx:id="actionsColumn" text="ACTIONS"    prefWidth="250" />
+                    </columns>
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="10">
+                            <Label text="📭 Aucun bulletin trouvé" style="-fx-font-size: 16px; -fx-text-fill: -edu-text-muted;"/>
+                            <Button text="Générer les bulletins pour ce semestre" onAction="#handleAdd" styleClass="btn-secondary"/>
+                        </VBox>
+                    </placeholder>
+                </TableView>
+            </VBox>
         </VBox>
     </center>
 </BorderPane>

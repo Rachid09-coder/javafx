@@ -102,17 +102,34 @@ public class AnalysisAIController implements Initializable {
         if (topStudentLabel != null) topStudentLabel.setText("Ahmed B. - 19.5/20");
     }
 
+    private final com.edusmart.service.GeminiAiService aiService = new com.edusmart.service.GeminiAiService();
+    private final com.edusmart.dao.jdbc.JdbcGradeDao gradeDao = new com.edusmart.dao.jdbc.JdbcGradeDao();
+    private final com.google.gson.Gson gson = new com.google.gson.Gson();
+
     /**
      * Loads AI-generated insights about student performance.
      */
     private void loadAIInsights() {
         if (aiInsightLabel != null) {
-            aiInsightLabel.setText(
-                "📊 Analyse IA: Les étudiants montrent une amélioration de 12% ce semestre.\n" +
-                "⚠️ 3 étudiants risquent d'échouer - intervention recommandée.\n" +
-                "✅ Le module 'Structures de Contrôle' obtient les meilleurs résultats.\n" +
-                "💡 Recommandation: Augmenter les exercices pratiques en Algorithmique."
-            );
+            aiInsightLabel.setText("🤖 L'IA réfléchit aux tendances de la classe...");
+            
+            javafx.concurrent.Task<String> task = new javafx.concurrent.Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    // Gather some real data for the AI
+                    java.util.List<com.edusmart.model.Grade> allGrades = gradeDao.findAll();
+                    String dataSummary = gson.toJson(allGrades);
+                    return aiService.analyzeClassTrends("Ma classe", dataSummary);
+                }
+            };
+
+            task.setOnSucceeded(e -> aiInsightLabel.setText(task.getValue()));
+            task.setOnFailed(e -> {
+                aiInsightLabel.setText("❌ Échec de la récupération des insights : " + task.getException().getMessage());
+                task.getException().printStackTrace();
+            });
+
+            new Thread(task).start();
         }
     }
 

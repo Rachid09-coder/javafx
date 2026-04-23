@@ -21,7 +21,7 @@ public class JdbcCertificationDao implements CertificationDao {
     private static final String TABLE = "`certification`";
 
     private static final String SELECT_BASE = "SELECT id, `type`, issued_at, verification_code, pdf_path, status, "
-            + "unique_number, valid_until, hmac_hash, revoked_at, revocation_reason, student_id, bulletin_id FROM "
+            + "unique_number, valid_until, hmac_hash, revoked_at, revocation_reason, student_id, bulletin_id, metier FROM "
             + TABLE + " ";
 
     @Override
@@ -78,8 +78,8 @@ public class JdbcCertificationDao implements CertificationDao {
     @Override
     public boolean create(Certification c) {
         String sql = "INSERT INTO " + TABLE + " (`type`, issued_at, verification_code, pdf_path, status, unique_number, "
-                + "valid_until, hmac_hash, revoked_at, revocation_reason, student_id, bulletin_id) "
-                + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "valid_until, hmac_hash, revoked_at, revocation_reason, student_id, bulletin_id, metier) "
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             fillInsert(ps, c);
@@ -102,11 +102,11 @@ public class JdbcCertificationDao implements CertificationDao {
     public boolean update(Certification c) {
         String sql = "UPDATE " + TABLE + " SET `type` = ?, issued_at = ?, verification_code = ?, pdf_path = ?, "
                 + "status = ?, unique_number = ?, valid_until = ?, hmac_hash = ?, revoked_at = ?, "
-                + "revocation_reason = ?, student_id = ?, bulletin_id = ? WHERE id = ?";
+                + "revocation_reason = ?, student_id = ?, bulletin_id = ?, metier = ? WHERE id = ?";
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             fillInsert(ps, c);
-            ps.setInt(13, c.getId());
+            ps.setInt(14, c.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update certification", ex);
@@ -181,6 +181,7 @@ public class JdbcCertificationDao implements CertificationDao {
         } else {
             ps.setNull(12, Types.INTEGER);
         }
+        ps.setString(13, c.getMetier());
     }
 
     private static Certification mapRow(ResultSet rs) throws SQLException {
@@ -206,6 +207,7 @@ public class JdbcCertificationDao implements CertificationDao {
         } else {
             c.setBulletinId(bid);
         }
+        c.setMetier(rs.getString("metier"));
         return c;
     }
 }

@@ -21,8 +21,8 @@ public class JdbcBulletinDao implements BulletinDao {
     public boolean create(Bulletin bulletin) {
         String sql = "INSERT INTO bulletin (academic_year, semester, average, status, mention, class_rank, hmac_hash, "
                 + "pdf_path, verification_code, validated_at, published_at, revoked_at, revocation_reason, "
-                + "created_at, updated_at, student_id, validated_by_id, published_by_id) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "created_at, updated_at, student_id, validated_by_id, published_by_id, metier) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -73,12 +73,12 @@ public class JdbcBulletinDao implements BulletinDao {
         String sql = "UPDATE bulletin SET academic_year = ?, semester = ?, average = ?, status = ?, mention = ?, "
                 + "class_rank = ?, hmac_hash = ?, pdf_path = ?, verification_code = ?, validated_at = ?, "
                 + "published_at = ?, revoked_at = ?, revocation_reason = ?, created_at = ?, updated_at = ?, "
-                + "student_id = ?, validated_by_id = ?, published_by_id = ? WHERE id = ?";
+                + "student_id = ?, validated_by_id = ?, published_by_id = ?, metier = ? WHERE id = ?";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             fillStatement(ps, bulletin);
-            ps.setInt(19, bulletin.getId());
+            ps.setInt(20, bulletin.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update bulletin", ex);
@@ -116,6 +116,31 @@ public class JdbcBulletinDao implements BulletinDao {
         return 1;
     }
 
+    public void recalculateAllRanks(String academicYear, String semester) {
+        String sql = "SELECT id, average FROM bulletin WHERE academic_year = ? AND semester = ? ORDER BY average DESC";
+        String updateSql = "UPDATE bulletin SET class_rank = ? WHERE id = ?";
+
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+            
+            ps.setString(1, academicYear);
+            ps.setString(2, semester);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                int rank = 1;
+                while (rs.next()) {
+                    updatePs.setInt(1, rank++);
+                    updatePs.setInt(2, rs.getInt("id"));
+                    updatePs.addBatch();
+                }
+                updatePs.executeBatch();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to recalculate ranks", ex);
+        }
+    }
+
     private Bulletin mapRow(ResultSet rs) throws SQLException {
         Bulletin b = new Bulletin();
         b.setId(rs.getInt("id"));
@@ -141,6 +166,7 @@ public class JdbcBulletinDao implements BulletinDao {
         b.setValidatedById(rs.wasNull() ? null : vBy);
         int pBy = rs.getInt("published_by_id");
         b.setPublishedById(rs.wasNull() ? null : pBy);
+        b.setMetier(rs.getString("metier"));
         return b;
     }
 
@@ -187,6 +213,7 @@ public class JdbcBulletinDao implements BulletinDao {
         } else {
             ps.setNull(18, Types.INTEGER);
         }
+        ps.setString(19, b.getMetier());
     }
 
     private static void setTimestamp(PreparedStatement ps, int idx, LocalDateTime dt) throws SQLException {

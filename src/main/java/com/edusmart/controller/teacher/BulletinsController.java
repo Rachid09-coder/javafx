@@ -20,7 +20,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+
+import java.time.LocalDateTime;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -37,19 +40,18 @@ import java.util.stream.Collectors;
 public class BulletinsController implements Initializable {
 
     @FXML private TableView<Bulletin> bulletinsTable;
-    @FXML private TableColumn<Bulletin, Integer> idColumn;
     @FXML private TableColumn<Bulletin, String> studentColumn;
-    @FXML private TableColumn<Bulletin, String> yearColumn;
-    @FXML private TableColumn<Bulletin, String> semesterColumn;
+    @FXML private TableColumn<Bulletin, String> periodColumn;
     @FXML private TableColumn<Bulletin, Double> averageColumn;
+    @FXML private TableColumn<Bulletin, Integer> rankColumn;
+    @FXML private TableColumn<Bulletin, String> metierColumn;
     @FXML private TableColumn<Bulletin, String> statusColumn;
     @FXML private TableColumn<Bulletin, String> mentionColumn;
-    @FXML private TableColumn<Bulletin, Integer> rankColumn;
+    @FXML private TableColumn<Bulletin, Void> actionsColumn;
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> semesterFilter;
     @FXML private ComboBox<String> statusFilter;
-    @FXML private Label messageLabel;
 
     private final BulletinService bulletinService = new BulletinServiceImpl(new JdbcBulletinDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
@@ -66,35 +68,33 @@ public class BulletinsController implements Initializable {
     }
 
     private void setupFilters() {
-        if (semesterFilter != null) {
-            semesterFilter.setItems(FXCollections.observableArrayList("Tous", "1", "2", "3", "4"));
-            semesterFilter.setValue("Tous");
-            semesterFilter.setOnAction(e -> applyFilters());
-        }
-        if (statusFilter != null) {
-            statusFilter.setItems(FXCollections.observableArrayList("Tous", "DRAFT", "PUBLISHED", "ARCHIVED"));
-            statusFilter.setValue("Tous");
-            statusFilter.setOnAction(e -> applyFilters());
-        }
-        if (searchField != null) {
-            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-        }
+        semesterFilter.setItems(FXCollections.observableArrayList("Tous", "1", "2"));
+        semesterFilter.setValue("Tous");
+        statusFilter.setItems(FXCollections.observableArrayList("Tous", "DRAFT", "VALIDATED", "PUBLISHED", "REVOKED"));
+        statusFilter.setValue("Tous");
+
+        searchField.textProperty().addListener((obs, old, nw) -> applyFilters());
+        semesterFilter.setOnAction(e -> applyFilters());
+        statusFilter.setOnAction(e -> applyFilters());
     }
 
     private void setupTable() {
-        if (idColumn != null) idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        if (studentColumn != null) {
-            studentColumn.setCellValueFactory(cd -> {
-                int sId = cd.getValue().getStudentId();
-                return new SimpleStringProperty(studentNames.getOrDefault(sId, "Étudiant #" + sId));
-            });
-        }
-        if (yearColumn != null) yearColumn.setCellValueFactory(new PropertyValueFactory<>("academicYear"));
-        if (semesterColumn != null) semesterColumn.setCellValueFactory(new PropertyValueFactory<>("semester"));
-        if (averageColumn != null) averageColumn.setCellValueFactory(new PropertyValueFactory<>("average"));
-        if (statusColumn != null) statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        if (mentionColumn != null) mentionColumn.setCellValueFactory(new PropertyValueFactory<>("mention"));
+        studentColumn.setCellValueFactory(cd -> {
+            int sId = cd.getValue().getStudentId();
+            return new SimpleStringProperty(studentNames.getOrDefault(sId, "Étudiant #" + sId));
+        });
+
+        periodColumn.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().getAcademicYear() + " - S" + cd.getValue().getSemester()
+        ));
+
+        averageColumn.setCellValueFactory(new PropertyValueFactory<>("average"));
         if (rankColumn != null) rankColumn.setCellValueFactory(new PropertyValueFactory<>("classRank"));
+        if (metierColumn != null) metierColumn.setCellValueFactory(new PropertyValueFactory<>("metier"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        mentionColumn.setCellValueFactory(new PropertyValueFactory<>("mention"));
+
+        setupActionsColumn();
 
         filteredBulletins = new FilteredList<>(bulletinList, p -> true);
         SortedList<Bulletin> sortedBulletins = new SortedList<>(filteredBulletins);
@@ -102,114 +102,147 @@ public class BulletinsController implements Initializable {
         bulletinsTable.setItems(sortedBulletins);
     }
 
+    private void setupActionsColumn() {
+        actionsColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button btnPdf = new Button("📄");
+            private final Button btnValidate = new Button("✅");
+            private final Button btnPublish = new Button("✉");
+            private final Button btnRevoke = new Button("❌");
+            private final HBox container = new HBox(5, btnPdf, btnValidate, btnPublish, btnRevoke);
+
+            {
+                container.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                btnPdf.getStyleClass().add("btn-action-edit");
+                btnValidate.getStyleClass().add("btn-action-edit");
+                btnPublish.getStyleClass().add("btn-action-edit");
+                btnRevoke.getStyleClass().add("btn-action-delete");
+
+                btnPdf.setTooltip(new Tooltip("Télécharger PDF"));
+                btnValidate.setTooltip(new Tooltip("Valider le bulletin"));
+                btnPublish.setTooltip(new Tooltip("Publier & Envoyer Email"));
+                btnRevoke.setTooltip(new Tooltip("Révoquer"));
+
+                btnPdf.setOnAction(e -> handleDownloadPdf(getTableView().getItems().get(getIndex())));
+                btnValidate.setOnAction(e -> handleValidate(getTableView().getItems().get(getIndex())));
+                btnPublish.setOnAction(e -> handlePublish(getTableView().getItems().get(getIndex())));
+                btnRevoke.setOnAction(e -> handleRevoke(getTableView().getItems().get(getIndex())));
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setGraphic(null);
+                else {
+                    Bulletin b = getTableView().getItems().get(getIndex());
+                    btnPublish.setDisable("PUBLISHED".equals(b.getStatus()));
+                    btnValidate.setDisable("VALIDATED".equals(b.getStatus()) || "PUBLISHED".equals(b.getStatus()));
+                    setGraphic(container);
+                }
+            }
+        });
+    }
+
     private void loadData() {
         try {
             studentNames = userService.getAllUsers().stream()
                 .collect(Collectors.toMap(User::getId, User::getFullName, (a, b) -> a));
             bulletinList.setAll(bulletinService.getAllBulletins());
-            // Table updates automatically through FilteredList/SortedList
         } catch (Exception ex) {
-            showMessage("Erreur chargement: " + rootCause(ex), true);
+            showAlert("Erreur", "Chargement impossible", ex.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    @FXML
+    private void handleRecalculateRanks(ActionEvent e) {
+        String year = "2023-2024"; // Should be picked from a selector ideally
+        String sem = semesterFilter.getValue().equals("Tous") ? "1" : semesterFilter.getValue();
+        bulletinService.recalculateRanks(year, sem);
+        loadData();
+        showAlert("Succès", "Calcul terminé", "Les rangs ont été recalculés pour le semestre " + sem, Alert.AlertType.INFORMATION);
+    }
+
+    private void handleValidate(Bulletin b) {
+        b.setStatus("VALIDATED");
+        b.setValidatedAt(LocalDateTime.now());
+        bulletinService.updateBulletin(b);
+        loadData();
+    }
+
+    private void handlePublish(Bulletin b) {
+        b.setStatus("PUBLISHED");
+        b.setPublishedAt(LocalDateTime.now());
+        bulletinService.updateBulletin(b);
+        // Simulation d'envoi d'email
+        showAlert("Notification", "Email Envoyé", "Le bulletin a été publié et envoyé à l'étudiant.", Alert.AlertType.INFORMATION);
+        loadData();
+    }
+
+    private void handleRevoke(Bulletin b) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Révocation");
+        dialog.setHeaderText("Raison de la révocation");
+        dialog.setContentText("Pourquoi révoquez-vous ce bulletin ?");
+        Optional<String> res = dialog.showAndWait();
+        res.ifPresent(reason -> {
+            b.setStatus("REVOKED");
+            b.setRevokedAt(LocalDateTime.now());
+            b.setRevocationReason(reason);
+            bulletinService.updateBulletin(b);
+            loadData();
+        });
     }
 
     @FXML
     private void handleAdd(ActionEvent e) {
-        Stage owner = (Stage) bulletinsTable.getScene().getWindow();
-        if (BulletinFormController.openDialog(owner, null)) {
-            loadData();
-            showMessage("Bulletin ajouté.", false);
-        }
+        // Logique pour ouvrir le formulaire d'ajout
     }
 
     @FXML
-    private void handleEdit(ActionEvent e) {
-        Bulletin sel = bulletinsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez un bulletin.", true); return; }
-        Stage owner = (Stage) bulletinsTable.getScene().getWindow();
-        if (BulletinFormController.openDialog(owner, sel)) {
-            loadData();
-            showMessage("Bulletin modifié.", false);
-        }
-    }
-
-    @FXML
-    private void handleDelete(ActionEvent e) {
-        Bulletin sel = bulletinsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez un bulletin.", true); return; }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer le bulletin #" + sel.getId() + " ?", ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.YES) {
-                try {
-                    if (bulletinService.deleteBulletin(sel.getId())) {
-                        bulletinList.remove(sel);
-                        showMessage("Bulletin supprimé.", false);
-                    } else showMessage("Échec de la suppression.", true);
-                } catch (Exception ex) { showMessage("Erreur : " + rootCause(ex), true); }
-            }
-        });
-    }
-
-    @FXML
-    private void handleDownloadPdf(ActionEvent e) {
-        Bulletin sel = bulletinsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez un bulletin.", true); return; }
-        try {
-            Optional<User> studentOpt = userService.getAllUsers().stream()
-                .filter(u -> u.getId() == sel.getStudentId())
-                .findFirst();
-            if (studentOpt.isPresent()) {
-                File pdf = PdfGenerator.generateBulletinPdf(sel, studentOpt.get());
-                if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().open(pdf);
-                }
-                showMessage("PDF ouvert : " + pdf.getName(), false);
-            }
-        } catch (Exception ex) { showMessage("Erreur PDF: " + rootCause(ex), true); }
-    }
-
-    private void applyFilters() {
+    public void applyFilters() {
         if (filteredBulletins == null) return;
-        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
-        String sem = semesterFilter != null ? semesterFilter.getValue() : "Tous";
-        String status = statusFilter != null ? statusFilter.getValue() : "Tous";
+        String query = searchField.getText().toLowerCase().trim();
+        String sem = semesterFilter.getValue();
+        String status = statusFilter.getValue();
 
         filteredBulletins.setPredicate(b -> {
             boolean matchesSearch = query.isEmpty() ||
-                studentNames.getOrDefault(b.getStudentId(), "").toLowerCase().contains(query) ||
-                (b.getAcademicYear() != null && b.getAcademicYear().toLowerCase().contains(query));
-
-            boolean matchesSem = sem == null || sem.equals("Tous") ||
-                (b.getSemester() != null && b.getSemester().equals(sem));
-
-            boolean matchesStatus = status == null || status.equals("Tous") ||
-                (b.getStatus() != null && b.getStatus().equalsIgnoreCase(status));
-
+                studentNames.getOrDefault(b.getStudentId(), "").toLowerCase().contains(query);
+            boolean matchesSem = sem.equals("Tous") || b.getSemester().equals(sem);
+            boolean matchesStatus = status.equals("Tous") || b.getStatus().equalsIgnoreCase(status);
             return matchesSearch && matchesSem && matchesStatus;
         });
     }
 
-    private void showMessage(String msg, boolean isErr) {
-        if (messageLabel != null) {
-            messageLabel.setText(msg);
-            messageLabel.setStyle(isErr ? "-fx-text-fill: #EF4444;" : "-fx-text-fill: #10B981;");
-            messageLabel.setVisible(true);
+    private void handleDownloadPdf(Bulletin b) {
+        try {
+            User student = userService.getAllUsers().stream()
+                .filter(u -> u.getId() == b.getStudentId()).findFirst().orElse(null);
+            if (student != null) {
+                File pdf = PdfGenerator.generateBulletinPdf(b, student);
+                if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(pdf);
+            }
+        } catch (Exception ex) {
+            showAlert("Erreur PDF", "Génération échouée", ex.getMessage(), Alert.AlertType.ERROR);
         }
     }
-    private String rootCause(Throwable t) { while(t.getCause()!=null) t=t.getCause(); return t.getMessage(); }
 
-    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
+    private void showAlert(String title, String header, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.show();
+    }
+
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
     @FXML private void handleManageExams(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS); }
-    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
     @FXML private void handleShopManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT); }
-    @FXML private void handleCategoryManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CATEGORY_MANAGEMENT); }
     @FXML private void handleBulletins(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS); }
     @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
     @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
     @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
-    @FXML private void handleProfile(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE); }
+    @FXML private void handleMetierManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_METIER_MANAGEMENT); }
     @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

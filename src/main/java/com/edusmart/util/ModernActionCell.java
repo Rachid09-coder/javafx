@@ -24,8 +24,6 @@ public class ModernActionCell<T> extends TableCell<T, Void> {
     private final Button editBtn;
     private final Button deleteBtn;
     private final HBox container;
-    private final ActionCallback<T> editCallback;
-    private final ActionCallback<T> deleteCallback;
 
     /**
      * Creates a modern action cell with Edit and Delete buttons.
@@ -34,8 +32,7 @@ public class ModernActionCell<T> extends TableCell<T, Void> {
      * @param deleteCallback Callback when Delete button is clicked
      */
     public ModernActionCell(ActionCallback<T> editCallback, ActionCallback<T> deleteCallback) {
-        this.editCallback = editCallback;
-        this.deleteCallback = deleteCallback;
+
 
         // Create Edit Button (Light Blue)
         editBtn = new Button("✏");

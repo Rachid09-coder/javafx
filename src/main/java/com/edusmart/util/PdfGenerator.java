@@ -53,7 +53,6 @@ public class PdfGenerator {
     private static final Color EDU_TEXT        = hex("#1E293B");
     private static final Color EDU_TEXT_MUTED  = hex("#64748B");
     private static final Color EDU_BORDER      = hex("#E2E8F0");
-    private static final Color EDU_SUCCESS     = hex("#10B981");
     private static final Color EDU_WHITE       = Color.WHITE;
 
     private static final String PDF_DIR = "generated_pdfs";
@@ -102,6 +101,7 @@ public class PdfGenerator {
         });
         addQrSection(doc, "https://edusmart.com/bulletin/" + bulletin.getId(),
                 "Bulletin #" + bulletin.getId() + " — Vérifiez l'authenticité sur edusmart.com");
+        addDigitalSignature(doc, writer);
         drawBottomStrip(writer, doc);
 
         doc.close();
@@ -120,6 +120,7 @@ public class PdfGenerator {
 
         drawCertDecorations(writer, doc);
         addCertContent(doc, writer, cert, student, uniqueNum);
+        addDigitalSignature(doc, writer);
 
         doc.close();
         return file;
@@ -405,6 +406,44 @@ public class PdfGenerator {
         canvas.showTextAligned(Element.ALIGN_CENTER, "OFFICIEL", sealCx, sealCy + 6, 0);
         canvas.showTextAligned(Element.ALIGN_CENTER, "EduSmart", sealCx, sealCy - 6, 0);
         canvas.endText();
+
+        addDigitalSignature(doc, writer);
+    }
+
+    private static void addDigitalSignature(Document doc, PdfWriter writer) throws Exception {
+        PdfContentByte canvas = writer.getDirectContent();
+        Rectangle page = doc.getPageSize();
+
+        float x = 70, y = 50;
+        if (page.getWidth() > page.getHeight()) { // Landscape
+            x = page.getWidth() - 250;
+        }
+
+        // Draw Signature Box
+        canvas.setColorStroke(EDU_TEXT_MUTED);
+        canvas.setLineWidth(0.5f);
+        canvas.rectangle(x, y, 160, 60);
+        canvas.stroke();
+
+        // Signature Text
+        canvas.beginText();
+        canvas.setFontAndSize(boldFont(), 10);
+        canvas.setColorFill(EDU_BLUE);
+        canvas.showTextAligned(Element.ALIGN_LEFT, "Signature Numérique", x + 5, y + 45, 0);
+        
+        canvas.setFontAndSize(regularFont(), 8);
+        canvas.setColorFill(EDU_TEXT_MUTED);
+        canvas.showTextAligned(Element.ALIGN_LEFT, "Certifié par EduSmart CA", x + 5, y + 30, 0);
+        canvas.showTextAligned(Element.ALIGN_LEFT, "Date: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE), x + 5, y + 15, 0);
+        canvas.endText();
+        
+        // Transparent Stamp Simulation
+        canvas.saveState();
+        canvas.setGState(new com.lowagie.text.pdf.PdfGState()); // Placeholder for transparency if needed
+        canvas.setColorFill(new Color(16, 185, 129, 40)); // Semi-transparent green
+        canvas.circle(x + 130, y + 30, 20);
+        canvas.fill();
+        canvas.restoreState();
     }
 
     // ═══════════════════════════════════════════════════════════════════════

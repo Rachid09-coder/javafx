@@ -45,6 +45,7 @@ public class BulletinFormController implements Initializable {
     @FXML private TextField averageField;
     @FXML private Label averageError;
     @FXML private TextField mentionField;
+    @FXML private ComboBox<String> metierComboBox;
     @FXML private TextField classRankField;
     @FXML private Label rankError;
     @FXML private Label globalError;
@@ -75,6 +76,16 @@ public class BulletinFormController implements Initializable {
 
         // Current Year Default
         academicYearField.setText("2024-2025");
+
+        setupMetierCombo();
+    }
+
+    private void setupMetierCombo() {
+        metierComboBox.setItems(FXCollections.observableArrayList(
+            new com.edusmart.dao.jdbc.JdbcMetierDao().findAll().stream()
+                .map(com.edusmart.model.Metier::getNom)
+                .toList()
+        ));
     }
 
     private void autoCalculateAverageAndRank() {
@@ -145,6 +156,7 @@ public class BulletinFormController implements Initializable {
             mentionField.setText(computeMention(bulletin.getAverage()));
         }
         if (bulletin.getMention() != null) mentionField.setText(bulletin.getMention());
+        if (bulletin.getMetier() != null) metierComboBox.setValue(bulletin.getMetier());
         classRankField.setText(bulletin.getClassRank() != null ? String.valueOf(bulletin.getClassRank()) : "");
         // Pre-select student
         if (bulletin.getStudentId() > 0) {
@@ -266,6 +278,8 @@ public class BulletinFormController implements Initializable {
         
         String rankText = classRankField.getText().trim();
         b.setClassRank(rankText.isEmpty() ? null : Integer.parseInt(rankText));
+        
+        b.setMetier(metierComboBox.getValue());
         
         return b;
     }

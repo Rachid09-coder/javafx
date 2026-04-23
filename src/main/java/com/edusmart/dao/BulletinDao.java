@@ -12,4 +12,5 @@ public interface BulletinDao {
     boolean update(Bulletin bulletin);
     boolean delete(int id);
     int findRankByAverage(String semester, double average);
+    void recalculateAllRanks(String academicYear, String semester);
 }

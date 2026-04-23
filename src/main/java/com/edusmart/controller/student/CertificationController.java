@@ -144,8 +144,12 @@ public class CertificationController implements Initializable {
         HBox badges = new HBox(8);
         Label st = new Label(statusLabelFr(c.getStatus()));
         st.getStyleClass().addAll("badge", badgeClassForStatus(c.getStatus()));
+        
+        Label mt = new Label(c.getMetier() != null ? c.getMetier() : "Général");
+        mt.getStyleClass().addAll("badge");
+        mt.setStyle("-fx-background-color: #7C3AED; -fx-text-fill: white;");
 
-        badges.getChildren().add(st);
+        badges.getChildren().addAll(st, mt);
 
         Button download = new Button("⬇ Télécharger / PDF");
         download.setMaxWidth(Double.MAX_VALUE);

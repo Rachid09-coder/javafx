@@ -46,6 +46,7 @@ public class CertificationFormController implements Initializable {
     @FXML private ComboBox<String> statusComboBox;
     @FXML private ComboBox<Bulletin> bulletinComboBox;
     @FXML private DatePicker validUntilPicker;
+    @FXML private ComboBox<String> metierComboBox;
     @FXML private Label globalError;
 
     private final CertificationService certService = new CertificationServiceImpl(new JdbcCertificationDao());
@@ -63,7 +64,16 @@ public class CertificationFormController implements Initializable {
         statusComboBox.setValue(Certification.STATUS_ISSUED);
         setupStudentCombo();
         setupBulletinCombo();
+        setupMetierCombo();
         typeField.textProperty().addListener((o, ov, nv) -> clearError(typeField, typeError));
+    }
+
+    private void setupMetierCombo() {
+        metierComboBox.setItems(FXCollections.observableArrayList(
+            new com.edusmart.dao.jdbc.JdbcMetierDao().findAll().stream()
+                .map(com.edusmart.model.Metier::getNom)
+                .toList()
+        ));
     }
 
     private void setupStudentCombo() {
@@ -110,6 +120,7 @@ public class CertificationFormController implements Initializable {
         certToEdit = cert;
         typeField.setText(cert.getCertificationType() != null ? cert.getCertificationType() : "");
         if (cert.getStatus() != null) statusComboBox.setValue(cert.getStatus());
+        if (cert.getMetier() != null) metierComboBox.setValue(cert.getMetier());
         if (cert.getValidUntil() != null) validUntilPicker.setValue(cert.getValidUntil().toLocalDate());
         // Pre-select student
         if (cert.getStudentId() > 0) {
@@ -214,6 +225,8 @@ public class CertificationFormController implements Initializable {
         
         Bulletin b = bulletinComboBox.getValue();
         c.setBulletinId(b != null ? b.getId() : null);
+        
+        c.setMetier(metierComboBox.getValue());
         
         return c;
     }

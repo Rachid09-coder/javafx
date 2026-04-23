@@ -14,4 +14,5 @@ public interface BulletinService {
 
     Double calculateStudentAverage(int studentId, String semester);
     Integer calculateStudentRank(int studentId, String semester, Double average);
+    void recalculateRanks(String academicYear, String semester);
 }

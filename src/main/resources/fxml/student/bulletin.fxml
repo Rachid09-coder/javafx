@@ -56,6 +56,11 @@
                     <Label fx:id="rankLabel" text="Rang: --" styleClass="stat-value" style="-fx-font-size: 18px;"/>
                     <Label text="Classement" styleClass="stat-label"/>
                 </VBox>
+                <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="💼" styleClass="stat-icon"/>
+                    <Label fx:id="metierLabel" text="Métier: --" styleClass="stat-value" style="-fx-font-size: 16px;"/>
+                    <Label text="Spécialité" styleClass="stat-label"/>
+                </VBox>
             </HBox>
 
             <!-- Filters -->

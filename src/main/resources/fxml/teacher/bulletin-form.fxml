@@ -53,6 +53,11 @@
     </HBox>
 
     <VBox spacing="4">
+        <Label text="Métier associé *" styleClass="form-label"/>
+        <ComboBox fx:id="metierComboBox" maxWidth="Infinity" styleClass="combo-box" promptText="Sélectionner le métier..."/>
+    </VBox>
+
+    <VBox spacing="4">
         <Label text="Rang dans la classe" styleClass="form-label"/>
         <TextField fx:id="classRankField" promptText="Ex: 5" styleClass="text-field"/>
         <Label fx:id="rankError" styleClass="error-label" visible="false" managed="false"/>

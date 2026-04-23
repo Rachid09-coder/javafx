@@ -27,6 +27,7 @@ public class Certification {
     private String revocationReason;
     private int studentId;
     private Integer bulletinId;
+    private String metier;
 
     public Certification() {}
 
@@ -136,6 +137,14 @@ public class Certification {
 
     public boolean isIssued() {
         return STATUS_ISSUED.equalsIgnoreCase(status);
+    }
+
+    public String getMetier() {
+        return metier;
+    }
+
+    public void setMetier(String metier) {
+        this.metier = metier;
     }
 
     @Override

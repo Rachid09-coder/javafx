@@ -8,6 +8,9 @@ module com.edusmart {
     requires com.github.librepdf.openpdf;
     requires com.google.zxing;
     requires com.google.zxing.javase;
+    requires com.google.gson;
+    requires okhttp3;
+    requires twilio;
 
 
     opens com.edusmart to javafx.fxml;
@@ -17,6 +20,7 @@ module com.edusmart {
     opens com.edusmart.controller.shared to javafx.fxml;
     opens com.edusmart.model to javafx.base;
     opens com.edusmart.util to javafx.fxml;
+    opens com.edusmart.service to com.google.gson;
 
     exports com.edusmart;
     exports com.edusmart.controller.auth;
@@ -25,4 +29,5 @@ module com.edusmart {
     exports com.edusmart.controller.shared;
     exports com.edusmart.model;
     exports com.edusmart.util;
+    exports com.edusmart.service;
 }

@@ -99,6 +99,10 @@ public class TeacherDashboardController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT);
     }
 
+    @FXML private void handleMetierManagement(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_METIER_MANAGEMENT);
+    }
+
     @FXML private void handleProfile(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE);
     }

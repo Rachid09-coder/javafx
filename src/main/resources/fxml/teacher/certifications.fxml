@@ -35,34 +35,46 @@
     </left>
 
     <center>
-        <VBox styleClass="content-area" spacing="16">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="🏆 Certifications" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <ComboBox fx:id="statusFilter" promptText="Statut" styleClass="combo-box" prefWidth="120"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar"/>
-                <Button text="➕ Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
-                <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
-                <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
-                <Button text="📄 PDF" styleClass="btn-secondary" onAction="#handleDownloadPdf" style="-fx-background-color:#6366F1; -fx-text-fill:white;"/>
-                <Button text="RÉVOQUER" styleClass="btn-warning" onAction="#handleRevoke" style="-fx-background-color:#F59E0B;-fx-text-fill:white;"/>
+        <VBox styleClass="content-area" spacing="20">
+            <!-- Glassmorphism Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="card" style="-fx-padding: 15 25;">
+                <VBox spacing="2">
+                    <Label text="🏆 Registre des Certifications" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -edu-blue;"/>
+                    <Label text="Validation et traçabilité des acquis académiques" style="-fx-text-fill: -edu-text-muted; -fx-font-size: 13px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="10">
+                    <Button text="📜 Rapports" styleClass="btn-secondary"/>
+                    <Button text="➕ Nouvelle" onAction="#handleAdd" styleClass="btn-primary"/>
+                </HBox>
             </HBox>
 
-            <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+            <!-- Filters Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="card" style="-fx-padding: 12 20;">
+                <TextField fx:id="searchField" promptText="🔍 Rechercher par code ou étudiant..." styleClass="search-bar" HBox.hgrow="ALWAYS" prefWidth="300"/>
+                <ComboBox fx:id="statusFilter" promptText="Statut" styleClass="combo-box" prefWidth="150"/>
+                <Button text="Filtrer" onAction="#handleSearch" styleClass="btn-primary"/>
+            </HBox>
 
-            <TableView fx:id="certificationsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
-                <columns>
-                    <TableColumn fx:id="idColumn"         text="ID"         prefWidth="50" />
-                    <TableColumn fx:id="typeColumn"       text="Type"       prefWidth="130"/>
-                    <TableColumn fx:id="studentColumn"    text="Étudiant"   prefWidth="160"/>
-                    <TableColumn fx:id="statusColumn"     text="Statut"     prefWidth="100"/>
-                    <TableColumn fx:id="issuedAtColumn"   text="Délivrée le" prefWidth="120"/>
-                    <TableColumn fx:id="validUntilColumn" text="Valide jusqu'au" prefWidth="120"/>
-                    <TableColumn fx:id="uniqueNumberColumn" text="Code Unique" prefWidth="150"/>
-                </columns>
-                <placeholder>
-                    <Label text="Aucune certification trouvée" style="-fx-text-fill: #94A3B8;"/>
-                </placeholder>
-            </TableView>
+            <!-- Table Section -->
+            <VBox VBox.vgrow="ALWAYS" styleClass="card" style="-fx-padding: 0;">
+                <TableView fx:id="certificationsTable" VBox.vgrow="ALWAYS" styleClass="table-view" style="-fx-background-radius: 12; -fx-border-radius: 12;">
+                    <columns>
+                        <TableColumn fx:id="uniqueNumberColumn" text="CODE"      prefWidth="130" />
+                        <TableColumn fx:id="typeColumn"         text="TYPE"      prefWidth="140" />
+                        <TableColumn fx:id="studentColumn"      text="ÉTUDIANT"  prefWidth="180" />
+                        <TableColumn fx:id="metierColumn"       text="MÉTIER"    prefWidth="130" />
+                        <TableColumn fx:id="statusColumn"       text="STATUT"    prefWidth="100" />
+                        <TableColumn fx:id="issuedAtColumn"     text="DÉLIVRANCE" prefWidth="120" />
+                        <TableColumn fx:id="actionsColumn"      text="ACTIONS"    prefWidth="140" />
+                    </columns>
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="10">
+                            <Label text="📭 Aucun certificat listé" style="-fx-font-size: 16px; -fx-text-fill: -edu-text-muted;"/>
+                        </VBox>
+                    </placeholder>
+                </TableView>
+            </VBox>
         </VBox>
     </center>
 </BorderPane>

@@ -20,7 +20,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
+import javafx.scene.layout.HBox;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -39,17 +38,16 @@ import java.util.stream.Collectors;
 public class CertificationsController implements Initializable {
 
     @FXML private TableView<Certification> certificationsTable;
-    @FXML private TableColumn<Certification, Integer> idColumn;
+    @FXML private TableColumn<Certification, String> uniqueNumberColumn;
     @FXML private TableColumn<Certification, String> typeColumn;
     @FXML private TableColumn<Certification, String> studentColumn;
+    @FXML private TableColumn<Certification, String> metierColumn;
     @FXML private TableColumn<Certification, String> statusColumn;
     @FXML private TableColumn<Certification, String> issuedAtColumn;
-    @FXML private TableColumn<Certification, String> validUntilColumn;
-    @FXML private TableColumn<Certification, String> uniqueNumberColumn;
+    @FXML private TableColumn<Certification, Void> actionsColumn;
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilter;
-    @FXML private Label messageLabel;
 
     private final CertificationService certService = new CertificationServiceImpl(new JdbcCertificationDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
@@ -58,50 +56,37 @@ public class CertificationsController implements Initializable {
     private FilteredList<Certification> filteredCerts;
     private Map<Integer, String> studentNames = new HashMap<>();
 
-    private static final DateTimeFormatter FMT_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter FMT_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
         setupFilters();
+        if (metierColumn != null) metierColumn.setCellValueFactory(new PropertyValueFactory<>("metier"));
         loadData();
     }
 
     private void setupFilters() {
-        if (statusFilter != null) {
-            statusFilter.setItems(FXCollections.observableArrayList("Tous", "PENDING", "ISSUED", "EXPIRED", "REVOKED"));
-            statusFilter.setValue("Tous");
-            statusFilter.setOnAction(e -> applyFilters());
-        }
-        if (searchField != null) {
-            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-        }
+        statusFilter.setItems(FXCollections.observableArrayList("Tous", "PENDING", "ISSUED", "REVOKED"));
+        statusFilter.setValue("Tous");
+        searchField.textProperty().addListener((obs, old, nw) -> applyFilters());
+        statusFilter.setOnAction(e -> applyFilters());
     }
 
     private void setupTable() {
-        if (idColumn != null) idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        if (typeColumn != null) typeColumn.setCellValueFactory(new PropertyValueFactory<>("certificationType"));
-        if (studentColumn != null) {
-            studentColumn.setCellValueFactory(cd -> {
-                int sId = cd.getValue().getStudentId();
-                return new SimpleStringProperty(studentNames.getOrDefault(sId, "Élève #" + sId));
-            });
-        }
-        if (statusColumn != null) statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        if (issuedAtColumn != null) {
-            issuedAtColumn.setCellValueFactory(cd -> {
-                LocalDateTime d = cd.getValue().getIssuedAt();
-                return new SimpleStringProperty(d != null ? d.format(FMT_DATETIME) : "");
-            });
-        }
-        if (validUntilColumn != null) {
-            validUntilColumn.setCellValueFactory(cd -> {
-                LocalDateTime d = cd.getValue().getValidUntil();
-                return new SimpleStringProperty(d != null ? d.format(FMT_DATE) : "-");
-            });
-        }
-        if (uniqueNumberColumn != null) uniqueNumberColumn.setCellValueFactory(new PropertyValueFactory<>("uniqueNumber"));
+        uniqueNumberColumn.setCellValueFactory(new PropertyValueFactory<>("uniqueNumber"));
+        typeColumn.setCellValueFactory(new PropertyValueFactory<>("certificationType"));
+        studentColumn.setCellValueFactory(cd -> {
+            int sId = cd.getValue().getStudentId();
+            return new SimpleStringProperty(studentNames.getOrDefault(sId, "Élève #" + sId));
+        });
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        issuedAtColumn.setCellValueFactory(cd -> {
+            LocalDateTime d = cd.getValue().getIssuedAt();
+            return new SimpleStringProperty(d != null ? d.format(FMT_DATE) : "-");
+        });
+
+        setupActionsColumn();
 
         filteredCerts = new FilteredList<>(certList, p -> true);
         SortedList<Certification> sortedCerts = new SortedList<>(filteredCerts);
@@ -109,123 +94,97 @@ public class CertificationsController implements Initializable {
         certificationsTable.setItems(sortedCerts);
     }
 
+    private void setupActionsColumn() {
+        actionsColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button btnPdf = new Button("📄");
+            private final Button btnRevoke = new Button("❌");
+            private final HBox container = new HBox(5, btnPdf, btnRevoke);
+
+            {
+                container.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                btnPdf.getStyleClass().add("btn-action-edit");
+                btnRevoke.getStyleClass().add("btn-action-delete");
+                btnPdf.setOnAction(e -> handleDownloadPdf(getTableView().getItems().get(getIndex())));
+                btnRevoke.setOnAction(e -> handleRevoke(getTableView().getItems().get(getIndex())));
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setGraphic(null);
+                else setGraphic(container);
+            }
+        });
+    }
+
     private void loadData() {
         try {
             studentNames = userService.getAllUsers().stream()
-                .collect(Collectors.toMap(User::getId, User::getFullName, (a,b)->a));
+                .collect(Collectors.toMap(User::getId, User::getFullName, (a, b) -> a));
             certList.setAll(certService.getAllCertifications());
-        } catch (Exception ex) { showMessage("Erreur chargement: " + rootCause(ex), true); }
+        } catch (Exception ex) {
+            showAlert("Erreur", "Chargement impossible", ex.getMessage());
+        }
     }
 
     private void applyFilters() {
         if (filteredCerts == null) return;
-        String query = searchField != null ? searchField.getText().toLowerCase().trim() : "";
-        String status = statusFilter != null ? statusFilter.getValue() : "Tous";
+        String query = searchField.getText().toLowerCase().trim();
+        String status = statusFilter.getValue();
 
         filteredCerts.setPredicate(c -> {
             boolean matchesSearch = query.isEmpty() ||
                 (c.getUniqueNumber() != null && c.getUniqueNumber().toLowerCase().contains(query)) ||
-                (c.getCertificationType() != null && c.getCertificationType().toLowerCase().contains(query)) ||
                 studentNames.getOrDefault(c.getStudentId(), "").toLowerCase().contains(query);
-
-            boolean matchesStatus = status == null || status.equals("Tous") ||
-                (c.getStatus() != null && c.getStatus().equalsIgnoreCase(status));
-
+            boolean matchesStatus = status.equals("Tous") || c.getStatus().equalsIgnoreCase(status);
             return matchesSearch && matchesStatus;
         });
     }
 
     @FXML
     private void handleAdd(ActionEvent e) {
-        Stage owner = (Stage) certificationsTable.getScene().getWindow();
-        if (CertificationFormController.openDialog(owner, null)) {
+        // Formulaire d'ajout
+    }
+
+    private void handleRevoke(Certification c) {
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Révoquer cette certification ?", ButtonType.YES, ButtonType.NO);
+        if (conf.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
+            certService.revokeCertification(c.getId(), "Révoqué par admin");
             loadData();
-            showMessage("Certification ajoutée.", false);
         }
     }
 
-    @FXML
-    private void handleEdit(ActionEvent e) {
-        Certification sel = certificationsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez une certification.", true); return; }
-        Stage owner = (Stage) certificationsTable.getScene().getWindow();
-        if (CertificationFormController.openDialog(owner, sel)) {
-            loadData();
-            showMessage("Certification modifiée.", false);
-        }
-    }
-
-    @FXML
-    private void handleDelete(ActionEvent e) {
-        Certification sel = certificationsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez une certification.", true); return; }
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer la certification #" + sel.getId() + " ?", ButtonType.YES, ButtonType.NO);
-        conf.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.YES) {
-                try {
-                    if (certService.deleteCertification(sel.getId())) {
-                        certList.remove(sel); showMessage("Supprimée.", false);
-                    } else showMessage("Échec de la suppression.", true);
-                } catch (Exception ex) { showMessage("Erreur : " + rootCause(ex), true); }
-            }
-        });
-    }
-
-    @FXML
-    private void handleRevoke(ActionEvent e) {
-        Certification sel = certificationsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez une certification à révoquer.", true); return; }
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION, "Révoquer cette certification. Êtes-vous sûr ?", ButtonType.YES, ButtonType.NO);
-        conf.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.YES) {
-                try {
-                    if (certService.revokeCertification(sel.getId(), "Révoquée par enseignant")) {
-                        loadData(); showMessage("Certification révoquée !", false);
-                    } else showMessage("Échec révocation.", true);
-                } catch (Exception ex) { showMessage("Erreur: " + rootCause(ex), true); }
-            }
-        });
-    }
-
-    @FXML
-    private void handleDownloadPdf(ActionEvent e) {
-        Certification sel = certificationsTable.getSelectionModel().getSelectedItem();
-        if (sel == null) { showMessage("Sélectionnez un certification.", true); return; }
+    private void handleDownloadPdf(Certification c) {
         try {
-            Optional<User> studentOpt = userService.getAllUsers().stream()
-                    .filter(u -> u.getId() == sel.getStudentId())
-                    .findFirst();
-            if (studentOpt.isPresent()) {
-                File pdf = PdfGenerator.generateCertificationPdf(sel, studentOpt.get());
-                if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().open(pdf);
-                }
-                showMessage("PDF ouvert : " + pdf.getName(), false);
+            User student = userService.getAllUsers().stream()
+                .filter(u -> u.getId() == c.getStudentId()).findFirst().orElse(null);
+            if (student != null) {
+                File pdf = PdfGenerator.generateCertificationPdf(c, student);
+                if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(pdf);
             }
-        } catch (Exception ex) { showMessage("Erreur PDF: " + rootCause(ex), true); }
-    }
-
-    private void showMessage(String msg, boolean isErr) {
-        if (messageLabel != null) {
-            messageLabel.setText(msg);
-            messageLabel.setStyle(isErr ? "-fx-text-fill: #EF4444;" : "-fx-text-fill: #10B981;");
-            messageLabel.setVisible(true);
+        } catch (Exception ex) {
+            showAlert("Erreur PDF", "Génération échouée", ex.getMessage());
         }
     }
-    private String rootCause(Throwable t) { while(t.getCause()!=null) t=t.getCause(); return t.getMessage(); }
 
-    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
+    private void showAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.show();
+    }
+
     @FXML private void handleDashboard(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD); }
     @FXML private void handleManageCourses(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_COURSES); }
     @FXML private void handleManageModules(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_MODULES); }
     @FXML private void handleManageExams(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS); }
-    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
     @FXML private void handleShopManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT); }
-    @FXML private void handleCategoryManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CATEGORY_MANAGEMENT); }
     @FXML private void handleBulletins(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_BULLETINS); }
     @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
     @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
     @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
-    @FXML private void handleProfile(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE); }
+    @FXML private void handleMetierManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_METIER_MANAGEMENT); }
+    @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

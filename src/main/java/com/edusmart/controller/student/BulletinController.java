@@ -44,6 +44,7 @@ public class BulletinController implements Initializable {
     @FXML private ComboBox<String> yearFilter;
     @FXML private Label averageLabel;
     @FXML private Label rankLabel;
+    @FXML private Label metierLabel;
     @FXML private Button printButton;
     @FXML private Button downloadButton;
 
@@ -78,40 +79,36 @@ public class BulletinController implements Initializable {
     }
 
     private int resolveStudentId() {
-        String p = System.getProperty("edusmart.studentId");
-        if (p != null) {
-            try { return Integer.parseInt(p.trim()); } catch (NumberFormatException ignored) {}
-        }
-        return 1; // Default for demo
+        User u = SceneManager.getInstance().getCurrentUser();
+        return u != null ? u.getId() : 1;
     }
 
     private void loadGrades() {
         int sId = resolveStudentId();
-        // Load latest bulletin for student
+        // Load latest published bulletin for student
         List<Bulletin> bulletins = bulletinService.getAllBulletins().stream()
-                .filter(b -> b.getStudentId() == sId)
+                .filter(b -> b.getStudentId() == sId && "PUBLISHED".equalsIgnoreCase(b.getStatus()))
                 .sorted((b1, b2) -> b2.getAcademicYear().compareTo(b1.getAcademicYear()))
                 .toList();
 
         if (!bulletins.isEmpty()) {
             currentBulletin = bulletins.get(0);
             updateStatistics();
-        } else {
-            // Demo data if none found
-            Grade g1 = new Grade(1, sId, 1, 16.5, "Semestre 1", "2024-2025");
-            Grade g2 = new Grade(2, sId, 2, 18.0, "Semestre 1", "2024-2025");
-            gradeList.setAll(g1, g2);
         }
+        // Always load raw grades even if no publication
+        gradeList.clear();
+        gradeList.addAll(new com.edusmart.dao.jdbc.JdbcGradeDao().findByStudentId(sId));
     }
 
     private void updateStatistics() {
         if (currentBulletin != null) {
             averageLabel.setText(String.format("Moyenne: %.2f/20", currentBulletin.getAverage()));
             rankLabel.setText("Rang: " + (currentBulletin.getClassRank() != null ? currentBulletin.getClassRank() : "N/A"));
+            if (metierLabel != null) metierLabel.setText("Métier: " + (currentBulletin.getMetier() != null ? currentBulletin.getMetier() : "--"));
         } else if (averageLabel != null) {
             double avg = gradeList.stream().mapToDouble(Grade::getNote).average().orElse(0);
-            averageLabel.setText(String.format("Moyenne: %.2f/20", avg));
-            rankLabel.setText("Rang: 3/35");
+            averageLabel.setText(String.format("Moyenne (Provisoire): %.2f/20", avg));
+            rankLabel.setText("Rang: Non publié");
         }
     }
 

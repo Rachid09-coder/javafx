@@ -145,4 +145,9 @@ public class BulletinServiceImpl implements BulletinService {
         if (average == null) return null;
         return bulletinDao.findRankByAverage(semester, average);
     }
+
+    @Override
+    public void recalculateRanks(String academicYear, String semester) {
+        bulletinDao.recalculateAllRanks(academicYear, semester);
+    }
 }
