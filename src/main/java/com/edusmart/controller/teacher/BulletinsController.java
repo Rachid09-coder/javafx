@@ -52,6 +52,8 @@ public class BulletinsController implements Initializable {
     @FXML private TextField searchField;
     @FXML private ComboBox<String> semesterFilter;
     @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> typeFilter;
+    @FXML private TextField rankFilter;
 
     private final BulletinService bulletinService = new BulletinServiceImpl(new JdbcBulletinDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
@@ -72,8 +74,14 @@ public class BulletinsController implements Initializable {
         semesterFilter.setValue("Tous");
         statusFilter.setItems(FXCollections.observableArrayList("Tous", "DRAFT", "VALIDATED", "PUBLISHED", "REVOKED"));
         statusFilter.setValue("Tous");
+        if (typeFilter != null) {
+            typeFilter.setItems(FXCollections.observableArrayList("Tous", "Régulier", "Final"));
+            typeFilter.setValue("Tous");
+            typeFilter.setOnAction(e -> applyFilters());
+        }
 
         searchField.textProperty().addListener((obs, old, nw) -> applyFilters());
+        if (rankFilter != null) rankFilter.textProperty().addListener((obs, old, nw) -> applyFilters());
         semesterFilter.setOnAction(e -> applyFilters());
         statusFilter.setOnAction(e -> applyFilters());
     }
@@ -90,7 +98,6 @@ public class BulletinsController implements Initializable {
 
         averageColumn.setCellValueFactory(new PropertyValueFactory<>("average"));
         if (rankColumn != null) rankColumn.setCellValueFactory(new PropertyValueFactory<>("classRank"));
-        if (metierColumn != null) metierColumn.setCellValueFactory(new PropertyValueFactory<>("metier"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         mentionColumn.setCellValueFactory(new PropertyValueFactory<>("mention"));
 
@@ -104,40 +111,44 @@ public class BulletinsController implements Initializable {
 
     private void setupActionsColumn() {
         actionsColumn.setCellFactory(param -> new TableCell<>() {
-            private final Button btnPdf = new Button("📄");
-            private final Button btnValidate = new Button("✅");
-            private final Button btnPublish = new Button("✉");
-            private final Button btnRevoke = new Button("❌");
-            private final HBox container = new HBox(5, btnPdf, btnValidate, btnPublish, btnRevoke);
+            private final Button btnPdf      = new Button("📄");
+            private final Button btnValidate = new Button("⬆️");
+            private final Button btnEmail    = new Button("✉");
+            private final Button btnSms      = new Button("📱");
+            private final Button btnRevoke   = new Button("❌");
+            private final HBox container = new HBox(5, btnPdf, btnValidate, btnEmail, btnSms, btnRevoke);
 
             {
-                container.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                 btnPdf.getStyleClass().add("btn-action-edit");
                 btnValidate.getStyleClass().add("btn-action-edit");
-                btnPublish.getStyleClass().add("btn-action-edit");
+                btnEmail.getStyleClass().add("btn-action-edit");
+                btnSms.getStyleClass().add("btn-action-edit");
                 btnRevoke.getStyleClass().add("btn-action-delete");
 
                 btnPdf.setTooltip(new Tooltip("Télécharger PDF"));
-                btnValidate.setTooltip(new Tooltip("Valider le bulletin"));
-                btnPublish.setTooltip(new Tooltip("Publier & Envoyer Email"));
+                btnValidate.setTooltip(new Tooltip("Publier le bulletin"));
+                btnEmail.setTooltip(new Tooltip("Envoyer par Email"));
+                btnSms.setTooltip(new Tooltip("Notifier par SMS"));
                 btnRevoke.setTooltip(new Tooltip("Révoquer"));
 
-                btnPdf.setOnAction(e -> handleDownloadPdf(getTableView().getItems().get(getIndex())));
-                btnValidate.setOnAction(e -> handleValidate(getTableView().getItems().get(getIndex())));
-                btnPublish.setOnAction(e -> handlePublish(getTableView().getItems().get(getIndex())));
-                btnRevoke.setOnAction(e -> handleRevoke(getTableView().getItems().get(getIndex())));
+                btnPdf.setOnAction(e      -> handleDownloadPdf(getTableView().getItems().get(getIndex())));
+                btnValidate.setOnAction(e -> handlePublish(getTableView().getItems().get(getIndex())));
+                btnEmail.setOnAction(e    -> handleSendEmail(getTableView().getItems().get(getIndex())));
+                btnSms.setOnAction(e      -> handleSms(getTableView().getItems().get(getIndex())));
+                btnRevoke.setOnAction(e   -> handleRevoke(getTableView().getItems().get(getIndex())));
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) setGraphic(null);
-                else {
-                    Bulletin b = getTableView().getItems().get(getIndex());
-                    btnPublish.setDisable("PUBLISHED".equals(b.getStatus()));
-                    btnValidate.setDisable("VALIDATED".equals(b.getStatus()) || "PUBLISHED".equals(b.getStatus()));
-                    setGraphic(container);
-                }
+                if (empty) { setGraphic(null); return; }
+                Bulletin b = getTableView().getItems().get(getIndex());
+                // Publish button disabled only when already published/revoked
+                btnValidate.setDisable("PUBLISHED".equals(b.getStatus()) || "REVOKED".equals(b.getStatus()));
+                // Email button always enabled
+                btnEmail.setDisable(false);
+                setGraphic(container);
             }
         });
     }
@@ -169,12 +180,59 @@ public class BulletinsController implements Initializable {
     }
 
     private void handlePublish(Bulletin b) {
+        if ("PUBLISHED".equals(b.getStatus())) return;
         b.setStatus("PUBLISHED");
         b.setPublishedAt(LocalDateTime.now());
         bulletinService.updateBulletin(b);
-        // Simulation d'envoi d'email
-        showAlert("Notification", "Email Envoyé", "Le bulletin a été publié et envoyé à l'étudiant.", Alert.AlertType.INFORMATION);
         loadData();
+        showAlert("Succès", "Publié", "Le bulletin a été publié.", Alert.AlertType.INFORMATION);
+    }
+
+    private void handleSendEmail(Bulletin b) {
+        try {
+            com.edusmart.model.User u = userService.getAllUsers().stream()
+                .filter(user -> user.getId() == b.getStudentId()).findFirst().orElse(null);
+            if (u != null && u.getEmail() != null && !u.getEmail().isEmpty()) {
+                String studentName = u.getFirstName() + " " + u.getLastName();
+                String htmlBody = com.edusmart.util.MailSender.buildBulletinEmailBody(
+                    studentName, b.getAcademicYear(), b.getSemester(),
+                    String.valueOf(b.getAverage()), b.getMention(), String.valueOf(b.getClassRank()));
+                com.edusmart.util.MailSender.sendEmailWithAttachment(u.getEmail(), "Votre Bulletin EduSmart", htmlBody, null);
+                showAlert("Succès", "Email Envoyé", "Le bulletin a été envoyé à " + u.getEmail(), Alert.AlertType.INFORMATION);
+            } else {
+                showAlert("Avertissement", "Email non envoyé", "Adresse email introuvable pour cet étudiant.", Alert.AlertType.WARNING);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Échec d'envoi", "L'email n'a pas pu être envoyé : " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void handleSms(Bulletin b) {
+        try {
+            com.edusmart.model.User u = userService.getAllUsers().stream()
+                .filter(user -> user.getId() == b.getStudentId()).findFirst().orElse(null);
+                
+            if (u != null && u.getNumtel() != null && !u.getNumtel().isEmpty()) {
+                String studentName = u.getFirstName() + " " + u.getLastName();
+                String formattedPhone = u.getNumtel().startsWith("+") ? u.getNumtel() : "+216" + u.getNumtel();
+                
+                com.edusmart.util.SmsSender.notifyBulletin(formattedPhone, studentName, b.getSemester(), b.getAcademicYear());
+                showAlert("Succès", "SMS Envoyé", "Un SMS a été envoyé au numéro " + formattedPhone, Alert.AlertType.INFORMATION);
+            } else {
+                showAlert("Avertissement", "SMS non envoyé", "Numéro de téléphone introuvable ou invalide.", Alert.AlertType.WARNING);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Échec d'envoi", "Le SMS n'a pas pu être envoyé : " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void handleArchive(Bulletin b) {
+        b.setStatus("ARCHIVED");
+        bulletinService.updateBulletin(b);
+        loadData();
+        showAlert("Succès", "Bulletin archivé", "Le bulletin a été déplacé vers les archives.", Alert.AlertType.INFORMATION);
     }
 
     private void handleRevoke(Bulletin b) {
@@ -194,8 +252,40 @@ public class BulletinsController implements Initializable {
 
     @FXML
     private void handleAdd(ActionEvent e) {
-        // Logique pour ouvrir le formulaire d'ajout
+        java.util.List<com.edusmart.model.User> students = userService.getAllUsers().stream().filter(u -> u.getRole() == com.edusmart.model.User.Role.STUDENT).toList();
+        java.util.List<Bulletin> existingBulletins = bulletinService.getAllBulletins();
+        int created = 0;
+        String sem = semesterFilter != null ? semesterFilter.getValue() : "1";
+        if (sem == null || sem.equals("Tous")) sem = "1";
+        final String targetSem = sem;
+
+        for (com.edusmart.model.User student : students) {
+            boolean hasBulletin = existingBulletins.stream().anyMatch(b -> b.getStudentId() == student.getId() && b.getSemester().equals(targetSem));
+            if (!hasBulletin) {
+                Double avg = bulletinService.calculateStudentAverage(student.getId(), targetSem);
+                if (avg != null && avg > 0) {
+                    Bulletin b = new Bulletin();
+                    b.setStudentId(student.getId());
+                    b.setAcademicYear("2023-2024");
+                    b.setSemester(targetSem);
+                    b.setAverage(avg);
+                    b.setType("Régulier");
+                    b.setStatus("DRAFT");
+                    bulletinService.createBulletin(b);
+                    created++;
+                }
+            }
+        }
+        if (created > 0) {
+            bulletinService.recalculateRanks("2023-2024", targetSem);
+            loadData();
+            showAlert("Succès", "Bulletins générés", created + " nouveau(x) bulletin(s) brouillon généré(s) pour le semestre " + targetSem + ".", Alert.AlertType.INFORMATION);
+        } else {
+            showAlert("Information", "Génération terminée", "Tous les étudiants ayant des notes ont déjà un bulletin pour ce semestre.", Alert.AlertType.INFORMATION);
+        }
     }
+
+
 
     @FXML
     public void applyFilters() {
@@ -203,13 +293,20 @@ public class BulletinsController implements Initializable {
         String query = searchField.getText().toLowerCase().trim();
         String sem = semesterFilter.getValue();
         String status = statusFilter.getValue();
+        String type = typeFilter != null ? typeFilter.getValue() : "Tous";
+        String rankStr = rankFilter != null ? rankFilter.getText().trim() : "";
+        Integer maxRankParsed = null;
+        try { if (!rankStr.isEmpty()) maxRankParsed = Integer.parseInt(rankStr); } catch (Exception ignore) {}
+        final Integer maxRank = maxRankParsed;
 
         filteredBulletins.setPredicate(b -> {
             boolean matchesSearch = query.isEmpty() ||
                 studentNames.getOrDefault(b.getStudentId(), "").toLowerCase().contains(query);
-            boolean matchesSem = sem.equals("Tous") || b.getSemester().equals(sem);
-            boolean matchesStatus = status.equals("Tous") || b.getStatus().equalsIgnoreCase(status);
-            return matchesSearch && matchesSem && matchesStatus;
+            boolean matchesSem = sem == null || sem.equals("Tous") || b.getSemester().equals(sem);
+            boolean matchesStatus = status == null || status.equals("Tous") || b.getStatus().equalsIgnoreCase(status);
+            boolean matchesType = type == null || type.equals("Tous") || (b.getType() != null && b.getType().equalsIgnoreCase(type));
+            boolean matchesRank = maxRank == null || (b.getClassRank() != null && b.getClassRank() <= maxRank);
+            return matchesSearch && matchesSem && matchesStatus && matchesType && matchesRank;
         });
     }
 
@@ -243,6 +340,8 @@ public class BulletinsController implements Initializable {
     @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
     @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
     @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
+    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
     @FXML private void handleMetierManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_METIER_MANAGEMENT); }
+    @FXML private void handleProfile(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE); }
     @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }

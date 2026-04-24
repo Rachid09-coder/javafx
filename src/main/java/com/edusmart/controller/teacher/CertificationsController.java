@@ -62,7 +62,6 @@ public class CertificationsController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         setupTable();
         setupFilters();
-        if (metierColumn != null) metierColumn.setCellValueFactory(new PropertyValueFactory<>("metier"));
         loadData();
     }
 
@@ -97,14 +96,25 @@ public class CertificationsController implements Initializable {
     private void setupActionsColumn() {
         actionsColumn.setCellFactory(param -> new TableCell<>() {
             private final Button btnPdf = new Button("📄");
+            private final Button btnPublish = new Button("✉");
+            private final Button btnSms = new Button("📱");
             private final Button btnRevoke = new Button("❌");
-            private final HBox container = new HBox(5, btnPdf, btnRevoke);
+            private final HBox container = new HBox(5, btnPdf, btnPublish, btnSms, btnRevoke);
 
             {
                 container.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
                 btnPdf.getStyleClass().add("btn-action-edit");
+                btnPublish.getStyleClass().add("btn-action-edit");
+                btnSms.getStyleClass().add("btn-action-edit");
                 btnRevoke.getStyleClass().add("btn-action-delete");
+                btnPdf.setTooltip(new Tooltip("Télécharger PDF"));
+                btnPublish.setTooltip(new Tooltip("Envoyer par Email"));
+                btnSms.setTooltip(new Tooltip("Notifier par SMS"));
+                btnRevoke.setTooltip(new Tooltip("Révoquer"));
+                
                 btnPdf.setOnAction(e -> handleDownloadPdf(getTableView().getItems().get(getIndex())));
+                btnPublish.setOnAction(e -> handlePublish(getTableView().getItems().get(getIndex())));
+                btnSms.setOnAction(e -> handleSms(getTableView().getItems().get(getIndex())));
                 btnRevoke.setOnAction(e -> handleRevoke(getTableView().getItems().get(getIndex())));
             }
 
@@ -112,7 +122,11 @@ public class CertificationsController implements Initializable {
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) setGraphic(null);
-                else setGraphic(container);
+                else {
+                    Certification c = getTableView().getItems().get(getIndex());
+                    btnRevoke.setDisable("REVOKED".equals(c.getStatus()));
+                    setGraphic(container);
+                }
             }
         });
     }
@@ -143,7 +157,72 @@ public class CertificationsController implements Initializable {
 
     @FXML
     private void handleAdd(ActionEvent e) {
-        // Formulaire d'ajout
+        java.util.List<User> students = userService.getAllUsers().stream().filter(u -> u.getRole() == User.Role.STUDENT).toList();
+        java.util.List<Certification> existingCerts = certService.getAllCertifications();
+        int created = 0;
+
+        for (User student : students) {
+            boolean hasCert = existingCerts.stream().anyMatch(c -> c.getStudentId() == student.getId());
+            if (!hasCert) {
+                Certification c = new Certification();
+                c.setUniqueNumber("CERT-" + java.time.Year.now().getValue() + "-" + String.format("%03d", student.getId()));
+                c.setCertificationType("Participation au programme");
+                c.setStudentId(student.getId());
+                c.setIssuedAt(java.time.LocalDateTime.now());
+                c.setStatus(Certification.STATUS_ISSUED);
+                try {
+                    certService.issueCertification(c);
+                    created++;
+                } catch(Exception ex) {}
+            }
+        }
+        if (created > 0) {
+            loadData();
+            showAlert("Succès", "Certifications générées", created + " nouvelle(s) certification(s) générée(s) pour les élèves restants.");
+        } else {
+            showAlert("Information", "Génération terminée", "Tous les étudiants ont déjà au moins une certification.");
+        }
+    }
+
+    private void handlePublish(Certification c) {
+        try {
+            User u = userService.getAllUsers().stream()
+                .filter(user -> user.getId() == c.getStudentId()).findFirst().orElse(null);
+            if (u != null && u.getEmail() != null) {
+                String studentName = u.getFirstName() + " " + u.getLastName();
+                String dateDelivrance = c.getIssuedAt() != null ? c.getIssuedAt().format(FMT_DATE) : "";
+                String validite = c.getValidUntil() != null ? c.getValidUntil().format(FMT_DATE) : "Permanente";
+                String htmlBody = com.edusmart.util.MailSender.buildCertificationEmailBody(
+                    studentName, c.getCertificationType(), dateDelivrance, validite, c.getUniqueNumber());
+                
+                com.edusmart.util.MailSender.sendEmailWithAttachment(u.getEmail(), "Votre Certification EduSmart", htmlBody, null);
+                showAlert("Succès", "Email Envoyé", "La certification a été envoyée à " + u.getEmail());
+            } else {
+                showAlert("Avertissement", "Email introuvable", "L'adresse email de cet étudiant est introuvable.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert("Erreur", "Échec d'envoi", "L'email n'a pas pu être envoyé : " + ex.getMessage());
+        }
+    }
+
+    private void handleSms(Certification c) {
+        try {
+            User u = userService.getAllUsers().stream()
+                .filter(user -> user.getId() == c.getStudentId()).findFirst().orElse(null);
+            if (u != null && u.getNumtel() != null && !u.getNumtel().isEmpty()) {
+                String studentName = u.getFirstName() + " " + u.getLastName();
+                String formattedPhone = u.getNumtel().startsWith("+") ? u.getNumtel() : "+216" + u.getNumtel();
+                String msg = "EduSmart - Bonjour " + studentName + ", votre certification " + c.getCertificationType() + " est maintenant disponible.";
+                com.edusmart.util.SmsSender.sendSms(formattedPhone, msg);
+                showAlert("Succès", "SMS Envoyé", "Un SMS a été envoyé au numéro " + formattedPhone);
+            } else {
+                showAlert("Avertissement", "Numéro introuvable", "Le numéro de téléphone de cet étudiant est introuvable.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert("Erreur", "Échec d'envoi", "Le SMS n'a pas pu être envoyé : " + ex.getMessage());
+        }
     }
 
     private void handleRevoke(Certification c) {
@@ -184,7 +263,9 @@ public class CertificationsController implements Initializable {
     @FXML private void handleCertifications(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CERTIFICATIONS); }
     @FXML private void handleAnalysisAI(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_ANALYSIS_AI); }
     @FXML private void handleStudentManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_STUDENT_MANAGEMENT); }
+    @FXML private void handleGradeManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_GRADE_MANAGEMENT); }
     @FXML private void handleMetierManagement(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_METIER_MANAGEMENT); }
+    @FXML private void handleProfile(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE); }
     @FXML private void handleSearch(ActionEvent e) { applyFilters(); }
     @FXML private void handleLogout(ActionEvent e) { SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN); }
 }
