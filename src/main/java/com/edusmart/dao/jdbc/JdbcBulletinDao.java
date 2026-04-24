@@ -21,8 +21,8 @@ public class JdbcBulletinDao implements BulletinDao {
     public boolean create(Bulletin bulletin) {
         String sql = "INSERT INTO bulletin (academic_year, semester, average, status, mention, class_rank, hmac_hash, "
                 + "pdf_path, verification_code, validated_at, published_at, revoked_at, revocation_reason, "
-                + "created_at, updated_at, student_id, validated_by_id, published_by_id, metier) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "created_at, updated_at, student_id, validated_by_id, published_by_id, metier, type) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -73,12 +73,12 @@ public class JdbcBulletinDao implements BulletinDao {
         String sql = "UPDATE bulletin SET academic_year = ?, semester = ?, average = ?, status = ?, mention = ?, "
                 + "class_rank = ?, hmac_hash = ?, pdf_path = ?, verification_code = ?, validated_at = ?, "
                 + "published_at = ?, revoked_at = ?, revocation_reason = ?, created_at = ?, updated_at = ?, "
-                + "student_id = ?, validated_by_id = ?, published_by_id = ?, metier = ? WHERE id = ?";
+                + "student_id = ?, validated_by_id = ?, published_by_id = ?, metier = ?, type = ? WHERE id = ?";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             fillStatement(ps, bulletin);
-            ps.setInt(20, bulletin.getId());
+            ps.setInt(21, bulletin.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update bulletin", ex);
@@ -167,6 +167,9 @@ public class JdbcBulletinDao implements BulletinDao {
         int pBy = rs.getInt("published_by_id");
         b.setPublishedById(rs.wasNull() ? null : pBy);
         b.setMetier(rs.getString("metier"));
+        try {
+            b.setType(rs.getString("type"));
+        } catch (SQLException ignore) {}
         return b;
     }
 
@@ -214,6 +217,7 @@ public class JdbcBulletinDao implements BulletinDao {
             ps.setNull(18, Types.INTEGER);
         }
         ps.setString(19, b.getMetier());
+        ps.setString(20, b.getType() != null ? b.getType() : "Régulier");
     }
 
     private static void setTimestamp(PreparedStatement ps, int idx, LocalDateTime dt) throws SQLException {

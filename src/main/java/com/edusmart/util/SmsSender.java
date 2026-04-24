@@ -5,13 +5,15 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 
 public class SmsSender {
-    // A remplacer par vos identifiants Twilio
-    public static final String ACCOUNT_SID = "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-    public static final String AUTH_TOKEN = "your_auth_token_here";
-    public static final String FROM_NUMBER = "+1234567890";
+    // Credentials loaded from environment variables for security
+    public static final String ACCOUNT_SID = System.getenv().getOrDefault("TWILIO_ACCOUNT_SID", "");
+    public static final String AUTH_TOKEN  = System.getenv().getOrDefault("TWILIO_AUTH_TOKEN", "");
+    public static final String FROM_NUMBER = System.getenv().getOrDefault("TWILIO_FROM_NUMBER", "+13639991312");
 
     static {
-        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        if (!ACCOUNT_SID.isEmpty() && !AUTH_TOKEN.isEmpty()) {
+            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        }
     }
 
     public static boolean sendSms(String toNumber, String content) {

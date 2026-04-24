@@ -18,7 +18,7 @@ module com.edusmart {
     opens com.edusmart.controller.student to javafx.fxml;
     opens com.edusmart.controller.teacher to javafx.fxml;
     opens com.edusmart.controller.shared to javafx.fxml;
-    opens com.edusmart.model to javafx.base;
+    opens com.edusmart.model to javafx.base, com.google.gson;
     opens com.edusmart.util to javafx.fxml;
     opens com.edusmart.service to com.google.gson;
 

@@ -27,8 +27,17 @@ public class Bulletin {
     private Integer validatedById;
     private Integer publishedById;
     private String metier;
+    private String type;
 
     public Bulletin() {}
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     // Getters & setters
 

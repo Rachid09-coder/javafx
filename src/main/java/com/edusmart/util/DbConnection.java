@@ -11,7 +11,7 @@ public final class DbConnection {
 
     private static final String URL = System.getProperty(
             "db.url",
-            "jdbc:mysql://localhost:3306/user2?useSSL=false&serverTimezone=UTC"
+            "jdbc:mysql://localhost:3306/db_recovery_final?useSSL=false&serverTimezone=UTC"
     );
     private static final String USER = System.getProperty("db.user", "root");
     private static final String PASSWORD = System.getProperty("db.password", "");
