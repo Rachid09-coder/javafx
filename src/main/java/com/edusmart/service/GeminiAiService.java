@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  * Service to interact with Google Gemini AI API for student performance analysis.
  */
 public class GeminiAiService {
-    private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-    private static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // User should replace this
+    private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    private static final String API_KEY = "AIzaSyCR7ifV-L0Ob6DBtEU5IURi0vq32Z2sDJk"; // User should replace this
 
     private final OkHttpClient client;
     private final Gson gson;
