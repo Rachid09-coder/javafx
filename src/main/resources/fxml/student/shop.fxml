@@ -23,6 +23,7 @@
                 <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
                 <Button text="🛒  Boutique" styleClass="nav-button active" onAction="#handleShop"/>
+                <Button text="🤖  Assistant IA" styleClass="nav-button" onAction="#handleStudentAI"/>
                 <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">

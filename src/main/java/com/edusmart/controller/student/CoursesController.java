@@ -125,6 +125,10 @@ public class CoursesController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
     }
 
+    @FXML private void handleStudentAI(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_AI);
+    }
+
     @FXML private void handleProfile(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.PROFILE);
     }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.TextFlow?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.StudentAIController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="📚  Mes Cours" styleClass="nav-button" onAction="#handleCourses"/>
+                <Button text="📝  Examens" styleClass="nav-button" onAction="#handleExams"/>
+                <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
+                <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+                <Button text="🤖  Assistant IA" styleClass="nav-button active" onAction="#handleStudentAI"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <VBox styleClass="content-area" spacing="20">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="16" styleClass="top-header">
+                <Label text="Assistant Personnel IA" styleClass="page-title"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <VBox spacing="15" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
+                <Label text="Posez-moi vos questions sur vos cours, exercices ou notes !" style="-fx-font-weight: bold; -fx-font-size: 16; -fx-text-fill: #1E293B;"/>
+                
+                <ScrollPane fx:id="chatScroll" fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: #E2E8F0; -fx-border-radius: 8;">
+                    <VBox fx:id="chatContainer" spacing="15" style="-fx-padding: 15;"/>
+                </ScrollPane>
+
+                <HBox spacing="10" alignment="CENTER">
+                    <TextField fx:id="queryField" promptText="Ex: Explique-moi la dérivée d'une fonction..." 
+                               HBox.hgrow="ALWAYS" styleClass="input-field" style="-fx-pref-height: 45; -fx-font-size: 14;"/>
+                    <Button text="Demander" onAction="#handleAskAI" 
+                            style="-fx-background-color: #8B5CF6; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 45; -fx-padding: 0 25; -fx-background-radius: 8;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>
