@@ -28,8 +28,8 @@ public class MailSender {
     private static final String HOST     = "smtp.gmail.com";
     private static final String PORT     = "587";
     // Read from environment variables; fall back to defaults only for local development.
-    private static final String USERNAME = getEnv("EDUSMART_MAIL_USER", "rachidgharbi09@gmail.com");
-    private static final String PASSWORD = getEnv("EDUSMART_MAIL_PASS", "qzzx ssrv njuw wmat");
+    private static final String USERNAME = getEnv("EDUSMART_MAIL_USER", "YOUR_EMAIL@gmail.com");
+    private static final String PASSWORD = getEnv("EDUSMART_MAIL_PASS", "YOUR_APP_PASSWORD");
 
     // ── Brand colours (kept in sync with CSS vars) ───────────────────────────
     private static final String C_BLUE      = "#1E3A8A";
