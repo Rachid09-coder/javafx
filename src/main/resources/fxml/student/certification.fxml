@@ -23,6 +23,7 @@
                 <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
                 <Button text="🏆  Certifications" styleClass="nav-button active" onAction="#handleCertification"/>
                 <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+                <Button text="🤖  Assistant IA" styleClass="nav-button" onAction="#handleStudentAI"/>
                 <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">
@@ -36,24 +37,28 @@
     <center>
         <VBox styleClass="content-area" spacing="20">
 
-            <!-- Header -->
-            <HBox alignment="CENTER_LEFT" spacing="16" styleClass="top-header">
-                <Button text="⬅ Retour" onAction="#handleCourses" style="-fx-background-color: #E2E8F0; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
-                <Label text="Mes Certifications" styleClass="page-title"/>
-                <Pane HBox.hgrow="ALWAYS"/>
-                <Label fx:id="totalCertificationsLabel" style="-fx-text-fill: #64748B;"/>
+            <!-- Glassmorphism Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="card" style="-fx-padding: 15 25;">
+                <Button text="⬅ Retour" onAction="#handleCourses" styleClass="btn-secondary"/>
+                <VBox spacing="2">
+                    <Label text="🏆 Mes Certifications" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -edu-blue;"/>
+                    <Label text="Consultez et téléchargez vos diplômes et certificats officiels" style="-fx-text-fill: -edu-text-muted; -fx-font-size: 13px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox alignment="CENTER" style="-fx-background-color: #F1F5F9; -fx-padding: 10 20; -fx-background-radius: 8;">
+                    <Label fx:id="totalCertificationsLabel" style="-fx-text-fill: -edu-blue; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+                </VBox>
             </HBox>
 
             <!-- Filters -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <TextField fx:id="searchField" promptText="🔍  Rechercher (type, code)..." styleClass="search-bar" onAction="#handleSearch"/>
-                <ComboBox fx:id="statusFilter" onAction="#handleFilterChange" styleClass="combo-box"/>
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="card" style="-fx-padding: 12 20;">
+                <Label text="Filtrer :" style="-fx-font-weight: bold; -fx-text-fill: -edu-text-muted;"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher (type, code)..." styleClass="search-bar" onAction="#handleSearch" prefWidth="250"/>
+                <ComboBox fx:id="statusFilter" promptText="Statut" onAction="#handleFilterChange" styleClass="combo-box" prefWidth="150"/>
             </HBox>
 
-            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
-                        style="-fx-background: transparent; -fx-background-color: transparent;">
-                <FlowPane fx:id="certificationsContainer" hgap="16" vgap="16"
-                          style="-fx-background-color: transparent; -fx-padding: 4;">
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <FlowPane fx:id="certificationsContainer" hgap="20" vgap="20" style="-fx-background-color: transparent; -fx-padding: 10;">
                 </FlowPane>
             </ScrollPane>
 

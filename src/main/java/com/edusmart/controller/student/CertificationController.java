@@ -58,15 +58,8 @@ public class CertificationController implements Initializable {
     }
 
     private int resolveStudentId() {
-        String p = System.getProperty("edusmart.studentId");
-        if (p != null) {
-            try {
-                return Integer.parseInt(p.trim());
-            } catch (NumberFormatException ignored) {
-                return 1;
-            }
-        }
-        return 1;
+        com.edusmart.model.User u = SceneManager.getInstance().getCurrentUser();
+        return u != null ? u.getId() : 1;
     }
 
     private void loadCertifications() {
@@ -283,6 +276,11 @@ public class CertificationController implements Initializable {
     @FXML
     private void handleShop(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
+    }
+
+    @FXML
+    private void handleStudentAI(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_AI);
     }
 
     @FXML

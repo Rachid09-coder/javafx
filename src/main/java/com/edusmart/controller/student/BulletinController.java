@@ -1,16 +1,21 @@
 package com.edusmart.controller.student;
 
-import com.edusmart.dao.jdbc.JdbcBulletinDao;
+import com.edusmart.dao.jdbc.JdbcCourseDao;
+import com.edusmart.dao.jdbc.JdbcGradeDao;
 import com.edusmart.dao.jdbc.JdbcUserDao;
 import com.edusmart.model.Bulletin;
+import com.edusmart.model.Course;
 import com.edusmart.model.Grade;
 import com.edusmart.model.User;
 import com.edusmart.service.BulletinService;
+import com.edusmart.service.CourseService;
 import com.edusmart.service.UserService;
 import com.edusmart.service.impl.BulletinServiceImpl;
+import com.edusmart.service.impl.CourseServiceImpl;
 import com.edusmart.service.impl.UserServiceImpl;
 import com.edusmart.util.PdfGenerator;
 import com.edusmart.util.SceneManager;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -48,22 +53,42 @@ public class BulletinController implements Initializable {
     @FXML private Button printButton;
     @FXML private Button downloadButton;
 
-    private final BulletinService bulletinService = new BulletinServiceImpl(new JdbcBulletinDao());
+    private final BulletinService bulletinService = new BulletinServiceImpl(new com.edusmart.dao.jdbc.JdbcBulletinDao());
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
+    private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
     private Bulletin currentBulletin;
+    private java.util.Map<Integer, String> courseNameMap = new java.util.HashMap<>();
 
     private ObservableList<Grade> gradeList = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        loadCourseNames();
         setupTable();
         setupFilters();
         loadGrades();
     }
 
+    private void loadCourseNames() {
+        try {
+            courseService.getAllCourses().forEach(c -> courseNameMap.put(c.getId(), c.getTitle()));
+        } catch (Exception e) {
+            System.err.println("Failed to load course names: " + e.getMessage());
+        }
+    }
+
     private void setupTable() {
+        if (subjectColumn != null) {
+            subjectColumn.setCellValueFactory(cellData -> {
+                int courseId = cellData.getValue().getCourseId();
+                String name = courseNameMap.getOrDefault(courseId, "Cours #" + courseId);
+                return new SimpleStringProperty(name);
+            });
+        }
         if (scoreColumn != null) scoreColumn.setCellValueFactory(new PropertyValueFactory<>("note"));
+        if (maxScoreColumn != null) maxScoreColumn.setCellValueFactory(new PropertyValueFactory<>("coefficient"));
         if (semesterColumn != null) semesterColumn.setCellValueFactory(new PropertyValueFactory<>("semester"));
+        if (commentColumn != null) commentColumn.setCellValueFactory(new PropertyValueFactory<>("session"));
         if (gradesTable != null) gradesTable.setItems(gradeList);
     }
 
@@ -184,6 +209,10 @@ public class BulletinController implements Initializable {
 
     @FXML private void handleShop(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
+    }
+
+    @FXML private void handleStudentAI(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_AI);
     }
 
     @FXML private void handleProfile(ActionEvent event) {
