@@ -45,6 +45,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class PdfGenerator {
 
+    // No external URL needed — QR codes encode plain text document info.
+
     // ── EduSmart brand colours ──────────────────────────────────────────────
     private static final Color EDU_BLUE        = hex("#1E3A8A");
     private static final Color EDU_BLUE_LIGHT  = hex("#2563EB");
@@ -76,35 +78,46 @@ public class PdfGenerator {
                 ? student.getLastName().replaceAll("[^a-zA-Z0-9_-]", "") : "etudiant";
         String safeYear = bulletin.getAcademicYear() != null
                 ? bulletin.getAcademicYear().replaceAll("[^a-zA-Z0-9_-]", "") : "annee";
+        
+        // Use a unique name if needed, or check if we can write
         String fileName = "Bulletin_" + safeLastName + "_" + safeYear + "_" + nvl(bulletin.getSemester(), "S") + ".pdf";
         File file = new File(PDF_DIR, fileName);
 
+        // If file exists and is open, we can't overwrite. 
+        // For student view, if it exists, just return it to avoid the "Process cannot access" error.
+        if (file.exists()) {
+            return file;
+        }
+
         Document doc = new Document(PageSize.A4, 50, 50, 40, 40);
-        PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(file));
-        doc.open();
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            PdfWriter writer = PdfWriter.getInstance(doc, fos);
+            doc.open();
 
-        drawPageBackground(writer, doc, false);
-        addBulletinHeader(doc, writer, bulletin);
-        addSectionTitle(doc, "Informations de l'étudiant");
-        addInfoTable(doc, new String[][]{
-            {"Nom complet", student.getFullName()},
-            {"Email",       nvl(student.getEmail(), "N/A")},
-            {"Année",       nvl(bulletin.getAcademicYear(), "N/A")},
-            {"Semestre",    nvl(bulletin.getSemester(), "N/A")},
-            {"Statut",      nvl(bulletin.getStatus(), "N/A")}
-        });
-        addSectionTitle(doc, "Résultats académiques");
-        addResultsTable(doc, new String[][]{
-            {"Moyenne générale", bulletin.getAverage() != null ? String.format("%.2f / 20", bulletin.getAverage()) : "N/A"},
-            {"Mention",          nvl(bulletin.getMention(), "N/A")},
-            {"Classement",       bulletin.getClassRank() != null ? bulletin.getClassRank() + "ème" : "N/A"}
-        });
-        addQrSection(doc, "https://edusmart.com/bulletin/" + bulletin.getId(),
-                "Bulletin #" + bulletin.getId() + " — Vérifiez l'authenticité sur edusmart.com");
-        addDigitalSignature(doc, writer);
-        drawBottomStrip(writer, doc);
+            drawPageBackground(writer, doc, false);
+            addBulletinHeader(doc, writer, bulletin);
+            addSectionTitle(doc, "Informations de l'étudiant");
+            addInfoTable(doc, new String[][]{
+                {"Nom complet", student.getFullName()},
+                {"Email",       nvl(student.getEmail(), "N/A")},
+                {"Année",       nvl(bulletin.getAcademicYear(), "N/A")},
+                {"Semestre",    nvl(bulletin.getSemester(), "N/A")},
+                {"Statut",      nvl(bulletin.getStatus(), "N/A")}
+            });
+            addSectionTitle(doc, "Résultats académiques");
+            addResultsTable(doc, new String[][]{
+                {"Moyenne générale", bulletin.getAverage() != null ? String.format("%.2f / 20", bulletin.getAverage()) : "N/A"},
+                {"Mention",          nvl(bulletin.getMention(), "N/A")},
+                {"Classement",       bulletin.getClassRank() != null ? bulletin.getClassRank() + "ème" : "N/A"}
+            });
+            String downloadUrl = "http://" + LocalServer.LOCAL_IP + ":8085/" + file.getName();
+            addQrSection(doc, downloadUrl,
+                    "Bulletin #" + bulletin.getId() + " — Scannez pour télécharger le PDF");
+            addDigitalSignature(doc, writer);
+            drawBottomStrip(writer, doc);
 
-        doc.close();
+            doc.close();
+        }
         return file;
     }
 
@@ -114,15 +127,22 @@ public class PdfGenerator {
         String fileName  = "Certification_" + uniqueNum.replaceAll("[^a-zA-Z0-9_-]", "") + ".pdf";
         File file        = new File(PDF_DIR, fileName);
 
+        if (file.exists()) {
+            return file;
+        }
+
         Document doc = new Document(PageSize.A4.rotate(), 60, 60, 50, 50);
-        PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(file));
-        doc.open();
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            PdfWriter writer = PdfWriter.getInstance(doc, fos);
+            doc.open();
 
-        drawCertDecorations(writer, doc);
-        addCertContent(doc, writer, cert, student, uniqueNum);
-        addDigitalSignature(doc, writer);
+            drawCertDecorations(writer, doc);
+            String downloadUrl = "http://" + LocalServer.LOCAL_IP + ":8085/" + file.getName();
+            addCertContent(doc, writer, cert, student, uniqueNum, downloadUrl);
+            addDigitalSignature(doc, writer);
 
-        doc.close();
+            doc.close();
+        }
         return file;
     }
 
@@ -311,7 +331,7 @@ public class PdfGenerator {
 
     private static void addCertContent(Document doc, PdfWriter writer,
                                         Certification cert, User student,
-                                        String uniqueNum) throws Exception {
+                                        String uniqueNum, String downloadUrl) throws Exception {
         Rectangle page = doc.getPageSize();
         PdfContentByte canvas = writer.getDirectContent();
 
@@ -382,13 +402,13 @@ public class PdfGenerator {
 
         // QR Code
         doc.add(blankLines(1));
-        com.lowagie.text.Image qr = qrCodeImage("https://edusmart.com/verify/" + uniqueNum, 85, 85);
+        com.lowagie.text.Image qr = qrCodeImage(downloadUrl, 85, 85);
         qr.setAlignment(Element.ALIGN_CENTER);
         doc.add(qr);
 
         Font smallFont = FontFactory.getFont(FontFactory.HELVETICA, 9, EDU_TEXT_MUTED);
         Paragraph verif = new Paragraph("N° : " + uniqueNum
-                + "   |   Scannez le QR code pour vérifier l'authenticité sur edusmart.com",
+                + "   |   Scannez le QR code pour télécharger ce certificat",
                 smallFont);
         verif.setAlignment(Element.ALIGN_CENTER);
         verif.setSpacingBefore(4);
@@ -436,6 +456,19 @@ public class PdfGenerator {
         canvas.showTextAligned(Element.ALIGN_LEFT, "Certifié par EduSmart CA", x + 5, y + 30, 0);
         canvas.showTextAligned(Element.ALIGN_LEFT, "Date: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE), x + 5, y + 15, 0);
         canvas.endText();
+        
+        // Draw real signature if available
+        User currentUser = SceneManager.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getSignaturePath() != null && !currentUser.getSignaturePath().isBlank()) {
+            try {
+                com.lowagie.text.Image sigImg = com.lowagie.text.Image.getInstance(currentUser.getSignaturePath());
+                sigImg.scaleToFit(140, 40);
+                sigImg.setAbsolutePosition(x + 10, y + 5);
+                canvas.addImage(sigImg);
+            } catch (Exception e) {
+                System.err.println("Could not add signature image to PDF: " + e.getMessage());
+            }
+        }
         
         // Transparent Stamp Simulation
         canvas.saveState();

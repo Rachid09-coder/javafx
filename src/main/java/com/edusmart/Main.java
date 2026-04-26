@@ -1,6 +1,7 @@
 package com.edusmart;
 
 import com.edusmart.util.SceneManager;
+import com.edusmart.util.LocalServer;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -16,6 +17,8 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         SceneManager sceneManager = SceneManager.getInstance();
         sceneManager.init(primaryStage);
+        
+        LocalServer.start();
 
         primaryStage.setTitle("EduSmart - Educational Platform");
         primaryStage.setMinWidth(900);
@@ -27,6 +30,12 @@ public class Main extends Application {
         sceneManager.navigateTo(SceneManager.Scene.LOGIN);
 
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        LocalServer.stop();
+        super.stop();
     }
 
     public static void main(String[] args) {
