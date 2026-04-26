@@ -46,8 +46,8 @@ public class JdbcUserDao implements UserDao {
     @Override
     public boolean create(User user) {
         String sql = "INSERT INTO " + TABLE + " (name, prenom, email, role, password, numtel, is_active, "
-                + "reset_token, reset_token_expires_at, google_id, face_descriptor, email_assoc) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "reset_token, reset_token_expires_at, google_id, face_descriptor, email_assoc, signature_path) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -132,13 +132,13 @@ public class JdbcUserDao implements UserDao {
     @Override
     public boolean update(User user) {
         String sql = "UPDATE " + TABLE + " SET name = ?, prenom = ?, email = ?, role = ?, password = ?, numtel = ?, "
-                + "is_active = ?, reset_token = ?, reset_token_expires_at = ?, google_id = ?, face_descriptor = ?, email_assoc = ? "
+                + "is_active = ?, reset_token = ?, reset_token_expires_at = ?, google_id = ?, face_descriptor = ?, email_assoc = ?, signature_path = ? "
                 + "WHERE id = ?";
 
         try (Connection connection = DbConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             fillMutableColumns(ps, user);
-            ps.setInt(13, user.getId());
+            ps.setInt(14, user.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update user", ex);
@@ -173,6 +173,7 @@ public class JdbcUserDao implements UserDao {
         u.setGoogleId(rs.getString("google_id"));
         u.setFaceDescriptor(rs.getString("face_descriptor"));
         u.setEmailAssoc(rs.getString("email_assoc"));
+        u.setSignaturePath(rs.getString("signature_path"));
         return u;
     }
 
@@ -201,5 +202,6 @@ public class JdbcUserDao implements UserDao {
             ps.setNull(11, Types.LONGVARCHAR);
         }
         ps.setString(12, u.getEmailAssoc());
+        ps.setString(13, u.getSignaturePath());
     }
 }

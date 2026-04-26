@@ -29,6 +29,7 @@ public class User {
     private String googleId;
     private String faceDescriptor;
     private String emailAssoc;
+    private String signaturePath;
 
     /** Legacy alias used by older code paths. */
     private String avatarUrl;
@@ -191,6 +192,14 @@ public class User {
 
     public void setEmailAssoc(String emailAssoc) {
         this.emailAssoc = emailAssoc;
+    }
+
+    public String getSignaturePath() {
+        return signaturePath;
+    }
+
+    public void setSignaturePath(String signaturePath) {
+        this.signaturePath = signaturePath;
     }
 
     public String getFullName() {

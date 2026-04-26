@@ -21,7 +21,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
 
 import java.time.LocalDateTime;
 
@@ -172,13 +171,6 @@ public class BulletinsController implements Initializable {
         showAlert("Succès", "Calcul terminé", "Les rangs ont été recalculés pour le semestre " + sem, Alert.AlertType.INFORMATION);
     }
 
-    private void handleValidate(Bulletin b) {
-        b.setStatus("VALIDATED");
-        b.setValidatedAt(LocalDateTime.now());
-        bulletinService.updateBulletin(b);
-        loadData();
-    }
-
     private void handlePublish(Bulletin b) {
         if ("PUBLISHED".equals(b.getStatus())) return;
         b.setStatus("PUBLISHED");
@@ -226,13 +218,6 @@ public class BulletinsController implements Initializable {
             e.printStackTrace();
             showAlert("Erreur", "Échec d'envoi", "Le SMS n'a pas pu être envoyé : " + e.getMessage(), Alert.AlertType.ERROR);
         }
-    }
-
-    private void handleArchive(Bulletin b) {
-        b.setStatus("ARCHIVED");
-        bulletinService.updateBulletin(b);
-        loadData();
-        showAlert("Succès", "Bulletin archivé", "Le bulletin a été déplacé vers les archives.", Alert.AlertType.INFORMATION);
     }
 
     private void handleRevoke(Bulletin b) {

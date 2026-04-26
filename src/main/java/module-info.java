@@ -1,10 +1,13 @@
 module com.edusmart {
+    requires java.base;
     requires transitive javafx.controls;
     requires transitive javafx.fxml;
     requires transitive javafx.graphics;
     requires transitive java.sql;
     requires java.desktop;
+    requires javafx.swing;
     requires jakarta.mail;
+    requires jdk.httpserver;
     requires com.github.librepdf.openpdf;
     requires com.google.zxing;
     requires com.google.zxing.javase;

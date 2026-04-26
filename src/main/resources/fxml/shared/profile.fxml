@@ -67,6 +67,19 @@
         <Label text="Nouveau Mot de Passe" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
         <PasswordField fx:id="passwordField" promptText="Laisser vide pour ne pas changer" GridPane.rowIndex="4" GridPane.columnIndex="1" 
                        style="-fx-background-radius: 8; -fx-padding: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;"/>
+                       
+        <!-- Signature Pad -->
+        <VBox spacing="5" GridPane.rowIndex="5" GridPane.columnIndex="0">
+            <Label text="Signature Numérique" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+            <Label text="(Pour bulletins/certifs)" style="-fx-font-size: 10; -fx-text-fill: #94A3B8;"/>
+            <Button text="Effacer" onAction="#handleClearSignature" style="-fx-font-size: 10; -fx-background-color: #FEE2E2; -fx-text-fill: #EF4444; -fx-background-radius: 4; -fx-padding: 4 8;"/>
+        </VBox>
+        <VBox spacing="10" GridPane.rowIndex="5" GridPane.columnIndex="1">
+            <StackPane style="-fx-border-color: #E2E8F0; -fx-border-radius: 8; -fx-background-color: white; -fx-background-radius: 8;">
+                <javafx.scene.canvas.Canvas fx:id="signatureCanvas" width="400" height="150"
+                     onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged"/>
+            </StackPane>
+        </VBox>
     </GridPane>
 
     <Region VBox.vgrow="ALWAYS"/>

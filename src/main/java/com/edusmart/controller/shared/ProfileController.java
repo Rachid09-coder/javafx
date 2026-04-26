@@ -12,6 +12,15 @@ import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
+import java.io.File;
+import javax.imageio.ImageIO;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.WritableImage;
+import javafx.scene.image.Image;
 
 public class ProfileController implements Initializable {
 
@@ -22,6 +31,9 @@ public class ProfileController implements Initializable {
     @FXML private TextField emailField;
     @FXML private TextField emailAssocField;
     @FXML private PasswordField passwordField;
+    @FXML private Canvas signatureCanvas;
+
+    private GraphicsContext gc;
 
     private final UserService userService = new UserServiceImpl(new JdbcUserDao());
     private User currentUser;
@@ -30,8 +42,15 @@ public class ProfileController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         currentUser = SceneManager.getInstance().getCurrentUser();
         if (currentUser != null) {
+            initSignaturePad();
             loadUserData();
         }
+    }
+
+    private void initSignaturePad() {
+        gc = signatureCanvas.getGraphicsContext2D();
+        gc.setLineWidth(2.5);
+        gc.setStroke(Color.web("#1E293B"));
     }
 
     private void loadUserData() {
@@ -41,6 +60,15 @@ public class ProfileController implements Initializable {
         lastNameField.setText(currentUser.getLastName());
         emailField.setText(currentUser.getEmail());
         emailAssocField.setText(currentUser.getEmailAssoc() != null ? currentUser.getEmailAssoc() : "");
+        
+        // Load existing signature if any
+        if (currentUser.getSignaturePath() != null && !currentUser.getSignaturePath().isBlank()) {
+            File sigFile = new File(currentUser.getSignaturePath());
+            if (sigFile.exists()) {
+                Image img = new Image(sigFile.toURI().toString());
+                gc.drawImage(img, 0, 0);
+            }
+        }
     }
 
     @FXML
@@ -54,6 +82,21 @@ public class ProfileController implements Initializable {
         String newPassword = passwordField.getText();
         if (newPassword != null && !newPassword.isEmpty()) {
             currentUser.setPassword(newPassword);
+        }
+        
+        // Save Signature to file
+        try {
+            File sigDir = new File("signatures");
+            if (!sigDir.exists()) sigDir.mkdirs();
+            File sigFile = new File(sigDir, "sig_" + currentUser.getId() + ".png");
+            
+            WritableImage writableImage = new WritableImage((int) signatureCanvas.getWidth(), (int) signatureCanvas.getHeight());
+            signatureCanvas.snapshot(null, writableImage);
+            ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", sigFile);
+            
+            currentUser.setSignaturePath(sigFile.getAbsolutePath());
+        } catch (Exception e) {
+            System.err.println("Could not save signature image: " + e.getMessage());
         }
 
         try {
@@ -81,5 +124,23 @@ public class ProfileController implements Initializable {
         } else {
             SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_COURSES);
         }
+    }
+
+    @FXML
+    private void handleMousePressed(MouseEvent event) {
+        gc.beginPath();
+        gc.moveTo(event.getX(), event.getY());
+        gc.stroke();
+    }
+
+    @FXML
+    private void handleMouseDragged(MouseEvent event) {
+        gc.lineTo(event.getX(), event.getY());
+        gc.stroke();
+    }
+
+    @FXML
+    private void handleClearSignature(ActionEvent event) {
+        gc.clearRect(0, 0, signatureCanvas.getWidth(), signatureCanvas.getHeight());
     }
 }
