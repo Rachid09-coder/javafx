@@ -25,6 +25,7 @@ public class SceneManager {
         STUDENT_BULLETIN,
         STUDENT_CERTIFICATION,
         STUDENT_SHOP,
+        STUDENT_ORDER_CHECKOUT,
         // Teacher
         TEACHER_DASHBOARD,
         TEACHER_MANAGE_COURSES,
@@ -116,6 +117,7 @@ public class SceneManager {
             case STUDENT_BULLETIN             -> "/fxml/student/bulletin.fxml";
             case STUDENT_CERTIFICATION        -> "/fxml/student/certification.fxml";
             case STUDENT_SHOP                 -> "/fxml/student/shop.fxml";
+            case STUDENT_ORDER_CHECKOUT        -> "/fxml/student/order-checkout.fxml";
             case TEACHER_DASHBOARD            -> "/fxml/teacher/dashboard.fxml";
             case TEACHER_MANAGE_COURSES       -> "/fxml/teacher/manage-courses.fxml";
             case TEACHER_MANAGE_MODULES       -> "/fxml/teacher/manage-modules.fxml";

@@ -1,25 +1,20 @@
 package com.edusmart.controller.student;
 
 import com.edusmart.dao.jdbc.JdbcCategoryDao;
-import com.edusmart.dao.jdbc.JdbcOrderDao;
 import com.edusmart.dao.jdbc.JdbcProductDao;
 import com.edusmart.dao.jdbc.JdbcPromoCodeDao;
 import com.edusmart.model.Category;
-import com.edusmart.model.Order;
-import com.edusmart.model.OrderItem;
+import com.edusmart.model.CartItem;
 import com.edusmart.model.Product;
 import com.edusmart.model.PromoCode;
 import com.edusmart.service.CategoryService;
-import com.edusmart.service.OrderService;
 import com.edusmart.service.ProductService;
 import com.edusmart.service.PromoCodeService;
 import com.edusmart.service.impl.CategoryServiceImpl;
-import com.edusmart.service.impl.OrderServiceImpl;
 import com.edusmart.service.impl.ProductServiceImpl;
 import com.edusmart.service.impl.PromoCodeServiceImpl;
 import com.edusmart.util.SceneManager;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import com.edusmart.util.StudentShopCart;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -65,21 +60,17 @@ public class ShopController implements Initializable {
     private final ProductService productService = new ProductServiceImpl(new JdbcProductDao());
     private final CategoryService categoryService = new CategoryServiceImpl(new JdbcCategoryDao());
     private final PromoCodeService promoCodeService = new PromoCodeServiceImpl(new JdbcPromoCodeDao());
-    private final OrderService orderService = new OrderServiceImpl(new JdbcOrderDao());
+    private final StudentShopCart shopCart = StudentShopCart.getInstance();
 
     private final Category allCategory = new Category(0, "Tous", null, null, null);
-    private final ObservableList<CartItem> cartModel = FXCollections.observableArrayList();
-    private final Map<Integer, CartItem> cartByProductId = new HashMap<>();
     private final Map<Integer, Category> categoryById = new HashMap<>();
-
-    private PromoCode appliedPromo;
-    private double appliedDiscountAmount;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupFilters();
         loadProducts();
         renderProducts(productList);
+        shopCart.getItems().addListener((javafx.collections.ListChangeListener.Change<? extends CartItem> c) -> updateCartSummary());
         setupCartListView();
         updateCartSummary();
     }
@@ -134,23 +125,17 @@ public class ShopController implements Initializable {
      */
     public void addToCart(Product product) {
         if (product == null) return;
-
-        CartItem item = cartByProductId.get(product.getId());
-        if (item == null) {
-            if (product.getStock() <= 0) {
-                showAlert("Stock insuffisant", "Ce produit est en rupture de stock.");
-                return;
-            }
-            item = new CartItem(product, 1);
-            cartByProductId.put(product.getId(), item);
-            cartModel.add(item);
-        } else {
-            if (item.getQuantity() + 1 > product.getStock()) {
+        if (product.getStock() <= 0) {
+            showAlert("Stock insuffisant", "Ce produit est en rupture de stock.");
+            return;
+        }
+        if (shopCart.getLine(product.getId()) != null) {
+            if (shopCart.getLine(product.getId()).getQuantity() + 1 > product.getStock()) {
                 showAlert("Stock insuffisant", "Quantité max atteinte (stock: " + product.getStock() + ").");
                 return;
             }
-            item.setQuantity(item.getQuantity() + 1);
         }
+        shopCart.addOne(product);
         updateCartSummary();
     }
 
@@ -159,8 +144,7 @@ public class ShopController implements Initializable {
      */
     public void removeFromCart(Product product) {
         if (product == null) return;
-        CartItem item = cartByProductId.remove(product.getId());
-        if (item != null) cartModel.remove(item);
+        shopCart.removeLine(product.getId());
         updateCartSummary();
     }
 
@@ -169,8 +153,7 @@ public class ShopController implements Initializable {
      */
     @FXML
     private void handleClearCart(ActionEvent event) {
-        cartByProductId.clear();
-        cartModel.clear();
+        shopCart.clear();
         updateCartSummary();
     }
 
@@ -179,7 +162,7 @@ public class ShopController implements Initializable {
      */
     @FXML
     private void handleCheckout(ActionEvent event) {
-        if (cartModel.isEmpty()) {
+        if (shopCart.getItems().isEmpty()) {
             showAlert("Panier vide", "Ajoutez des articles à votre panier avant de procéder au paiement.");
             return;
         }
@@ -190,39 +173,7 @@ public class ShopController implements Initializable {
             return;
         }
 
-        double subtotal = getCartSubtotal();
-        double discount = appliedDiscountAmount;
-        double total = Math.max(0, subtotal - discount);
-
-        Order order = new Order();
-        order.setStudentId(user.getId());
-        order.setPromoCodeId(appliedPromo != null ? appliedPromo.getId() : null);
-        order.setTotalBeforeDiscount(subtotal);
-        order.setDiscountAmount(discount);
-        order.setTotalAfterDiscount(total);
-        order.setStatus("PENDING");
-
-        java.util.List<OrderItem> items = cartModel.stream().map(ci -> {
-            OrderItem it = new OrderItem();
-            it.setProductId(ci.getProduct().getId());
-            it.setProductName(Objects.toString(ci.getProduct().getName(), "Produit"));
-            it.setQuantity(ci.getQuantity());
-            it.setUnitPrice(ci.getProduct().getPrice());
-            it.setTotalPrice(ci.getProduct().getPrice() * ci.getQuantity());
-            return it;
-        }).collect(Collectors.toList());
-
-        try {
-            int orderId = orderService.createOrderWithItems(order, items);
-            if (appliedPromo != null) {
-                promoCodeService.markUsed(appliedPromo.getId(), user.getId());
-            }
-
-            showAlert("Commande", "Commande enregistrée (ID: " + orderId + ").\nTotal: " + String.format("%.2f €", total));
-            clearCartAndPromo();
-        } catch (Exception ex) {
-            showAlert("Erreur", "Impossible d'enregistrer la commande.\n" + rootCause(ex));
-        }
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_ORDER_CHECKOUT);
     }
 
     @FXML
@@ -234,8 +185,7 @@ public class ShopController implements Initializable {
         }
         String code = promoCodeField != null ? promoCodeField.getText() : null;
         if (code == null || code.trim().isEmpty()) {
-            appliedPromo = null;
-            appliedDiscountAmount = 0;
+            shopCart.clearPromo();
             showPromoStatus("Code promo retiré.", false);
             updateCartSummary();
             return;
@@ -244,28 +194,24 @@ public class ShopController implements Initializable {
         try {
             PromoCode promo = promoCodeService.getActivePromoByCode(code.trim()).orElse(null);
             if (promo == null) {
-                appliedPromo = null;
-                appliedDiscountAmount = 0;
+                shopCart.clearPromo();
                 showPromoStatus("Code invalide ou inactif.", true);
                 updateCartSummary();
                 return;
             }
 
             if (promoCodeService.hasStudentUsedPromo(promo.getId(), user.getId())) {
-                appliedPromo = null;
-                appliedDiscountAmount = 0;
+                shopCart.clearPromo();
                 showPromoStatus("Ce code promo a déjà été utilisé.", true);
                 updateCartSummary();
                 return;
             }
 
-            appliedPromo = promo;
-            appliedDiscountAmount = computeDiscount(getCartSubtotal(), promo.getDiscountPercent());
-            showPromoStatus("Code appliqué: -" + formatMoney(appliedDiscountAmount), false);
+            shopCart.setAppliedPromo(promo);
+            showPromoStatus("Code appliqué: -" + formatMoney(shopCart.computeDiscountEur()), false);
             updateCartSummary();
         } catch (Exception ex) {
-            appliedPromo = null;
-            appliedDiscountAmount = 0;
+            shopCart.clearPromo();
             showPromoStatus("Erreur lors de la validation du code.", true);
             updateCartSummary();
         }
@@ -344,7 +290,7 @@ public class ShopController implements Initializable {
 
     private void setupCartListView() {
         if (cartListView == null) return;
-        cartListView.setItems(cartModel);
+        cartListView.setItems(shopCart.getItems());
 
         cartListView.setCellFactory(lv -> new ListCell<>() {
             @Override
@@ -388,12 +334,7 @@ public class ShopController implements Initializable {
 
                 minus.setOnAction(e -> {
                     int next = item.getQuantity() - 1;
-                    if (next <= 0) {
-                        cartByProductId.remove(item.getProduct().getId());
-                        cartModel.remove(item);
-                    } else {
-                        item.setQuantity(next);
-                    }
+                    shopCart.setQuantity(item.getProduct(), next);
                     updateCartSummary();
                 });
 
@@ -403,13 +344,12 @@ public class ShopController implements Initializable {
                         showAlert("Stock insuffisant", "Quantité max atteinte (stock: " + item.getProduct().getStock() + ").");
                         return;
                     }
-                    item.setQuantity(next);
+                    shopCart.setQuantity(item.getProduct(), next);
                     updateCartSummary();
                 });
 
                 remove.setOnAction(e -> {
-                    cartByProductId.remove(item.getProduct().getId());
-                    cartModel.remove(item);
+                    shopCart.removeLine(item.getProduct().getId());
                     updateCartSummary();
                 });
 
@@ -424,31 +364,16 @@ public class ShopController implements Initializable {
     }
 
     private void updateCartSummary() {
-        int itemCount = cartModel.stream().mapToInt(CartItem::getQuantity).sum();
-        double subtotal = getCartSubtotal();
-        if (appliedPromo != null) {
-            appliedDiscountAmount = computeDiscount(subtotal, appliedPromo.getDiscountPercent());
-        } else {
-            appliedDiscountAmount = 0;
-        }
-        double total = Math.max(0, subtotal - appliedDiscountAmount);
+        int itemCount = shopCart.getItems().stream().mapToInt(CartItem::getQuantity).sum();
+        double subtotal = shopCart.getSubtotalEur();
+        double discount = shopCart.computeDiscountEur();
+        double total = shopCart.getTotalEur();
 
         if (cartItemCountLabel != null) cartItemCountLabel.setText(itemCount + " article(s)");
         if (cartSubtotalLabel != null) cartSubtotalLabel.setText("Sous-total: " + formatMoney(subtotal));
-        if (cartDiscountLabel != null) cartDiscountLabel.setText("Remise: -" + formatMoney(appliedDiscountAmount));
+        if (cartDiscountLabel != null) cartDiscountLabel.setText("Remise: -" + formatMoney(discount));
         if (cartTotalLabel != null) cartTotalLabel.setText("Total: " + formatMoney(total));
-        if (checkoutButton != null) checkoutButton.setDisable(cartModel.isEmpty());
-    }
-
-    private double getCartSubtotal() {
-        return cartModel.stream()
-            .mapToDouble(ci -> ci.getProduct().getPrice() * ci.getQuantity())
-            .sum();
-    }
-
-    private double computeDiscount(double subtotal, double discountPercent) {
-        double pct = Math.max(0, Math.min(100, discountPercent));
-        return subtotal * (pct / 100.0);
+        if (checkoutButton != null) checkoutButton.setDisable(shopCart.getItems().isEmpty());
     }
 
     private String formatMoney(double value) {
@@ -464,10 +389,7 @@ public class ShopController implements Initializable {
     }
 
     private void clearCartAndPromo() {
-        cartByProductId.clear();
-        cartModel.clear();
-        appliedPromo = null;
-        appliedDiscountAmount = 0;
+        shopCart.clear();
         if (promoCodeField != null) promoCodeField.clear();
         if (promoStatusLabel != null) {
             promoStatusLabel.setText("");
@@ -493,8 +415,6 @@ public class ShopController implements Initializable {
     public ObservableList<Product> getProductList() {
         return productList;
     }
-
-    public Map<Integer, CartItem> getCartItems() { return cartByProductId; }
 
     // ── Navigation handlers ──────────────────────────────────────────────
 
@@ -526,19 +446,4 @@ public class ShopController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.LOGIN);
     }
 
-    public static final class CartItem {
-        private final Product product;
-        private final IntegerProperty quantity = new SimpleIntegerProperty(0);
-
-        public CartItem(Product product, int quantity) {
-            this.product = Objects.requireNonNull(product, "product");
-            setQuantity(quantity);
-        }
-
-        public Product getProduct() { return product; }
-
-        public int getQuantity() { return quantity.get(); }
-        public void setQuantity(int value) { quantity.set(Math.max(0, value)); }
-        public IntegerProperty quantityProperty() { return quantity; }
-    }
 }

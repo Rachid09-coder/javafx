@@ -11,5 +11,7 @@ public interface OrderDao {
      * Returns created order id.
      */
     int createOrderWithItems(Order order, List<OrderItem> items);
+
+    void updateStripeSessionId(int orderId, String stripeSessionId);
 }
 

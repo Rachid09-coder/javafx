@@ -78,5 +78,19 @@ public class JdbcOrderDao implements OrderDao {
             throw new RuntimeException("Failed to create order", ex);
         }
     }
+
+    @Override
+    public void updateStripeSessionId(int orderId, String stripeSessionId) {
+        String sql = "UPDATE orders SET stripe_session_id = ? WHERE id = ?";
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            if (stripeSessionId != null && !stripeSessionId.isBlank()) ps.setString(1, stripeSessionId.trim());
+            else ps.setNull(1, Types.VARCHAR);
+            ps.setInt(2, orderId);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to update stripe session id", ex);
+        }
+    }
 }
 

@@ -20,6 +20,12 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.createOrderWithItems(order, items);
     }
 
+    @Override
+    public void updateStripeSessionId(int orderId, String stripeSessionId) {
+        if (orderId <= 0) throw new IllegalArgumentException("orderId is invalid.");
+        orderDao.updateStripeSessionId(orderId, stripeSessionId);
+    }
+
     private void validate(Order order, List<OrderItem> items) {
         if (order == null) throw new IllegalArgumentException("Order is required.");
         if (order.getStudentId() <= 0) throw new IllegalArgumentException("Student is required.");
