@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<!-- Reusable Student Sidebar -->
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      styleClass="sidebar">
+
+    <!-- Logo -->
+    <VBox styleClass="sidebar-logo" spacing="2">
+        <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+        <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+    </VBox>
+
+    <!-- Navigation -->
+    <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+        <Label text="MENU" styleClass="sidebar-section-label"/>
+        <Button text="📚  Mes Cours" styleClass="nav-button" onAction="#handleCourses"/>
+        <Button text="📝  Examens" styleClass="nav-button" onAction="#handleExams"/>
+        <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
+        <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
+        <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+        <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
+    </VBox>
+
+    <!-- Logout -->
+    <VBox style="-fx-padding: 16 0 24 0;">
+        <Separator style="-fx-background-color: rgba(255,255,255,0.15); -fx-padding: 0 20;"/>
+        <Button text="🚪  Déconnexion" styleClass="nav-button" style="-fx-padding: 12 20;"/>
+    </VBox>
+
+</VBox>

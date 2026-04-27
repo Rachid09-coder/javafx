@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.ShopController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="📚  Mes Cours" styleClass="nav-button" onAction="#handleCourses"/>
+                <Button text="📝  Examens" styleClass="nav-button" onAction="#handleExams"/>
+                <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
+                <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
+                <Button text="🛒  Boutique" styleClass="nav-button active" onAction="#handleShop"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <HBox styleClass="content-area" spacing="16">
+
+            <!-- Products Section -->
+            <VBox spacing="16" HBox.hgrow="ALWAYS">
+
+                <!-- Header -->
+                <HBox alignment="CENTER_LEFT" styleClass="top-header">
+                    <Label text="Boutique EduSmart" styleClass="page-title"/>
+                </HBox>
+
+                <!-- Search & Filters -->
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <TextField fx:id="searchField" promptText="🔍  Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                    <ComboBox fx:id="categoryFilter" onAction="#handleFilterChange" styleClass="combo-box"/>
+                </HBox>
+
+                <!-- Products Grid -->
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background: transparent; -fx-background-color: transparent;">
+                    <FlowPane fx:id="productsContainer" hgap="16" vgap="16"
+                              style="-fx-background-color: transparent; -fx-padding: 4;">
+
+                    </FlowPane>
+                </ScrollPane>
+
+            </VBox>
+
+            <!-- Cart Panel -->
+            <VBox fx:id="cartPanel" styleClass="card" spacing="12"
+                  minWidth="280" prefWidth="280" maxWidth="280">
+                <Label text="🛒 Mon Panier" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                <Label fx:id="cartItemCountLabel" text="0 article(s)" styleClass="course-meta"/>
+
+                <ListView fx:id="cartListView" VBox.vgrow="ALWAYS" prefHeight="300"
+                          style="-fx-background-color: #F8FAFC; -fx-background-radius: 8;"/>
+
+                <Separator/>
+
+                <!-- Promo code -->
+                <VBox spacing="8">
+                    <Label text="Code promo" styleClass="course-meta"/>
+                    <HBox spacing="8">
+                        <TextField fx:id="promoCodeField" promptText="EX: EDU10" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="applyPromoButton" text="Appliquer" onAction="#handleApplyPromo" styleClass="btn-secondary"/>
+                    </HBox>
+                    <Label fx:id="promoStatusLabel" text="" styleClass="course-meta" visible="false" managed="false"/>
+                </VBox>
+
+                <Label fx:id="cartSubtotalLabel" text="Sous-total: 0.00 €" styleClass="course-meta"/>
+                <Label fx:id="cartDiscountLabel" text="Remise: -0.00 €" styleClass="course-meta"/>
+                <Label fx:id="cartTotalLabel" text="Total: 0.00 €"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+
+                <Button fx:id="checkoutButton" text="✅ Commander" onAction="#handleCheckout"
+                        styleClass="btn-primary" maxWidth="Infinity" prefHeight="40"/>
+                <Button text="🗑 Vider le panier" onAction="#handleClearCart"
+                        styleClass="btn-danger" maxWidth="Infinity"/>
+            </VBox>
+
+        </HBox>
+    </center>
+</BorderPane>
