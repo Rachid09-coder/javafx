@@ -46,8 +46,12 @@
                     <Label text="Gérer les Cours" styleClass="page-title"/>
                     <Label text="Créez, modifiez et gérez vos cours" styleClass="page-subtitle"/>
                 </VBox>
+                <ComboBox fx:id="sortComboBox" promptText="Trier par..." styleClass="combo-box"
+                          style=" -fx-pref-width: 170;"/>
                 <TextField fx:id="searchField" promptText="🔍  Rechercher un cours..."
                            styleClass="search-bar" onAction="#handleSearch"/>
+                <Button text="🌙 Mode Sombre" onAction="#handleToggleTheme"
+                        styleClass="btn-secondary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
             </HBox>
 
             <!-- Body -->
@@ -55,6 +59,30 @@
 
                 <!-- ── Table Card ──────────────────────────────── -->
                 <VBox spacing="14" HBox.hgrow="ALWAYS">
+
+                    <!-- ── Analytics Dashboard ─────────────────────── -->
+                    <HBox spacing="14">
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="📚" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="totalCoursesStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Total Cours" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="💰" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="avgPriceStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Prix Moyen" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="🏆" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="topModuleStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Module Populaire" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="⭐" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="avgRatingStat" text="4.8" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Note Globale" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                    </HBox>
 
                     <!-- Message label -->
                     <Label fx:id="messageLabel" visible="false" wrapText="true"
@@ -64,31 +92,37 @@
                     <VBox styleClass="card" spacing="0" VBox.vgrow="ALWAYS"
                           style="-fx-padding: 0; -fx-background-radius: 14; -fx-border-radius: 14;">
 
-                        <!-- Card top bar: title + count + Add button -->
-                        <HBox style="-fx-padding: 14 20; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;"
+                        <!-- Card top bar: title + count + Export + Add button -->
+                        <HBox style="-fx-padding: 14 20;  -fx-border-width: 0 0 1 0;"
                               alignment="CENTER_LEFT" spacing="10">
                             <Label text="📋  Liste des cours"
-                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"
-                                   HBox.hgrow="ALWAYS"/>
+                                   style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
                             <Label fx:id="countLabel" text=""
-                                   style="-fx-font-size: 12px; -fx-text-fill: #64748B;"/>
-                            <!-- NEW: triggers slide-in with empty form -->
-                            <Button text="➕  Nouveau Cours"
-                                    onAction="#handleOpenAdd"
-                                    styleClass="btn-primary"
-                                    style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
+                                   style="-fx-font-size: 12px; -fx-text-fill: #64748B;"
+                                   HBox.hgrow="ALWAYS"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            
+                            <!-- Multi-criteria filters -->
+                            <ComboBox fx:id="filterStatusBox" promptText="Statut" styleClass="combo-box" style="-fx-pref-width: 100; -fx-font-size: 11px;"/>
+                            <ComboBox fx:id="filterModuleBox" promptText="Module" styleClass="combo-box" style="-fx-pref-width: 120; -fx-font-size: 11px;"/>
+                            
+                            <Button text="🧾 Exporter CSV" onAction="#handleExport"
+                                    styleClass="btn-secondary" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
+                            <Button text="➕  Nouveau Cours" onAction="#handleOpenAdd"
+                                    styleClass="btn-primary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
                         </HBox>
 
                         <TableView fx:id="coursesTable" VBox.vgrow="ALWAYS" styleClass="table-view"
                                    style="-fx-background-radius: 0 0 14 14; -fx-border-radius: 0 0 14 14; -fx-border-color: transparent;">
                             <columns>
+                                <TableColumn fx:id="favoriteColumn"    text="★"          prefWidth="35"  minWidth="35"/>
                                 <TableColumn fx:id="idColumn"          text="ID"          prefWidth="55"  minWidth="50"/>
-                                <TableColumn fx:id="titleColumn"       text="Titre"        prefWidth="180" minWidth="120"/>
-                                <TableColumn fx:id="moduleColumn"      text="Module"       prefWidth="150" minWidth="100"/>
-                                <TableColumn fx:id="priceColumn"       text="Prix"         prefWidth="90"  minWidth="70"/>
-                                <TableColumn fx:id="coefficientColumn" text="Coefficient"  prefWidth="105" minWidth="80"/>
-                                <TableColumn fx:id="createdAtColumn"   text="Créé le"      prefWidth="140" minWidth="110"/>
-                                <TableColumn fx:id="statusColumn"      text="Statut"       prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="titleColumn"       text="Titre"        prefWidth="160" minWidth="120"/>
+                                <TableColumn fx:id="moduleColumn"      text="Module"       prefWidth="140" minWidth="100"/>
+                                <TableColumn fx:id="priceColumn"       text="Prix"         prefWidth="70"  minWidth="60"/>
+                                <TableColumn fx:id="ratingColumn"      text="Note"         prefWidth="70"  minWidth="60"/>
+                                <TableColumn fx:id="createdAtColumn"   text="Créé le"      prefWidth="120" minWidth="100"/>
+                                <TableColumn fx:id="statusColumn"      text="Statut"       prefWidth="100" minWidth="80"/>
                             </columns>
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="8">
@@ -122,6 +156,11 @@
                         <Label text="TITRE *" styleClass="form-label"/>
                         <TextField fx:id="titleField" promptText="Titre du cours" styleClass="text-field"/>
                     </VBox>
+
+                    <!-- AI Suggestion label -->
+                    <Label fx:id="aiSuggestionLabel" text="💡 Astuce: Un prix entre 30€ et 50€ est recommandé."
+                           wrapText="true"
+                           style="-fx-font-size: 11px; -fx-text-fill: #4F46E5; -fx-background-color: rgba(79,70,229,0.1); -fx-padding: 6 10; -fx-background-radius: 6;"/>
 
                     <!-- Prix -->
                     <VBox spacing="5">
@@ -166,9 +205,16 @@
                     <HBox spacing="8">
                         <Button text="🗑  Supprimer" onAction="#handleDelete"
                                 styleClass="btn-danger"    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button text="✖  Effacer"   onAction="#handleClear"
-                                styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                     </HBox>
+                </VBox>
+
+                <!-- ── Activity Panel ────────────────────────────────── -->
+                <VBox styleClass="card" spacing="10" minWidth="260" prefWidth="260" maxWidth="260" VBox.vgrow="ALWAYS"
+                      style="-fx-padding: 14; -fx-background-radius: 14; -fx-border-radius: 14;">
+                    <Label text="⏱  Activité Récente" style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
+                    <Separator/>
+                    <ListView fx:id="activityList" VBox.vgrow="ALWAYS" 
+                              style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
                 </VBox>
 
             </HBox>

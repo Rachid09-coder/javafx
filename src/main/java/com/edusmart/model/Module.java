@@ -13,6 +13,11 @@ public class Module {
     private String thumbnail;
     private LocalDateTime createdAt;
 
+    // Advanced UI features (transient / derived)
+    private int courseCount;
+    private double averagePrice;
+    private String tags;
+
     // Legacy UI fields kept for compatibility with existing JavaFX demo controllers.
     private int courseId;
     private int orderIndex;
@@ -60,6 +65,15 @@ public class Module {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public int getCourseCount() { return courseCount; }
+    public void setCourseCount(int courseCount) { this.courseCount = courseCount; }
+
+    public double getAveragePrice() { return averagePrice; }
+    public void setAveragePrice(double averagePrice) { this.averagePrice = averagePrice; }
+
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
 
     @Override
     public String toString() {

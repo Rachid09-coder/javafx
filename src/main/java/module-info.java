@@ -3,6 +3,7 @@ module com.edusmart {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.sql;
+    requires java.prefs;
 
 
     opens com.edusmart to javafx.fxml;

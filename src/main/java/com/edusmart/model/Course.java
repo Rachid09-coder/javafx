@@ -24,6 +24,10 @@ public class Course {
     /** Optional FK to {@code module.id}; null when the course is not tied to a module. */
     private Integer moduleId;
 
+    // Advanced UI features (transient / not persisted by default)
+    private double rating = 0.0;
+    private boolean favorite = false;
+
     // Legacy UI fields kept for compatibility with existing JavaFX demo controllers.
     private String instructor;
     private int moduleCount;
@@ -95,6 +99,12 @@ public class Course {
 
     public Integer getModuleId() { return moduleId; }
     public void setModuleId(Integer moduleId) { this.moduleId = moduleId; }
+
+    public double getRating() { return rating; }
+    public void setRating(double rating) { this.rating = rating; }
+
+    public boolean isFavorite() { return favorite; }
+    public void setFavorite(boolean favorite) { this.favorite = favorite; }
 
     public String getInstructor() { return instructor; }
     public void setInstructor(String instructor) { this.instructor = instructor; }

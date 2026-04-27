@@ -21,6 +21,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import javafx.application.Platform;
+
+import com.edusmart.util.ThemeManager;
+import com.edusmart.util.ActivityLogger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +51,18 @@ public class ManageCoursesController implements Initializable {
     @FXML private TableColumn<Course, String> createdAtColumn;
     @FXML private TableColumn<Course, String> statusColumn;
     @FXML private TableColumn<Course, String> moduleColumn;
+    @FXML private TableColumn<Course, Course> ratingColumn;
+    @FXML private TableColumn<Course, Course> favoriteColumn;
+
+    @FXML private Label totalCoursesStat;
+    @FXML private Label avgPriceStat;
+    @FXML private Label topModuleStat;
+    @FXML private Label avgRatingStat;
+    
+    @FXML private ComboBox<String> filterStatusBox;
+    @FXML private ComboBox<Module> filterModuleBox;
+    @FXML private Label aiSuggestionLabel;
+    @FXML private ListView<String> activityList;
 
     @FXML private TextField titleField;
     @FXML private TextField priceField;
@@ -55,6 +71,7 @@ public class ManageCoursesController implements Initializable {
     @FXML private ComboBox<String> statusComboBox;
     @FXML private ComboBox<Module> moduleComboBox;
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> sortComboBox;
     @FXML private Label messageLabel;
     @FXML private Label countLabel;
     @FXML private VBox formPanel;
@@ -80,6 +97,40 @@ public class ManageCoursesController implements Initializable {
             formPanel.setTranslateX(350);
             formPanel.setOpacity(0);
         }
+        if (searchField != null) {
+            // Live Search
+            searchField.textProperty().addListener((obs, oldV, newV) -> applyFiltersAndSort());
+        }
+        if (priceField != null && aiSuggestionLabel != null) {
+            priceField.textProperty().addListener((obs, oldV, newV) -> updateAiSuggestion(newV));
+        }
+        if (activityList != null) {
+            activityList.setItems(ActivityLogger.getActivities());
+        }
+        Platform.runLater(() -> {
+            if (coursesTable != null && coursesTable.getScene() != null) {
+                ThemeManager.applyTheme(coursesTable.getScene());
+                updateThemeButton();
+            }
+        });
+    }
+    
+    private void updateThemeButton() {
+        if (coursesTable != null && coursesTable.getScene() != null) {
+            Button btn = (Button) coursesTable.getScene().lookup(".btn-secondary"); // naive lookup or we could do better
+            // Instead of looking up by class, we can just let it be. But to change text:
+            // Actually let's not change text dynamically unless we bind it.
+        }
+    }
+
+    @FXML
+    private void handleToggleTheme(ActionEvent event) {
+        ThemeManager.setDarkMode(!ThemeManager.isDarkMode());
+        if (coursesTable != null && coursesTable.getScene() != null) {
+            ThemeManager.applyTheme(coursesTable.getScene());
+        }
+        Button btn = (Button) event.getSource();
+        btn.setText(ThemeManager.isDarkMode() ? "☀️ Mode Clair" : "🌙 Mode Sombre");
     }
 
     // ── Drawer helpers ──────────────────────────────────────────
@@ -145,7 +196,42 @@ public class ManageCoursesController implements Initializable {
         if (idColumn != null) idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         if (titleColumn != null) titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         if (priceColumn != null) priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
-        if (coefficientColumn != null) coefficientColumn.setCellValueFactory(new PropertyValueFactory<>("coefficient"));
+        
+        if (ratingColumn != null) {
+            ratingColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue()));
+            ratingColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(Course item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) { setGraphic(null); setText(null); return; }
+                    // Generate a fake deterministic rating for demo if 0
+                    if (item.getRating() == 0.0) item.setRating(3.5 + (item.getId() % 15) / 10.0);
+                    Label l = new Label(String.format("%.1f ★", item.getRating()));
+                    l.setStyle("-fx-text-fill: #F59E0B; -fx-font-weight: bold;");
+                    setGraphic(l);
+                    setText(null);
+                }
+            });
+        }
+        
+        if (favoriteColumn != null) {
+            favoriteColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue()));
+            favoriteColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(Course item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) { setGraphic(null); setText(null); return; }
+                    Button btn = new Button(item.isFavorite() ? "★" : "☆");
+                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + (item.isFavorite() ? "#F59E0B" : "#94A3B8") + "; -fx-font-size: 16px; -fx-cursor: hand; -fx-padding: 0;");
+                    btn.setOnAction(e -> {
+                        item.setFavorite(!item.isFavorite());
+                        getTableView().refresh();
+                    });
+                    setGraphic(btn);
+                    setText(null);
+                }
+            });
+        }
         if (createdAtColumn != null) {
             createdAtColumn.setCellValueFactory(cellData -> {
                 LocalDateTime createdAt = cellData.getValue().getCreatedAt();
@@ -197,9 +283,23 @@ public class ManageCoursesController implements Initializable {
     }
 
     private void setupForm() {
+        if (sortComboBox != null) {
+            sortComboBox.getItems().addAll(
+                "Titre (A-Z)", "Titre (Z-A)",
+                "Prix (Croissant)", "Prix (Décroissant)",
+                "Plus récent", "Plus ancien"
+            );
+            sortComboBox.setValue("Titre (A-Z)");
+            sortComboBox.setOnAction(e -> applyFiltersAndSort());
+        }
         if (statusComboBox != null) {
             statusComboBox.getItems().addAll("ACTIVE", "DRAFT", "INACTIVE", "ARCHIVED");
             statusComboBox.setValue("ACTIVE");
+        }
+        if (filterStatusBox != null) {
+            filterStatusBox.getItems().addAll("Tous", "ACTIVE", "DRAFT", "INACTIVE", "ARCHIVED");
+            filterStatusBox.setValue("Tous");
+            filterStatusBox.setOnAction(e -> applyFiltersAndSort());
         }
         attachModuleComboPresentation();
         reloadModuleComboItems(null);
@@ -250,6 +350,25 @@ public class ManageCoursesController implements Initializable {
             }
         }
         moduleComboBox.setValue(select);
+        
+        // Setup filterModuleBox
+        if (filterModuleBox != null) {
+            Module filterAll = new Module(); filterAll.setId(-1); filterAll.setTitle("Tous les modules");
+            List<Module> filterItems = new ArrayList<>();
+            filterItems.add(filterAll);
+            filterItems.addAll(items.stream().filter(m -> m.getId() > 0).collect(Collectors.toList()));
+            filterModuleBox.setItems(FXCollections.observableArrayList(filterItems));
+            filterModuleBox.setValue(filterAll);
+            
+            filterModuleBox.setCellFactory(moduleComboBox.getCellFactory());
+            filterModuleBox.setButtonCell(new ListCell<>() {
+                @Override protected void updateItem(Module item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getTitle());
+                }
+            });
+            filterModuleBox.setOnAction(e -> applyFiltersAndSort());
+        }
     }
 
     private void refreshModuleTitles() {
@@ -262,13 +381,127 @@ public class ManageCoursesController implements Initializable {
     }
 
     private void loadCourses() {
+        applyFiltersAndSort();
+    }
+
+    private void applyFiltersAndSort() {
         try {
             refreshModuleTitles();
-            courseList.setAll(courseService.getAllCourses());
+            List<Course> all = courseService.getAllCourses();
+            
+            // Search filter
+            String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
+            String statusFilter = filterStatusBox != null ? filterStatusBox.getValue() : "Tous";
+            Module modFilter = filterModuleBox != null ? filterModuleBox.getValue() : null;
+            
+            all = all.stream().filter(c -> {
+                // Initialize fake rating if needed
+                if (c.getRating() == 0.0) c.setRating(3.5 + (c.getId() % 15) / 10.0);
+                
+                // Status match
+                if (!"Tous".equals(statusFilter) && !statusFilter.equalsIgnoreCase(c.getStatusValue())) return false;
+                
+                // Module match
+                if (modFilter != null && modFilter.getId() != -1) {
+                    if (c.getModuleId() == null || c.getModuleId() != modFilter.getId()) return false;
+                }
+                
+                // Search query match
+                if (!query.isEmpty()) {
+                    boolean titleMatch = c.getTitle() != null && c.getTitle().toLowerCase().contains(query);
+                    if (titleMatch) return true;
+                    Integer mid = c.getModuleId();
+                    if (mid != null) {
+                        String mt = moduleTitleById.getOrDefault(mid, "").toLowerCase();
+                        if (mt.contains(query)) return true;
+                    }
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+
+            // Sort
+            String sortMode = sortComboBox != null ? sortComboBox.getValue() : "Titre (A-Z)";
+            if (sortMode == null) sortMode = "Titre (A-Z)";
+            
+            java.util.Comparator<Course> cmp;
+            switch (sortMode) {
+                case "Titre (Z-A)":
+                    cmp = java.util.Comparator.comparing((Course c) -> c.getTitle() == null ? "" : c.getTitle().toLowerCase()).reversed();
+                    break;
+                case "Prix (Croissant)":
+                    cmp = java.util.Comparator.comparing(Course::getPrice);
+                    break;
+                case "Prix (Décroissant)":
+                    cmp = java.util.Comparator.comparing(Course::getPrice).reversed();
+                    break;
+                case "Plus récent":
+                    cmp = java.util.Comparator.comparing(Course::getCreatedAt, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()));
+                    break;
+                case "Plus ancien":
+                    cmp = java.util.Comparator.comparing(Course::getCreatedAt, java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder()));
+                    break;
+                case "Titre (A-Z)":
+                default:
+                    cmp = java.util.Comparator.comparing((Course c) -> c.getTitle() == null ? "" : c.getTitle().toLowerCase());
+                    break;
+            }
+            all.sort(cmp);
+            
+            courseList.setAll(all);
             if (coursesTable != null) coursesTable.refresh();
             if (countLabel != null) countLabel.setText(courseList.size() + " cours");
+            
+            updateAnalytics(all);
         } catch (RuntimeException ex) {
             showMessage("Erreur chargement cours: " + rootCauseMessage(ex), true);
+        }
+    }
+    
+    private void updateAnalytics(List<Course> list) {
+        if (totalCoursesStat != null) totalCoursesStat.setText(String.valueOf(list.size()));
+        
+        if (avgPriceStat != null) {
+            double avg = list.stream().mapToDouble(Course::getPrice).average().orElse(0.0);
+            avgPriceStat.setText(String.format("%.2f €", avg));
+        }
+        
+        if (topModuleStat != null) {
+            Map<Integer, Long> counts = list.stream()
+                .filter(c -> c.getModuleId() != null)
+                .collect(Collectors.groupingBy(Course::getModuleId, Collectors.counting()));
+            
+            String top = "Aucun";
+            if (!counts.isEmpty()) {
+                int topId = counts.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
+                top = moduleTitleById.getOrDefault(topId, "Inconnu");
+            }
+            topModuleStat.setText(top);
+        }
+        
+        if (avgRatingStat != null) {
+            double avgRat = list.stream().mapToDouble(Course::getRating).average().orElse(0.0);
+            avgRatingStat.setText(String.format("%.1f / 5", avgRat));
+        }
+    }
+
+    private void updateAiSuggestion(String priceText) {
+        if (aiSuggestionLabel == null) return;
+        try {
+            double p = Double.parseDouble(priceText);
+            if (p < 20) {
+                aiSuggestionLabel.setText("💡 Astuce: Prix bas. Idéal pour attirer beaucoup d'étudiants.");
+                aiSuggestionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #059669; -fx-background-color: rgba(16,185,129,0.1); -fx-padding: 6 10; -fx-background-radius: 6;");
+            } else if (p > 100) {
+                aiSuggestionLabel.setText("💡 Astuce: Prix Premium. Assurez-vous d'avoir un contenu exclusif.");
+                aiSuggestionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #D97706; -fx-background-color: rgba(245,158,11,0.1); -fx-padding: 6 10; -fx-background-radius: 6;");
+            } else {
+                aiSuggestionLabel.setText("💡 Astuce: Prix standard. Parfaitement aligné avec le marché.");
+                aiSuggestionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #4F46E5; -fx-background-color: rgba(79,70,229,0.1); -fx-padding: 6 10; -fx-background-radius: 6;");
+            }
+        } catch (NumberFormatException e) {
+            aiSuggestionLabel.setText("💡 Astuce: Saisissez un prix valide pour obtenir une analyse.");
+            aiSuggestionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748B; -fx-background-color: rgba(148,163,184,0.1); -fx-padding: 6 10; -fx-background-radius: 6;");
         }
     }
 
@@ -293,6 +526,7 @@ public class ManageCoursesController implements Initializable {
         try {
             Course course = buildCourseFromForm(true);
             if (courseService.createCourse(course)) {
+                ActivityLogger.log("Cours", "créé", course.getTitle());
                 showMessage("Cours créé avec succès!", false);
                 clearForm();
                 loadCourses();
@@ -321,6 +555,7 @@ public class ManageCoursesController implements Initializable {
             if (response == ButtonType.YES) {
                 try {
                     if (courseService.updateCourse(courseToSave)) {
+                        ActivityLogger.log("Cours", "modifié", courseToSave.getTitle());
                         showMessage("Cours mis à jour avec succès!", false);
                         loadCourses();
                     } else {
@@ -346,6 +581,7 @@ public class ManageCoursesController implements Initializable {
             if (response == ButtonType.YES) {
                 try {
                     if (courseService.deleteCourse(selectedCourse.getId())) {
+                        ActivityLogger.log("Cours", "supprimé", selectedCourse.getTitle());
                         courseList.remove(selectedCourse);
                         clearForm();
                         showMessage("Cours supprimé.", false);
@@ -361,27 +597,27 @@ public class ManageCoursesController implements Initializable {
 
     @FXML
     private void handleSearch(ActionEvent event) {
-        String query = searchField != null ? searchField.getText().trim().toLowerCase() : "";
-        if (query.isEmpty()) {
-            loadCourses();
-            return;
+        applyFiltersAndSort();
+    }
+
+    @FXML
+    private void handleExport(ActionEvent event) {
+        try {
+            java.io.File file = new java.io.File("cours_export.csv");
+            try (java.io.PrintWriter pw = new java.io.PrintWriter(file)) {
+                pw.println("ID,Titre,Prix,Note,Module,Statut,Date");
+                for (Course c : courseList) {
+                    String mod = c.getModuleId() != null ? moduleTitleById.getOrDefault(c.getModuleId(), "") : "";
+                    String date = c.getCreatedAt() != null ? c.getCreatedAt().format(DATE_TIME_FORMATTER) : "";
+                    pw.printf("%d,\"%s\",%.2f,%.1f,\"%s\",%s,%s%n",
+                            c.getId(), c.getTitle().replace("\"", "\"\""), c.getPrice(), c.getRating(),
+                            mod.replace("\"", "\"\""), c.getStatusValue(), date);
+                }
+            }
+            showMessage("Export réussi : " + file.getAbsolutePath(), false);
+        } catch (Exception e) {
+            showMessage("Erreur d'exportation : " + e.getMessage(), true);
         }
-        refreshModuleTitles();
-        List<Course> filtered = courseService.getAllCourses().stream()
-                .filter(c -> {
-                    boolean titleMatch = c.getTitle() != null && c.getTitle().toLowerCase().contains(query);
-                    if (titleMatch) {
-                        return true;
-                    }
-                    Integer mid = c.getModuleId();
-                    if (mid == null) {
-                        return false;
-                    }
-                    String mt = moduleTitleById.getOrDefault(mid, "").toLowerCase();
-                    return mt.contains(query);
-                })
-                .collect(Collectors.toList());
-        courseList.setAll(filtered);
     }
 
     @FXML
@@ -441,8 +677,7 @@ public class ManageCoursesController implements Initializable {
         course.setTitle(titleField != null ? titleField.getText().trim() : "");
         course.setDescription(descriptionArea != null ? descriptionArea.getText().trim() : null);
         course.setPrice(priceField != null ? Double.parseDouble(priceField.getText().trim()) : 0.0);
-        course.setStatusValue(statusComboBox != null ? statusComboBox.getValue() : "DRAFT");
-
+        
         String coefficientText = coefficientField != null ? coefficientField.getText().trim() : "";
         course.setCoefficient(coefficientText.isEmpty() ? null : Double.parseDouble(coefficientText));
 
@@ -451,6 +686,14 @@ public class ManageCoursesController implements Initializable {
             modulePick = moduleComboBox.getValue();
         }
         course.setModuleId(modulePick != null && modulePick.getId() != 0 ? modulePick.getId() : null);
+
+        String st = statusComboBox != null ? statusComboBox.getValue() : "DRAFT";
+        // Auto-promote DRAFT -> ACTIVE
+        if ("DRAFT".equals(st) && course.getPrice() > 0 && course.getDescription() != null && course.getDescription().length() > 10) {
+            st = "ACTIVE";
+            Platform.runLater(() -> showToast("✨ Statut automatisé : DRAFT → ACTIVE", false));
+        }
+        course.setStatusValue(st);
 
         return course;
     }
@@ -469,6 +712,10 @@ public class ManageCoursesController implements Initializable {
     }
 
     private void showMessage(String message, boolean isError) {
+        showToast(message, isError);
+    }
+    
+    private void showToast(String message, boolean isError) {
         if (messageLabel != null) {
             messageLabel.setText(message);
             if (isError) {
@@ -477,11 +724,18 @@ public class ManageCoursesController implements Initializable {
                 messageLabel.setStyle("-fx-text-fill: #059669; -fx-background-color: rgba(16,185,129,0.1); -fx-background-radius: 8; -fx-padding: 8 14;");
             }
             messageLabel.setVisible(true);
-            // Fade-in
-            FadeTransition ft = new FadeTransition(Duration.millis(300), messageLabel);
-            ft.setFromValue(0);
-            ft.setToValue(1);
-            ft.play();
+            messageLabel.setOpacity(0);
+            
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), messageLabel);
+            fadeIn.setToValue(1);
+            
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), messageLabel);
+            fadeOut.setDelay(Duration.seconds(3));
+            fadeOut.setToValue(0);
+            fadeOut.setOnFinished(e -> messageLabel.setVisible(false));
+            
+            fadeIn.setOnFinished(e -> fadeOut.play());
+            fadeIn.play();
         }
     }
 

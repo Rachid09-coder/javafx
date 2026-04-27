@@ -44,8 +44,12 @@
                     <Label text="Gérer les Modules" styleClass="page-title"/>
                     <Label text="Organisez vos modules de cours" styleClass="page-subtitle"/>
                 </VBox>
+                <ComboBox fx:id="sortComboBox" promptText="Trier par..." styleClass="combo-box"
+                          style=" -fx-pref-width: 170;"/>
                 <TextField fx:id="searchField" promptText="🔍  Rechercher un module..."
                            styleClass="search-bar" onAction="#handleSearch"/>
+                <Button text="🌙 Mode Sombre" onAction="#handleToggleTheme"
+                        styleClass="btn-secondary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
             </HBox>
 
             <!-- Body -->
@@ -53,20 +57,52 @@
 
                 <!-- ── Table Card ──────────────────────────────── -->
                 <VBox spacing="14" HBox.hgrow="ALWAYS">
+
+                    <!-- ── Analytics Dashboard ─────────────────────── -->
+                    <HBox spacing="14">
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="📦" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="totalModulesStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Total Modules" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="🔗" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="totalLinkedCoursesStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Cours Associés" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="💶" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="avgModulePriceStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Prix Moyen / Module" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="🏷️" style="-fx-font-size: 20px;"/>
+                            <Label fx:id="popularTagStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                            <Label text="Tag Populaire" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                    </HBox>
+
                     <Label fx:id="messageLabel" visible="false" wrapText="true"
                            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8 14; -fx-background-radius: 8;"/>
 
                     <VBox styleClass="card" spacing="0" VBox.vgrow="ALWAYS"
                           style="-fx-padding: 0; -fx-background-radius: 14; -fx-border-radius: 14;">
 
-                        <!-- Card top bar: title + Add button -->
-                        <HBox style="-fx-padding: 14 20; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;"
+                        <!-- Card top bar: title + count + Export + Add button -->
+                        <HBox style="-fx-padding: 14 20;  -fx-border-width: 0 0 1 0;"
                               alignment="CENTER_LEFT" spacing="10">
                             <Label text="📦  Liste des modules"
-                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"
-                                   HBox.hgrow="ALWAYS"/>
+                                   style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
                             <Label fx:id="countLabel" text=""
-                                   style="-fx-font-size: 12px; -fx-text-fill: #64748B;"/>
+                                   style="-fx-font-size: 12px; -fx-text-fill: #64748B;"
+                                   HBox.hgrow="ALWAYS"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            
+                            <!-- Tags Filter -->
+                            <ComboBox fx:id="filterTagBox" promptText="Tous les tags" styleClass="combo-box" style="-fx-pref-width: 120; -fx-font-size: 11px;"/>
+                            
+                            <Button text="🧾 Exporter CSV" onAction="#handleExport"
+                                    styleClass="btn-secondary" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
                             <!-- Triggers slide-in with empty form -->
                             <Button text="➕  Nouveau Module"
                                     onAction="#handleOpenAdd"
@@ -77,10 +113,12 @@
                         <TableView fx:id="modulesTable" VBox.vgrow="ALWAYS" styleClass="table-view"
                                    style="-fx-background-radius: 0 0 14 14; -fx-border-radius: 0 0 14 14; -fx-border-color: transparent;">
                             <columns>
-                                <TableColumn fx:id="idColumn"        text="ID"        prefWidth="60"  minWidth="50"/>
-                                <TableColumn fx:id="titleColumn"     text="Titre"     prefWidth="240" minWidth="140"/>
-                                <TableColumn fx:id="thumbnailColumn" text="Miniature" prefWidth="200" minWidth="120"/>
-                                <TableColumn fx:id="createdAtColumn" text="Créé le"   prefWidth="160" minWidth="110"/>
+                                <TableColumn fx:id="idColumn"          text="ID"           prefWidth="50"  minWidth="40"/>
+                                <TableColumn fx:id="titleColumn"       text="Titre"        prefWidth="200" minWidth="120"/>
+                                <TableColumn fx:id="tagsColumn"        text="Tags"         prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="courseCountColumn" text="Cours"        prefWidth="80"  minWidth="60"/>
+                                <TableColumn fx:id="avgPriceColumn"    text="Prix Moy"     prefWidth="80"  minWidth="60"/>
+                                <TableColumn fx:id="createdAtColumn"   text="Créé le"      prefWidth="130" minWidth="100"/>
                             </columns>
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="8">
@@ -114,6 +152,11 @@
                     </VBox>
 
                     <VBox spacing="5">
+                        <Label text="TAGS (séparés par virgule)" styleClass="form-label"/>
+                        <TextField fx:id="tagsField" promptText="ex: Programmation, Débutant" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="5">
                         <Label text="MINIATURE (URL / CHEMIN)" styleClass="form-label"/>
                         <TextField fx:id="thumbnailField" promptText="ex: images/module.png" styleClass="text-field"/>
                     </VBox>
@@ -134,9 +177,16 @@
                     <HBox spacing="8">
                         <Button text="🗑  Supprimer" onAction="#handleDelete"
                                 styleClass="btn-danger"    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button text="✖  Effacer"   onAction="#handleClear"
-                                styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                     </HBox>
+                </VBox>
+
+                <!-- ── Activity Panel ────────────────────────────────── -->
+                <VBox styleClass="card" spacing="10" minWidth="260" prefWidth="260" maxWidth="260" VBox.vgrow="ALWAYS"
+                      style="-fx-padding: 14; -fx-background-radius: 14; -fx-border-radius: 14;">
+                    <Label text="⏱  Activité Récente" style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
+                    <Separator/>
+                    <ListView fx:id="activityList" VBox.vgrow="ALWAYS" 
+                              style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
                 </VBox>
 
             </HBox>

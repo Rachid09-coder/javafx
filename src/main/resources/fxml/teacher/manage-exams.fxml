@@ -58,10 +58,10 @@
 
                     <VBox styleClass="card" spacing="0" VBox.vgrow="ALWAYS"
                           style="-fx-padding: 0; -fx-background-radius: 14; -fx-border-radius: 14;">
-                        <HBox style="-fx-padding: 16 20; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;"
+                        <HBox style="-fx-padding: 16 20;  -fx-border-width: 0 0 1 0;"
                               alignment="CENTER_LEFT">
                             <Label text="📝  Liste des examens"
-                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                                   style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
                         </HBox>
                         <TableView fx:id="examsTable" VBox.vgrow="ALWAYS" styleClass="table-view"
                                    style="-fx-background-radius: 0 0 14 14; -fx-border-radius: 0 0 14 14; -fx-border-color: transparent;">

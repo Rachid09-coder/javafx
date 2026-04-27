@@ -43,6 +43,102 @@
     -edu-sidebar-active:#4F46E5;
 }
 
+/* ── Dark Mode Overrides ──────────────────────────────────── */
+.dark-theme {
+    /* Surfaces */
+    -edu-bg:            #0F172A;
+    -edu-surface:       #1E293B;
+    -edu-surface-2:     #334155;
+
+    /* Text */
+    -edu-text:          #F8FAFC;
+    -edu-text-muted:    #94A3B8;
+    -edu-text-light:    #64748B;
+
+    /* Borders */
+    -edu-border:        #334155;
+
+    /* Sidebar */
+    -edu-sidebar-bg:    #0B1120;
+    
+    /* JavaFX Core Variables Override for Dark Mode */
+    -fx-base: #1E293B;
+    -fx-background: #0F172A;
+    -fx-control-inner-background: #1E293B;
+    -fx-control-inner-background-alt: #334155;
+    -fx-text-background-color: #F8FAFC;
+    -fx-box-border: #334155;
+    -fx-text-fill: #F8FAFC;
+}
+
+.dark-theme .page-title,
+.dark-theme .page-subtitle,
+.dark-theme .stat-label,
+.dark-theme .form-label,
+.dark-theme .stat-value,
+.dark-theme .label {
+    -fx-text-fill: -edu-text;
+}
+
+.dark-theme .card,
+.dark-theme .form-panel {
+    -fx-background-color: -edu-surface;
+    -fx-border-color: -edu-border;
+}
+
+.dark-theme .table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.dark-theme .table-view .column-header, 
+.dark-theme .table-view .column-header-background,
+.dark-theme .table-view .filler {
+    -fx-background-color: -edu-surface;
+    -fx-border-color: transparent transparent -edu-border transparent;
+}
+.dark-theme .table-view .table-row-cell {
+    -fx-background-color: -edu-surface;
+}
+.dark-theme .table-view .table-row-cell:odd {
+    -fx-background-color: -edu-surface-2;
+}
+.dark-theme .table-view .table-cell {
+    -fx-text-fill: -edu-text;
+    -fx-border-color: transparent transparent -edu-border transparent;
+}
+.dark-theme .table-view .table-row-cell:selected {
+    -fx-background-color: rgba(79, 70, 229, 0.15);
+}
+
+.dark-theme .text-field,
+.dark-theme .text-area,
+.dark-theme .combo-box,
+.dark-theme .search-bar {
+    -fx-background-color: -edu-surface-2;
+    -fx-text-fill: -edu-text;
+    -fx-border-color: -edu-border;
+}
+
+.dark-theme .list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.dark-theme .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -edu-text;
+    -fx-padding: 8 12;
+}
+.dark-theme .list-cell:odd,
+.dark-theme .list-cell:even {
+    -fx-background-color: transparent;
+}
+.dark-theme .list-cell:empty {
+    -fx-background-color: transparent;
+}
+.dark-theme .list-cell:filled:hover {
+    -fx-background-color: rgba(255,255,255,0.05);
+}
+
 /* ── Base Layout ──────────────────────────────────────────── */
 .main-container {
     -fx-background-color: -edu-bg;
