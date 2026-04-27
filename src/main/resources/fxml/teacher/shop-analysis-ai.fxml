@@ -5,7 +5,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
             styleClass="main-container"
-            fx:controller="com.edusmart.controller.teacher.ShopManagementController">
+            fx:controller="com.edusmart.controller.teacher.ShopAnalysisAIController">
 
     <left>
         <VBox styleClass="sidebar">
@@ -20,11 +20,12 @@
                 <Button text="📦  Gérer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
                 <Button text="📝  Gérer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
                 <Button text="📊  Notes" styleClass="nav-button" onAction="#handleGradeManagement"/>
-                <Button text="🛒  Boutique" styleClass="nav-button active" onAction="#handleShopManagement"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
                 <Button text="🏷  Catégories" styleClass="nav-button" onAction="#handleCategoryManagement"/>
                 <Button text="📋  Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
                 <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
-                <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="🤖  Analyse AI (Étudiants)" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="🤖  Analyse AI (Boutique)" styleClass="nav-button active" />
                 <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
             </VBox>
             <VBox style="-fx-padding: 16 0 24 0;">
@@ -35,31 +36,23 @@
     </left>
 
     <center>
-        <VBox styleClass="content-area" spacing="16">
+        <VBox styleClass="content-area" spacing="24">
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="🛒 Gestion de la Boutique" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
-                <Button text="➕ Ajouter Produit" styleClass="btn-primary" onAction="#handleAdd"/>
-                <Button text="🤖 Analyse Ventes IA" styleClass="btn-purple" onAction="#handleShopAnalysisAI"/>
-                <Button text="🏷 Code promo" styleClass="btn-purple" onAction="#handleAddPromoCode"/>
-                <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
-                <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
+                <Label text="🤖 Analyse des Ventes avec Gemini IA" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                <Button text="🔄 Générer Analyse" styleClass="btn-primary" onAction="#handleGenerateAnalysis"/>
             </HBox>
 
-            <Label fx:id="messageLabel" visible="false" wrapText="true"/>
-
-            <TableView fx:id="productsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
-                <columns>
-                    <TableColumn fx:id="idColumn"       text="ID"        prefWidth="50" />
-                    <TableColumn fx:id="nameColumn"     text="Nom"       prefWidth="220"/>
-                    <TableColumn fx:id="priceColumn"    text="Prix (DT)" prefWidth="100"/>
-                    <TableColumn fx:id="stockColumn"    text="Stock"     prefWidth="80" />
-                    <TableColumn fx:id="categoryColumn" text="Catégorie" prefWidth="150"/>
-                </columns>
-                <placeholder>
-                    <Label text="Aucun produit" style="-fx-text-fill: #94A3B8;"/>
-                </placeholder>
-            </TableView>
+            <VBox spacing="16" VBox.vgrow="ALWAYS" styleClass="form-card">
+                <Label text="Insights Business &amp; Recommandations" styleClass="section-title"/>
+                <Label text="L'IA Gemini va analyser vos commandes récentes et les articles vendus pour vous fournir des statistiques (chiffre d'affaires, meilleures ventes) et des recommandations actionnables." style="-fx-text-fill: #64748b; -fx-wrap-text: true;"/>
+                
+                <Label fx:id="messageLabel" visible="true" wrapText="true" style="-fx-font-weight: bold;"/>
+                
+                <StackPane VBox.vgrow="ALWAYS">
+                    <TextArea fx:id="analysisTextArea" styleClass="text-area-modern" wrapText="true" editable="false"/>
+                    <ProgressIndicator fx:id="loadingIndicator" visible="false" maxWidth="50" maxHeight="50"/>
+                </StackPane>
+            </VBox>
         </VBox>
     </center>
 </BorderPane>

@@ -92,5 +92,57 @@ public class JdbcOrderDao implements OrderDao {
             throw new RuntimeException("Failed to update stripe session id", ex);
         }
     }
+
+    @Override
+    public List<Order> getAllOrders() {
+        List<Order> orders = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM orders";
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Order order = new Order();
+                order.setId(rs.getInt("id"));
+                order.setStudentId(rs.getInt("student_id"));
+                int promoId = rs.getInt("promo_code_id");
+                if (!rs.wasNull()) order.setPromoCodeId(promoId);
+                order.setTotalBeforeDiscount(rs.getDouble("total_before_discount"));
+                order.setDiscountAmount(rs.getDouble("discount_amount"));
+                order.setTotalAfterDiscount(rs.getDouble("total_after_discount"));
+                order.setStatus(rs.getString("status"));
+                order.setStripeSessionId(rs.getString("stripe_session_id"));
+                java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                if (ts != null) order.setCreatedAt(ts.toLocalDateTime());
+                orders.add(order);
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get all orders", ex);
+        }
+        return orders;
+    }
+
+    @Override
+    public List<OrderItem> getAllOrderItems() {
+        List<OrderItem> items = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM order_items";
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                OrderItem item = new OrderItem();
+                item.setId(rs.getInt("id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setProductId(rs.getInt("product_id"));
+                item.setProductName(rs.getString("product_name"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setUnitPrice(rs.getDouble("unit_price"));
+                item.setTotalPrice(rs.getDouble("total_price"));
+                items.add(item);
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get all order items", ex);
+        }
+        return items;
+    }
 }
 

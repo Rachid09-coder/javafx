@@ -13,5 +13,8 @@ public interface OrderDao {
     int createOrderWithItems(Order order, List<OrderItem> items);
 
     void updateStripeSessionId(int orderId, String stripeSessionId);
+
+    List<Order> getAllOrders();
+    List<OrderItem> getAllOrderItems();
 }
 

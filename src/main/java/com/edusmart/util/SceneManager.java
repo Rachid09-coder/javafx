@@ -36,6 +36,7 @@ public class SceneManager {
         TEACHER_BULLETINS,
         TEACHER_CERTIFICATIONS,
         TEACHER_ANALYSIS_AI,
+        TEACHER_SHOP_ANALYSIS_AI,
         TEACHER_STUDENT_MANAGEMENT,
         TEACHER_GRADE_MANAGEMENT,
         PROFILE
@@ -127,6 +128,7 @@ public class SceneManager {
             case TEACHER_BULLETINS            -> "/fxml/teacher/bulletins.fxml";
             case TEACHER_CERTIFICATIONS       -> "/fxml/teacher/certifications.fxml";
             case TEACHER_ANALYSIS_AI          -> "/fxml/teacher/analysis-ai.fxml";
+            case TEACHER_SHOP_ANALYSIS_AI     -> "/fxml/teacher/shop-analysis-ai.fxml";
             case TEACHER_STUDENT_MANAGEMENT   -> "/fxml/teacher/student-management.fxml";
             case TEACHER_GRADE_MANAGEMENT     -> "/fxml/teacher/grade-management.fxml";
             case PROFILE                     -> "/fxml/shared/profile.fxml";

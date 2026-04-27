@@ -26,6 +26,16 @@ public class OrderServiceImpl implements OrderService {
         orderDao.updateStripeSessionId(orderId, stripeSessionId);
     }
 
+    @Override
+    public List<Order> getAllOrders() {
+        return orderDao.getAllOrders();
+    }
+
+    @Override
+    public List<OrderItem> getAllOrderItems() {
+        return orderDao.getAllOrderItems();
+    }
+
     private void validate(Order order, List<OrderItem> items) {
         if (order == null) throw new IllegalArgumentException("Order is required.");
         if (order.getStudentId() <= 0) throw new IllegalArgumentException("Student is required.");

@@ -26,6 +26,7 @@
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/ModuleFormController.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/ProductFormController.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/PromoCodeFormController.java
+/home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/ShopAnalysisAIController.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/ShopManagementController.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/StudentFormController.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/controller/teacher/StudentManagementController.java
@@ -71,6 +72,7 @@
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/CertificationService.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/CourseService.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/ExamService.java
+/home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/GeminiAIService.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/GradeService.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/ModuleService.java
 /home/fedy/Downloads/javafx-yassine_userr/src/main/java/com/edusmart/service/OrderService.java

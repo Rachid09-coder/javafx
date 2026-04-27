@@ -9,6 +9,7 @@ module com.edusmart {
     requires com.github.librepdf.openpdf;
     requires com.google.zxing;
     requires com.google.zxing.javase;
+    requires com.google.gson;
 
 
     opens com.edusmart to javafx.fxml;
