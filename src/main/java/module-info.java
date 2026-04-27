@@ -4,6 +4,7 @@ module com.edusmart {
     requires transitive javafx.graphics;
     requires transitive java.sql;
     requires java.desktop;
+    requires java.net.http;
     requires jakarta.mail;
     requires com.github.librepdf.openpdf;
     requires com.google.zxing;

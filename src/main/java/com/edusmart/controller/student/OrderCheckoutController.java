@@ -180,58 +180,81 @@ public class OrderCheckoutController implements Initializable {
             return;
         }
 
-        // Persist order in DB (PENDING) before redirecting to Stripe
-        try {
-            double sub = shopCart.getSubtotalEur();
-            double disc = shopCart.computeDiscountEur();
-            double tot = shopCart.getTotalEur();
-            PromoCode promo = shopCart.getAppliedPromo();
-
-            Order order = new Order();
-            order.setStudentId(user.getId());
-            order.setPromoCodeId(promo != null ? promo.getId() : null);
-            order.setTotalBeforeDiscount(sub);
-            order.setDiscountAmount(disc);
-            order.setTotalAfterDiscount(tot);
-            order.setStatus("PENDING");
-
-            List<OrderItem> items = shopCart.getItems().stream().map(ci -> {
-                OrderItem it = new OrderItem();
-                it.setProductId(ci.getProduct().getId());
-                it.setProductName(Objects.toString(ci.getProduct().getName(), "Produit"));
-                it.setQuantity(ci.getQuantity());
-                it.setUnitPrice(ci.getProduct().getPrice());
-                it.setTotalPrice(ci.getProduct().getPrice() * ci.getQuantity());
-                return it;
-            }).collect(Collectors.toList());
-
-            int orderId = orderService.createOrderWithItems(order, items);
-            if (promo != null) {
-                promoCodeService.markUsed(promo.getId(), user.getId());
-            }
-
-            long cents = shopCart.getTotalCentsEur();
-            StripeCheckoutClient.CheckoutSession session = StripeCheckoutClient.createPaymentSessionEur(
-                cents,
-                "EduSmart - Commande #" + orderId,
-                "http://localhost:8080/success",
-                "http://localhost:8080/cancel",
-                String.valueOf(orderId)
-            );
-
-            if (session.id() != null) {
-                orderService.updateStripeSessionId(orderId, session.id());
-            } else {
-                // still store something if only url present
-                orderService.updateStripeSessionId(orderId, session.url());
-            }
-
-            openInBrowser(session.url());
-            shopCart.clear();
-            SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
-        } catch (Exception ex) {
-            alert(Alert.AlertType.ERROR, "Paiement", rootCause(ex));
+        if (payButton != null) {
+            payButton.setDisable(true);
+            payButton.setText("Chargement...");
         }
+
+        final double sub = shopCart.getSubtotalEur();
+        final double disc = shopCart.computeDiscountEur();
+        final double tot = shopCart.getTotalEur();
+        final long cents = shopCart.getTotalCentsEur();
+        final PromoCode promo = shopCart.getAppliedPromo();
+        
+        final List<OrderItem> itemsSnapshot = shopCart.getItems().stream().map(ci -> {
+            OrderItem it = new OrderItem();
+            it.setProductId(ci.getProduct().getId());
+            it.setProductName(Objects.toString(ci.getProduct().getName(), "Produit"));
+            it.setQuantity(ci.getQuantity());
+            it.setUnitPrice(ci.getProduct().getPrice());
+            it.setTotalPrice(ci.getProduct().getPrice() * ci.getQuantity());
+            return it;
+        }).collect(Collectors.toList());
+
+        new Thread(() -> {
+            try {
+                Order order = new Order();
+                order.setStudentId(user.getId());
+                order.setPromoCodeId(promo != null ? promo.getId() : null);
+                order.setTotalBeforeDiscount(sub);
+                order.setDiscountAmount(disc);
+                order.setTotalAfterDiscount(tot);
+                order.setStatus("PENDING");
+
+                int orderId = orderService.createOrderWithItems(order, itemsSnapshot);
+                if (promo != null) {
+                    promoCodeService.markUsed(promo.getId(), user.getId());
+                }
+
+                StripeCheckoutClient.CheckoutSession session = StripeCheckoutClient.createPaymentSessionEur(
+                    cents,
+                    "EduSmart - Commande #" + orderId,
+                    "http://localhost:8080/success",
+                    "http://localhost:8080/cancel",
+                    String.valueOf(orderId)
+                );
+
+                if (session.id() != null) {
+                    orderService.updateStripeSessionId(orderId, session.id());
+                } else {
+                    orderService.updateStripeSessionId(orderId, session.url());
+                }
+
+                try {
+                    openInBrowser(session.url());
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        alert(Alert.AlertType.ERROR, "Erreur Navigateur", rootCause(ex));
+                    });
+                }
+
+                javafx.application.Platform.runLater(() -> {
+                    shopCart.clear();
+                    SceneManager.getInstance().navigateTo(SceneManager.Scene.STUDENT_SHOP);
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() -> {
+                    alert(Alert.AlertType.ERROR, "Paiement", rootCause(ex));
+                });
+            } finally {
+                javafx.application.Platform.runLater(() -> {
+                    if (payButton != null) {
+                        payButton.setDisable(false);
+                        payButton.setText("💳 Payer avec Stripe");
+                    }
+                });
+            }
+        }).start();
     }
 
     private void openInBrowser(String url) throws Exception {
