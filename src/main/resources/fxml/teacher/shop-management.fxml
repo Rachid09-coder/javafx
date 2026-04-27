@@ -40,6 +40,7 @@
                 <Label text="🛒 Gestion de la Boutique" styleClass="page-title" HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="searchField" promptText="🔍 Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
                 <Button text="➕ Ajouter Produit" styleClass="btn-primary" onAction="#handleAdd"/>
+                <Button text="🏷 Code promo" styleClass="btn-purple" onAction="#handleAddPromoCode"/>
                 <Button text="✏ Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
                 <Button text="🗑 Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
             </HBox>

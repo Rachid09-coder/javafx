@@ -83,6 +83,14 @@ public class ShopManagementController implements Initializable {
     }
 
     @FXML
+    private void handleAddPromoCode(ActionEvent e) {
+        Stage owner = (Stage) productsTable.getScene().getWindow();
+        if (PromoCodeFormController.openDialog(owner)) {
+            showMessage("Code promo ajouté.", false);
+        }
+    }
+
+    @FXML
     private void handleEdit(ActionEvent e) {
         Product sel = productsTable.getSelectionModel().getSelectedItem();
         if (sel == null) { showMessage("Sélectionnez un produit.", true); return; }

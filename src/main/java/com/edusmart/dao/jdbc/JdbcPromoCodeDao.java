@@ -9,10 +9,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.Optional;
 
 public class JdbcPromoCodeDao implements PromoCodeDao {
+
+    @Override
+    public boolean create(PromoCode promoCode) {
+        if (promoCode == null) throw new IllegalArgumentException("promoCode is required");
+        String sql = "INSERT INTO promo_code (code, discount_percent, active) VALUES (?, ?, ?)";
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, promoCode.getCode() != null ? promoCode.getCode().trim() : null);
+            ps.setDouble(2, promoCode.getDiscountPercent());
+            ps.setBoolean(3, promoCode.isActive());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create promo code", ex);
+        }
+    }
 
     @Override
     public Optional<PromoCode> findActiveByCode(String code) {

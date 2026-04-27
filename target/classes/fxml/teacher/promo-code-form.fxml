@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.edusmart.controller.teacher.PromoCodeFormController"
+      spacing="16" prefWidth="440" style="-fx-padding:24; -fx-background-color:#F8FAFC;">
+
+    <Label fx:id="titleLabel" text="Nouveau Code Promo"
+           style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#7C3AED;"/>
+
+    <Separator/>
+
+    <VBox spacing="4">
+        <Label text="Code *" styleClass="form-label"/>
+        <TextField fx:id="codeField" promptText="Ex: EDU10" styleClass="text-field"/>
+        <Label fx:id="codeError" styleClass="error-label" visible="false" managed="false"/>
+    </VBox>
+
+    <VBox spacing="4">
+        <Label text="Réduction (%) *" styleClass="form-label"/>
+        <TextField fx:id="percentField" promptText="Ex: 10" styleClass="text-field"/>
+        <Label fx:id="percentError" styleClass="error-label" visible="false" managed="false"/>
+    </VBox>
+
+    <CheckBox fx:id="activeCheckBox" text="Actif" selected="true"/>
+
+    <Label fx:id="globalError" styleClass="error-label" wrapText="true"
+           visible="false" managed="false"/>
+
+    <Separator/>
+
+    <HBox spacing="12" alignment="CENTER_RIGHT">
+        <Button text="✖ Annuler" onAction="#handleCancel" styleClass="btn-secondary"/>
+        <Button text="✔ Enregistrer" onAction="#handleSave" styleClass="btn-purple"/>
+    </HBox>
+</VBox>
+
