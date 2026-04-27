@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/17"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.ManageExamsController">
+
+    <!-- ══ Sidebar ══════════════════════════════════════════════ -->
+    <left>
+        <VBox styleClass="sidebar" prefHeight="800">
+            <VBox styleClass="sidebar-logo" spacing="3">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="NAVIGATION" styleClass="sidebar-section-label"/>
+                <Button text="🏠   Tableau de bord"    styleClass="nav-button"        onAction="#handleDashboard"/>
+                <Button text="📚   Gérer les Cours"    styleClass="nav-button"        onAction="#handleManageCourses"/>
+                <Button text="📦   Gérer les Modules"  styleClass="nav-button"        onAction="#handleManageModules"/>
+                <Button text="📝   Gérer Examens"      styleClass="nav-button active" onAction="#handleManageExams"/>
+                <Button text="🛒   Boutique"           styleClass="nav-button"        onAction="#handleShopManagement"/>
+                <Button text="📊   Bulletins"          styleClass="nav-button"        onAction="#handleBulletins"/>
+                <Button text="🏆   Certifications"     styleClass="nav-button"        onAction="#handleCertifications"/>
+                <Button text="🤖   Analyse AI"         styleClass="nav-button"        onAction="#handleAnalysisAI"/>
+                <Button text="👥   Gestion des Élèves" styleClass="nav-button"        onAction="#handleStudentManagement"/>
+            </VBox>
+            <VBox styleClass="sidebar-footer">
+                <Button text="🚪   Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ══ Main Content ═════════════════════════════════════════ -->
+    <center>
+        <VBox style="-fx-background-color: #F1F5F9;">
+
+            <!-- Top header -->
+            <HBox styleClass="top-header" alignment="CENTER_LEFT" spacing="12">
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label text="Gérer les Examens" styleClass="page-title"/>
+                    <Label text="Créez et organisez vos examens" styleClass="page-subtitle"/>
+                </VBox>
+                <TextField fx:id="searchField" promptText="🔍  Rechercher un examen..."
+                           styleClass="search-bar" onAction="#handleSearch"/>
+            </HBox>
+
+            <!-- Body -->
+            <HBox styleClass="content-area" spacing="20" VBox.vgrow="ALWAYS">
+
+                <!-- ── Table Card ──────────────────────────────── -->
+                <VBox spacing="14" HBox.hgrow="ALWAYS">
+                    <Label fx:id="messageLabel" visible="false" wrapText="true"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8 14; -fx-background-radius: 8;"/>
+
+                    <VBox styleClass="card" spacing="0" VBox.vgrow="ALWAYS"
+                          style="-fx-padding: 0; -fx-background-radius: 14; -fx-border-radius: 14;">
+                        <HBox style="-fx-padding: 16 20; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;"
+                              alignment="CENTER_LEFT">
+                            <Label text="📝  Liste des examens"
+                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                        </HBox>
+                        <TableView fx:id="examsTable" VBox.vgrow="ALWAYS" styleClass="table-view"
+                                   style="-fx-background-radius: 0 0 14 14; -fx-border-radius: 0 0 14 14; -fx-border-color: transparent;">
+                            <columns>
+                                <TableColumn fx:id="idColumn"          text="ID"       prefWidth="55"  minWidth="50"/>
+                                <TableColumn fx:id="titleColumn"       text="Titre"    prefWidth="220" minWidth="140"/>
+                                <TableColumn fx:id="typeColumn"        text="Type"     prefWidth="110" minWidth="80"/>
+                                <TableColumn fx:id="durationColumn"    text="Durée"    prefWidth="90"  minWidth="70"/>
+                                <TableColumn fx:id="semesterColumn"    text="Sem."     prefWidth="70"  minWidth="60"/>
+                                <TableColumn fx:id="coefficientColumn" text="Coeff."   prefWidth="90"  minWidth="70"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="📭" style="-fx-font-size: 32px;"/>
+                                    <Label text="Aucun examen trouvé"
+                                           style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;"/>
+                                </VBox>
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </VBox>
+
+                <!-- ── Form Panel (scrollable) ─────────────────── -->
+                <ScrollPane fitToWidth="true" prefWidth="330" minWidth="300" maxWidth="340"
+                            style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+                    <VBox fx:id="formPanel" styleClass="form-panel" spacing="13">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="📝" style="-fx-font-size: 16px;"/>
+                            <Label text="Formulaire Examen" styleClass="form-panel-title" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <Separator/>
+
+                        <VBox spacing="5">
+                            <Label text="TITRE *" styleClass="form-label"/>
+                            <TextField fx:id="titleField" promptText="Titre de l'examen" styleClass="text-field"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="TYPE *" styleClass="form-label"/>
+                            <ComboBox fx:id="typeComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="DURÉE (minutes)" styleClass="form-label"/>
+                            <TextField fx:id="durationField" promptText="ex: 90" styleClass="text-field"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="CATÉGORIE NOTE" styleClass="form-label"/>
+                            <ComboBox fx:id="gradeCategoryComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="DESCRIPTION" styleClass="form-label"/>
+                            <TextArea fx:id="descriptionArea" promptText="Description..."
+                                      styleClass="text-area" prefHeight="72" wrapText="true"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="ANNÉE ACADÉMIQUE" styleClass="form-label"/>
+                            <TextField fx:id="academicYearField" promptText="ex: 2025/2026" styleClass="text-field"/>
+                        </VBox>
+
+                        <HBox spacing="10">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="SEMESTRE" styleClass="form-label"/>
+                                <TextField fx:id="semesterField" promptText="ex: 1" styleClass="text-field"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="COEFFICIENT" styleClass="form-label"/>
+                                <TextField fx:id="coefficientField" promptText="ex: 2" styleClass="text-field"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="5">
+                            <Label text="CHEMIN FICHIER" styleClass="form-label"/>
+                            <TextField fx:id="filePathField" promptText="file_path" styleClass="text-field"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="LIEN EXTERNE" styleClass="form-label"/>
+                            <TextField fx:id="externalLinkField" promptText="external_link" styleClass="text-field"/>
+                        </VBox>
+
+                        <Separator/>
+                        <HBox spacing="8">
+                            <Button text="➕  Créer"    onAction="#handleCreate" styleClass="btn-primary"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button text="✏  Modifier" onAction="#handleUpdate" styleClass="btn-secondary"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Button text="🗑  Supprimer" onAction="#handleDelete" styleClass="btn-danger"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button text="✖  Effacer"   onAction="#handleClear"  styleClass="btn-secondary"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+                </ScrollPane>
+
+            </HBox>
+        </VBox>
+    </center>
+
+</BorderPane>

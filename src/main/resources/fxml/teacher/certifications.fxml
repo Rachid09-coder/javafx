@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.CertificationsController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
+                <Button text="📚  Gérer les Cours" styleClass="nav-button" onAction="#handleManageCourses"/>
+                <Button text="📦  Gérer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
+                <Button text="📝  Gérer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
+                <Button text="📊  Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
+                <Button text="🏆  Certifications" styleClass="nav-button active" onAction="#handleCertifications"/>
+                <Button text="🤖  Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="👥  Gestion des Élèves" styleClass="nav-button" onAction="#handleStudentManagement"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <HBox styleClass="content-area" spacing="16" alignment="TOP_LEFT">
+
+            <VBox spacing="16" HBox.hgrow="ALWAYS" maxHeight="Infinity">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Gestion des Certifications" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="totalLabel" style="-fx-text-fill: #64748B;"/>
+                </HBox>
+                <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+
+                <TableView fx:id="certificationsTable" VBox.vgrow="ALWAYS" minHeight="200" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="studentIdColumn" text="Étudiant" prefWidth="70"/>
+                        <TableColumn fx:id="typeColumn" text="Type" prefWidth="160"/>
+                        <TableColumn fx:id="issuedAtColumn" text="Émise le" prefWidth="130"/>
+                        <TableColumn fx:id="verificationColumn" text="Code vérif." prefWidth="110"/>
+                        <TableColumn fx:id="statusColumn" text="Statut" prefWidth="90"/>
+                        <TableColumn fx:id="bulletinIdColumn" text="Bulletin" prefWidth="70"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucune certification" style="-fx-text-fill: #94A3B8;"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" pannable="true"
+                        minWidth="308" prefWidth="308" maxWidth="328" maxHeight="Infinity"
+                        style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox styleClass="card" spacing="12" minWidth="280" maxWidth="300">
+                    <Label text="Émettre une certification" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                    <Separator/>
+
+                    <VBox spacing="4">
+                        <Label text="Étudiant *" styleClass="form-label"/>
+                        <ComboBox fx:id="studentUserComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="ID bulletin (optionnel)" styleClass="form-label"/>
+                        <TextField fx:id="bulletinIdField" promptText="ex: 12" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Type * (max 50)" styleClass="form-label"/>
+                        <TextField fx:id="typeField" promptText="ex: Certificat de réussite" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Date d'émission *" styleClass="form-label"/>
+                        <DatePicker fx:id="issueDatePicker" maxWidth="Infinity" styleClass="date-picker"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Valide jusqu'au (optionnel)" styleClass="form-label"/>
+                        <DatePicker fx:id="validUntilDatePicker" maxWidth="Infinity" styleClass="date-picker"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Statut" styleClass="form-label"/>
+                        <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                    </VBox>
+
+                    <Separator/>
+                    <Button text="🏆 Enregistrer" onAction="#handleIssue" styleClass="btn-primary" maxWidth="Infinity"/>
+                    <Button text="❌ Révoquer la sélection" onAction="#handleRevoke" styleClass="btn-danger" maxWidth="Infinity"/>
+                    <Button text="✖ Effacer le formulaire" onAction="#handleClear" styleClass="btn-secondary" maxWidth="Infinity"/>
+                </VBox>
+            </ScrollPane>
+
+        </HBox>
+    </center>
+</BorderPane>
