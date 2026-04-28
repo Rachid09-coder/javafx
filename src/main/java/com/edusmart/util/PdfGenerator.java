@@ -146,6 +146,41 @@ public class PdfGenerator {
         return file;
     }
 
+    public static File generateInvoicePdf(int orderId, String studentName, double total, String trackingNumber) throws Exception {
+        String fileName = "Facture_Commande_" + orderId + ".pdf";
+        File file = new File(PDF_DIR, fileName);
+
+        Document document = new Document(PageSize.A4);
+        PdfWriter.getInstance(document, new FileOutputStream(file));
+        document.open();
+
+        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, Color.DARK_GRAY);
+        Paragraph title = new Paragraph("FACTURE EDU-SMART", titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        document.add(title);
+        
+        document.add(new Paragraph("\n"));
+
+        Font infoFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
+        document.add(new Paragraph("Commande # : " + orderId, infoFont));
+        document.add(new Paragraph("Étudiant : " + studentName, infoFont));
+        document.add(new Paragraph("Numéro de Suivi : " + trackingNumber, infoFont));
+        document.add(new Paragraph("\n\n"));
+
+        Table table = new Table(2);
+        table.setWidth(100);
+        table.addCell("Description");
+        table.addCell("Montant");
+        table.addCell("Total de la Commande");
+        table.addCell(String.format("%.2f €", total));
+        document.add(table);
+
+        document.add(new Paragraph("\n\nMerci pour votre achat !", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 12)));
+
+        document.close();
+        return file;
+    }
+
     private static com.lowagie.text.Image generateQrCodeImage(String data, int width, int height) throws Exception {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, width, height);

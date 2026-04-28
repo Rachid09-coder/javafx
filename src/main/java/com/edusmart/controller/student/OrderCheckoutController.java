@@ -11,6 +11,8 @@ import com.edusmart.service.PromoCodeService;
 import com.edusmart.service.impl.OrderServiceImpl;
 import com.edusmart.service.impl.PromoCodeServiceImpl;
 import com.edusmart.dao.jdbc.JdbcPromoCodeDao;
+import com.edusmart.service.EmailService;
+import com.edusmart.util.PdfGenerator;
 import com.edusmart.util.SceneManager;
 import com.edusmart.util.StripeCheckoutClient;
 import com.edusmart.util.StripeKeys;
@@ -23,9 +25,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import java.io.File;
 import java.awt.Desktop;
 import java.net.URI;
 import java.net.URL;
+import java.util.UUID;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -229,6 +233,27 @@ public class OrderCheckoutController implements Initializable {
                 } else {
                     orderService.updateStripeSessionId(orderId, session.url());
                 }
+
+                // --- Envoi d'email, Facture PDF et Notification ---
+                String trackingNumber = "TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                String targetEmail = (user.getEmail() != null && !user.getEmail().isBlank()) ? user.getEmail() : "logicien7@gmail.com";
+                
+                // Envoyer l'email en arrière-plan
+                new Thread(() -> {
+                    try {
+                        File invoicePdf = PdfGenerator.generateInvoicePdf(orderId, user.getFullName(), tot, trackingNumber);
+                        EmailService.sendOrderConfirmationEmail(targetEmail, user.getFirstName(), orderId, trackingNumber, invoicePdf);
+                        javafx.application.Platform.runLater(() -> {
+                            alert(Alert.AlertType.INFORMATION, "Paiement Initié", 
+                                "Commande #" + orderId + " traitée.\nUn e-mail a été envoyé à : " + targetEmail + "\nSuivi : " + trackingNumber);
+                        });
+                    } catch (Exception ex) {
+                        javafx.application.Platform.runLater(() -> {
+                            alert(Alert.AlertType.WARNING, "Erreur d'envoi", "La commande est traitée mais l'e-mail a échoué: " + ex.getMessage());
+                        });
+                    }
+                }).start();
+                // ---------------------------------------------
 
                 try {
                     openInBrowser(session.url());

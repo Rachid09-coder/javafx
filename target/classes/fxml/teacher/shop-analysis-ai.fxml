@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
@@ -38,20 +39,34 @@
     <center>
         <VBox styleClass="content-area" spacing="24">
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="🤖 Analyse des Ventes avec Gemini IA" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                <Label text="🤖 Analyse des Ventes avec OpenAI" styleClass="page-title" HBox.hgrow="ALWAYS"/>
                 <Button text="🔄 Générer Analyse" styleClass="btn-primary" onAction="#handleGenerateAnalysis"/>
             </HBox>
 
             <VBox spacing="16" VBox.vgrow="ALWAYS" styleClass="form-card">
                 <Label text="Insights Business &amp; Recommandations" styleClass="section-title"/>
-                <Label text="L'IA Gemini va analyser vos commandes récentes et les articles vendus pour vous fournir des statistiques (chiffre d'affaires, meilleures ventes) et des recommandations actionnables." style="-fx-text-fill: #64748b; -fx-wrap-text: true;"/>
+                <Label text="L'IA (ChatGPT) va analyser vos commandes récentes et les articles vendus pour vous fournir des statistiques (chiffre d'affaires, meilleures ventes) et des recommandations actionnables." style="-fx-text-fill: #64748b; -fx-wrap-text: true;"/>
                 
                 <Label fx:id="messageLabel" visible="true" wrapText="true" style="-fx-font-weight: bold;"/>
                 
-                <StackPane VBox.vgrow="ALWAYS">
-                    <TextArea fx:id="analysisTextArea" styleClass="text-area-modern" wrapText="true" editable="false"/>
-                    <ProgressIndicator fx:id="loadingIndicator" visible="false" maxWidth="50" maxHeight="50"/>
-                </StackPane>
+                <HBox spacing="16" VBox.vgrow="ALWAYS">
+                    <StackPane HBox.hgrow="ALWAYS">
+                        <TextArea fx:id="analysisTextArea" styleClass="text-area-modern" wrapText="true" editable="false"/>
+                        <ProgressIndicator fx:id="loadingIndicator" visible="false" maxWidth="50" maxHeight="50"/>
+                    </StackPane>
+                    
+                    <VBox spacing="16" HBox.hgrow="ALWAYS" prefWidth="400">
+                        <PieChart fx:id="salesPieChart" title="Répartition des Ventes" prefHeight="250" legendSide="BOTTOM"/>
+                        <BarChart fx:id="stockBarChart" title="Niveaux de Stock" prefHeight="250">
+                            <xAxis>
+                                <CategoryAxis label="Produits"/>
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="Quantité"/>
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                </HBox>
             </VBox>
         </VBox>
     </center>
