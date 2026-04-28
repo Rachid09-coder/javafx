@@ -418,18 +418,45 @@ public class ManageModulesController implements Initializable {
     @FXML
     private void handleExport(ActionEvent event) {
         try {
-            java.io.File file = new java.io.File("modules_export.csv");
-            try (java.io.PrintWriter pw = new java.io.PrintWriter(file)) {
-                pw.println("ID,Titre,Tags,Cours,Prix Moyen,Date");
-                for (Module m : moduleList) {
-                    String date = m.getCreatedAt() != null ? m.getCreatedAt().format(DATE_TIME_FORMATTER) : "";
-                    String tags = m.getTags() != null ? m.getTags().replace("\"", "\"\"") : "";
-                    pw.printf("%d,\"%s\",\"%s\",%d,%.2f,%s%n",
-                            m.getId(), m.getTitle().replace("\"", "\"\""), tags,
-                            m.getCourseCount(), m.getAveragePrice(), date);
-                }
+            java.io.File file = new java.io.File("modules_export.pdf");
+            com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(file));
+            document.open();
+            
+            com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 18, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("Liste des Modules", titleFont);
+            title.setSpacingAfter(20);
+            title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            document.add(title);
+            
+            com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(6);
+            table.setWidthPercentage(100);
+            
+            // Headers
+            String[] headers = {"ID", "Titre", "Tags", "Cours", "Prix Moyen", "Date"};
+            for (String header : headers) {
+                com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header));
+                cell.setBackgroundColor(com.itextpdf.text.BaseColor.LIGHT_GRAY);
+                cell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                table.addCell(cell);
             }
-            showMessage("Export réussi : " + file.getAbsolutePath(), false);
+            
+            // Data
+            for (Module m : moduleList) {
+                String date = m.getCreatedAt() != null ? m.getCreatedAt().format(DATE_TIME_FORMATTER) : "";
+                String tags = m.getTags() != null ? m.getTags() : "";
+                table.addCell(String.valueOf(m.getId()));
+                table.addCell(m.getTitle() != null ? m.getTitle() : "");
+                table.addCell(tags);
+                table.addCell(String.valueOf(m.getCourseCount()));
+                table.addCell(String.format("%.2f", m.getAveragePrice()));
+                table.addCell(date);
+            }
+            
+            document.add(table);
+            document.close();
+            
+            showMessage("Export PDF réussi : " + file.getAbsolutePath(), false);
         } catch (Exception e) {
             showMessage("Erreur d'exportation : " + e.getMessage(), true);
         }

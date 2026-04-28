@@ -84,6 +84,13 @@
                         </VBox>
                     </HBox>
 
+                    <!-- Subscription Banner -->
+                    <HBox styleClass="card" spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 12 20; -fx-background-radius: 8;">
+                        <Label text="📬 Alertes baisses de prix :" style="-fx-font-weight: bold;"/>
+                        <TextField fx:id="subscriberEmailField" promptText="Entrez votre adresse email..." HBox.hgrow="ALWAYS" styleClass="text-field" style="-fx-pref-width: 200;"/>
+                        <Button text="S'abonner" onAction="#handleSubscribe" styleClass="btn-primary"/>
+                    </HBox>
+
                     <!-- Message label -->
                     <Label fx:id="messageLabel" visible="false" wrapText="true"
                            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8 14; -fx-background-radius: 8;"/>
@@ -106,7 +113,7 @@
                             <ComboBox fx:id="filterStatusBox" promptText="Statut" styleClass="combo-box" style="-fx-pref-width: 100; -fx-font-size: 11px;"/>
                             <ComboBox fx:id="filterModuleBox" promptText="Module" styleClass="combo-box" style="-fx-pref-width: 120; -fx-font-size: 11px;"/>
                             
-                            <Button text="🧾 Exporter CSV" onAction="#handleExport"
+                            <Button text="🧾 Exporter PDF" onAction="#handleExport"
                                     styleClass="btn-secondary" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
                             <Button text="➕  Nouveau Cours" onAction="#handleOpenAdd"
                                     styleClass="btn-primary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>

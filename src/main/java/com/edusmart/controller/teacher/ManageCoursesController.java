@@ -63,6 +63,7 @@ public class ManageCoursesController implements Initializable {
     @FXML private ComboBox<Module> filterModuleBox;
     @FXML private Label aiSuggestionLabel;
     @FXML private ListView<String> activityList;
+    @FXML private TextField subscriberEmailField;
 
     @FXML private TextField titleField;
     @FXML private TextField priceField;
@@ -83,6 +84,7 @@ public class ManageCoursesController implements Initializable {
     private final ModuleService moduleService = new ModuleServiceImpl(new JdbcModuleDao());
     /** module id -> title for table and search */
     private Map<Integer, String> moduleTitleById = new HashMap<>();
+    private final com.edusmart.service.SubscriptionService subscriptionService = new com.edusmart.service.impl.SubscriptionServiceImpl(new com.edusmart.dao.jdbc.JdbcSubscriberDao());
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override
@@ -131,6 +133,19 @@ public class ManageCoursesController implements Initializable {
         }
         Button btn = (Button) event.getSource();
         btn.setText(ThemeManager.isDarkMode() ? "☀️ Mode Clair" : "🌙 Mode Sombre");
+    }
+
+    @FXML
+    private void handleSubscribe(ActionEvent event) {
+        if (subscriberEmailField == null) return;
+        String email = subscriberEmailField.getText();
+        if (subscriptionService.addSubscriber(email)) {
+            ActivityLogger.log("Abonné", "ajouté", email);
+            showMessage("Inscription réussie ! Vous serez notifié des baisses de prix.", false);
+            subscriberEmailField.clear();
+        } else {
+            showMessage("Erreur : Email invalide ou déjà inscrit.", true);
+        }
     }
 
     // ── Drawer helpers ──────────────────────────────────────────
@@ -603,18 +618,46 @@ public class ManageCoursesController implements Initializable {
     @FXML
     private void handleExport(ActionEvent event) {
         try {
-            java.io.File file = new java.io.File("cours_export.csv");
-            try (java.io.PrintWriter pw = new java.io.PrintWriter(file)) {
-                pw.println("ID,Titre,Prix,Note,Module,Statut,Date");
-                for (Course c : courseList) {
-                    String mod = c.getModuleId() != null ? moduleTitleById.getOrDefault(c.getModuleId(), "") : "";
-                    String date = c.getCreatedAt() != null ? c.getCreatedAt().format(DATE_TIME_FORMATTER) : "";
-                    pw.printf("%d,\"%s\",%.2f,%.1f,\"%s\",%s,%s%n",
-                            c.getId(), c.getTitle().replace("\"", "\"\""), c.getPrice(), c.getRating(),
-                            mod.replace("\"", "\"\""), c.getStatusValue(), date);
-                }
+            java.io.File file = new java.io.File("cours_export.pdf");
+            com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(file));
+            document.open();
+            
+            com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 18, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("Liste des Cours", titleFont);
+            title.setSpacingAfter(20);
+            title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            document.add(title);
+            
+            com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(7);
+            table.setWidthPercentage(100);
+            
+            // Headers
+            String[] headers = {"ID", "Titre", "Prix", "Note", "Module", "Statut", "Date"};
+            for (String header : headers) {
+                com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header));
+                cell.setBackgroundColor(com.itextpdf.text.BaseColor.LIGHT_GRAY);
+                cell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                table.addCell(cell);
             }
-            showMessage("Export réussi : " + file.getAbsolutePath(), false);
+            
+            // Data
+            for (Course c : courseList) {
+                String mod = c.getModuleId() != null ? moduleTitleById.getOrDefault(c.getModuleId(), "") : "";
+                String date = c.getCreatedAt() != null ? c.getCreatedAt().format(DATE_TIME_FORMATTER) : "";
+                table.addCell(String.valueOf(c.getId()));
+                table.addCell(c.getTitle() != null ? c.getTitle() : "");
+                table.addCell(String.format("%.2f", c.getPrice()));
+                table.addCell(String.format("%.1f", c.getRating()));
+                table.addCell(mod);
+                table.addCell(c.getStatusValue() != null ? c.getStatusValue() : "");
+                table.addCell(date);
+            }
+            
+            document.add(table);
+            document.close();
+            
+            showMessage("Export PDF réussi : " + file.getAbsolutePath(), false);
         } catch (Exception e) {
             showMessage("Erreur d'exportation : " + e.getMessage(), true);
         }

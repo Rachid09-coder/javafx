@@ -4,6 +4,8 @@ module com.edusmart {
     requires javafx.graphics;
     requires java.sql;
     requires java.prefs;
+    requires itextpdf;
+    requires jakarta.mail;
 
 
     opens com.edusmart to javafx.fxml;

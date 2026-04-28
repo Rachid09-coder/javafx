@@ -101,7 +101,7 @@
                             <!-- Tags Filter -->
                             <ComboBox fx:id="filterTagBox" promptText="Tous les tags" styleClass="combo-box" style="-fx-pref-width: 120; -fx-font-size: 11px;"/>
                             
-                            <Button text="🧾 Exporter CSV" onAction="#handleExport"
+                            <Button text="🧾 Exporter PDF" onAction="#handleExport"
                                     styleClass="btn-secondary" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
                             <!-- Triggers slide-in with empty form -->
                             <Button text="➕  Nouveau Module"
