@@ -17,14 +17,15 @@ public class EmailServiceImpl implements EmailService {
 
     public EmailServiceImpl() {
         // Fetch credentials from env variables or defaults (for demo purposes)
-        this.username = System.getenv().getOrDefault("EDUSMART_EMAIL", "test@edusmart.com");
-        this.password = System.getenv().getOrDefault("EDUSMART_PASSWORD", "password123");
+        this.username = System.getenv().getOrDefault("EDUSMART_EMAIL", "firas.guizawi@gmail.com");
+        this.password = System.getenv().getOrDefault("EDUSMART_PASSWORD", "stpfrutqcwiibsdw");
 
         props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", "smtp.gmail.com"); // default to Gmail
         props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
     }
 
     @Override

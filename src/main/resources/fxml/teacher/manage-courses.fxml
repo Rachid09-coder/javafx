@@ -52,6 +52,8 @@
                            styleClass="search-bar" onAction="#handleSearch"/>
                 <Button text="🌙 Mode Sombre" onAction="#handleToggleTheme"
                         styleClass="btn-secondary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
+                <Button text="🤖 Assistant AI" onAction="#handleOpenChat"
+                        styleClass="btn-primary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
             </HBox>
 
             <!-- Body -->
@@ -200,6 +202,15 @@
                         <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
                     </VBox>
 
+                    <!-- Date Planifiée -->
+                    <VBox spacing="5">
+                        <Label text="DATE PLANIFIÉE *" styleClass="form-label"/>
+                        <HBox spacing="8">
+                            <DatePicker fx:id="datePicker" promptText="JJ/MM/AAAA" styleClass="date-picker" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <TextField fx:id="timeField" promptText="HH:mm" styleClass="text-field" prefWidth="80"/>
+                        </HBox>
+                    </VBox>
+
                     <Separator/>
 
                     <!-- Action buttons -->
@@ -227,5 +238,43 @@
             </HBox>
         </VBox>
     </center>
+
+    <!-- AI Chat Panel -->
+    <right>
+        <VBox fx:id="chatPanel" styleClass="card" prefWidth="350" visible="false" managed="false" spacing="12" style="-fx-margin: 24 24 24 0;">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" styleClass="card-header">
+                <Label text="🤖 Assistant Enseignant AI" styleClass="card-title" />
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Button text="✕" onAction="#handleCloseChat" styleClass="btn-secondary" style="-fx-padding: 2 8;"/>
+            </HBox>
+            
+            <Label fx:id="chatContextLabel" text="Contexte: Formulaire Actuel" wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #64748B; -fx-padding: 4; -fx-background-color: rgba(0,0,0,0.03); -fx-background-radius: 4;"/>
+            
+            <!-- Quick Actions -->
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Button text="⚡ Créer Cours" onAction="#handleAiAutoCreateCourse" style="-fx-font-size: 10px; -fx-background-color: #F3E8FF; -fx-text-fill: #7E22CE; -fx-border-radius: 4; -fx-background-radius: 4; -fx-font-weight: bold;"/>
+                <Button text="Desc" onAction="#handleAiGenerateDesc" style="-fx-font-size: 10px; -fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+                <Button text="Titre" onAction="#handleAiOptimizeTitle" style="-fx-font-size: 10px; -fx-background-color: #FEF3C7; -fx-text-fill: #92400E; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+                <Button text="Idées" onAction="#handleAiModuleIdeas" style="-fx-font-size: 10px; -fx-background-color: #D1FAE5; -fx-text-fill: #065F46; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+            </HBox>
+
+            <!-- Messages Container -->
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="content-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="chatMessagesContainer" spacing="12" style="-fx-padding: 4;"/>
+            </ScrollPane>
+
+            <HBox fx:id="loadingIndicatorBox" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 4;">
+                <ProgressIndicator prefWidth="16" prefHeight="16"/>
+                <Label text="L'IA réfléchit..." style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+            </HBox>
+
+            <!-- Input -->
+            <HBox spacing="8" alignment="CENTER">
+                <TextField fx:id="chatInputField" promptText="Demandez à l'IA..." HBox.hgrow="ALWAYS" styleClass="text-field" onAction="#handleSendChatMessage"/>
+                <Button text="➤" onAction="#handleSendChatMessage" styleClass="btn-primary" style="-fx-padding: 8 12;"/>
+            </HBox>
+        </VBox>
+    </right>
 
 </BorderPane>

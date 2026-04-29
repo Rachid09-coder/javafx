@@ -35,7 +35,8 @@ public class SceneManager {
         TEACHER_BULLETINS,
         TEACHER_CERTIFICATIONS,
         TEACHER_ANALYSIS_AI,
-        TEACHER_STUDENT_MANAGEMENT
+        TEACHER_STUDENT_MANAGEMENT,
+        TEACHER_CALENDAR
     }
 
     private static SceneManager instance;
@@ -115,6 +116,7 @@ public class SceneManager {
             case TEACHER_CERTIFICATIONS       -> "/fxml/teacher/certifications.fxml";
             case TEACHER_ANALYSIS_AI          -> "/fxml/teacher/analysis-ai.fxml";
             case TEACHER_STUDENT_MANAGEMENT   -> "/fxml/teacher/student-management.fxml";
+            case TEACHER_CALENDAR             -> "/fxml/teacher/calendar.fxml";
         };
     }
 }

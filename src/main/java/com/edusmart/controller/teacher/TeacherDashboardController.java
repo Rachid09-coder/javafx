@@ -72,6 +72,10 @@ public class TeacherDashboardController implements Initializable {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS);
     }
 
+    @FXML private void handleCalendar(ActionEvent event) {
+        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_CALENDAR);
+    }
+
     @FXML private void handleShopManagement(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT);
     }

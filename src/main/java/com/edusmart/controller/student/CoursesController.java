@@ -9,11 +9,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.layout.FlowPane;
 
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import com.edusmart.service.AIService;
+import com.edusmart.service.impl.AIServiceImpl;
 
 /**
  * CoursesController - Student view for browsing available courses.
@@ -29,10 +35,20 @@ public class CoursesController implements Initializable {
     @FXML private Label coursesCountLabel;
     @FXML private ProgressIndicator loadingIndicator;
 
+    // AI Chat UI Elements
+    @FXML private VBox chatPanel;
+    @FXML private VBox chatMessagesContainer;
+    @FXML private TextField chatInputField;
+    @FXML private Label chatContextLabel;
+    @FXML private HBox loadingIndicatorBox;
+
     private ObservableList<Course> courseList = FXCollections.observableArrayList();
+    private AIService aiService;
+    private Course selectedCourseForChat;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        aiService = new AIServiceImpl();
         setupFilters();
         loadCourses();
     }
@@ -95,15 +111,106 @@ public class CoursesController implements Initializable {
      * Opens the detail view for a selected course.
      * TODO: Implement course detail navigation.
      */
+    @FXML
+    private void handleTestViewCourse(ActionEvent event) {
+        if (!courseList.isEmpty()) {
+            handleViewCourse(courseList.get(0));
+        }
+    }
+
     public void handleViewCourse(Course course) {
-        // TODO: Navigate to course detail view
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Cours sélectionné");
-        alert.setHeaderText(course.getTitle());
-        alert.setContentText("Instructeur: " + course.getInstructor() +
-                "\nModules: " + course.getModuleCount() +
-                "\nHeures: " + course.getTotalHours());
-        alert.showAndWait();
+        selectedCourseForChat = course;
+        
+        // Open the chat panel
+        chatPanel.setVisible(true);
+        chatPanel.setManaged(true);
+        
+        chatContextLabel.setText("Contexte: " + course.getTitle());
+        chatMessagesContainer.getChildren().clear();
+        addChatMessage("Système", "Vous consultez le cours : " + course.getTitle() + "\nComment puis-je vous aider ?", false);
+    }
+    
+    @FXML
+    private void handleCloseChat(ActionEvent event) {
+        chatPanel.setVisible(false);
+        chatPanel.setManaged(false);
+        selectedCourseForChat = null;
+    }
+
+    @FXML
+    private void handleAiSummarize(ActionEvent event) {
+        sendToAI("Fais un résumé clair et concis de ce cours en 3 points.");
+    }
+
+    @FXML
+    private void handleAiExercises(ActionEvent event) {
+        sendToAI("Génère 2 petits exercices pratiques ou questions pour tester mes connaissances sur ce cours.");
+    }
+
+    @FXML
+    private void handleAiExplain(ActionEvent event) {
+        sendToAI("Explique-moi les concepts de ce cours comme si j'avais 10 ans, avec une analogie simple.");
+    }
+
+    @FXML
+    private void handleSendChatMessage(ActionEvent event) {
+        String message = chatInputField.getText().trim();
+        if (!message.isEmpty()) {
+            chatInputField.clear();
+            sendToAI(message);
+        }
+    }
+
+    private void sendToAI(String message) {
+        if (selectedCourseForChat == null) {
+            addChatMessage("Système", "Veuillez d'abord sélectionner un cours.", false);
+            return;
+        }
+
+        addChatMessage("Vous", message, true);
+        
+        loadingIndicatorBox.setVisible(true);
+        loadingIndicatorBox.setManaged(true);
+        
+        String context = "Titre: " + selectedCourseForChat.getTitle() + "\nDescription: " + 
+                (selectedCourseForChat.getDescription() != null ? selectedCourseForChat.getDescription() : "Aucune description.");
+
+        aiService.askAI(message, context).thenAccept(response -> {
+            Platform.runLater(() -> {
+                loadingIndicatorBox.setVisible(false);
+                loadingIndicatorBox.setManaged(false);
+                addChatMessage("IA", response, false);
+            });
+        });
+    }
+
+    private void addChatMessage(String sender, String text, boolean isUser) {
+        VBox bubble = new VBox();
+        bubble.setPadding(new Insets(10));
+        bubble.setSpacing(4);
+        
+        Label senderLabel = new Label(sender);
+        senderLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;");
+        
+        Label textLabel = new Label(text);
+        textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (isUser ? "#FFFFFF" : "#1E293B") + ";");
+        
+        bubble.getChildren().addAll(senderLabel, textLabel);
+        
+        if (isUser) {
+            bubble.setStyle("-fx-background-color: #4F46E5; -fx-background-radius: 12 12 0 12;");
+            bubble.setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            bubble.setStyle("-fx-background-color: #F1F5F9; -fx-background-radius: 12 12 12 0;");
+            bubble.setAlignment(Pos.CENTER_LEFT);
+        }
+        
+        HBox row = new HBox(bubble);
+        row.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 0, 4, 0));
+        
+        chatMessagesContainer.getChildren().add(row);
     }
 
     public List<Course> getCourseList() {

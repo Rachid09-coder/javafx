@@ -29,6 +29,12 @@ import com.edusmart.util.ActivityLogger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.net.URL;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import com.edusmart.service.AIService;
+import com.edusmart.service.impl.AIServiceImpl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +77,8 @@ public class ManageCoursesController implements Initializable {
     @FXML private TextArea descriptionArea;
     @FXML private ComboBox<String> statusComboBox;
     @FXML private ComboBox<Module> moduleComboBox;
+    @FXML private DatePicker datePicker;
+    @FXML private TextField timeField;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> sortComboBox;
     @FXML private Label messageLabel;
@@ -78,7 +86,15 @@ public class ManageCoursesController implements Initializable {
     @FXML private VBox formPanel;
     @FXML private Label formPanelTitle;
 
+    // AI Chat UI Elements
+    @FXML private VBox chatPanel;
+    @FXML private VBox chatMessagesContainer;
+    @FXML private TextField chatInputField;
+    @FXML private Label chatContextLabel;
+    @FXML private HBox loadingIndicatorBox;
+
     private ObservableList<Course> courseList = FXCollections.observableArrayList();
+    private AIService aiService;
     private Course selectedCourse;
     private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
     private final ModuleService moduleService = new ModuleServiceImpl(new JdbcModuleDao());
@@ -89,6 +105,7 @@ public class ManageCoursesController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        aiService = new AIServiceImpl();
         setupTable();
         setupForm();
         loadCourses();
@@ -146,6 +163,200 @@ public class ManageCoursesController implements Initializable {
         } else {
             showMessage("Erreur : Email invalide ou déjà inscrit.", true);
         }
+    }
+
+    // ── AI Chat handlers ────────────────────────────────────────
+
+    @FXML
+    private void handleOpenChat(ActionEvent event) {
+        chatPanel.setVisible(true);
+        chatPanel.setManaged(true);
+        if (chatMessagesContainer.getChildren().isEmpty()) {
+            addChatMessage("Système", "Bonjour Professeur ! Je suis l'assistant IA. Je peux vous aider à créer du contenu, optimiser vos titres ou générer des descriptions.", false);
+        }
+        updateChatContext();
+    }
+
+    @FXML
+    private void handleCloseChat(ActionEvent event) {
+        chatPanel.setVisible(false);
+        chatPanel.setManaged(false);
+    }
+
+    private void updateChatContext() {
+        if (titleField == null) return;
+        String title = titleField.getText().trim();
+        if (title.isEmpty() && selectedCourse != null) title = selectedCourse.getTitle();
+        if (title == null || title.isEmpty()) {
+            chatContextLabel.setText("Contexte: Aucun cours ciblé");
+        } else {
+            chatContextLabel.setText("Contexte du cours: " + title);
+        }
+    }
+
+    @FXML
+    private void handleAiGenerateDesc(ActionEvent event) {
+        updateChatContext();
+        String title = titleField.getText().trim();
+        if (title.isEmpty()) {
+            addChatMessage("Système", "Veuillez d'abord entrer un Titre de cours dans le formulaire pour générer une description.", false);
+            return;
+        }
+        sendToAI("Génère une description de cours professionnelle et accrocheuse pour mon cours intitulé: " + title);
+    }
+
+    @FXML
+    private void handleAiOptimizeTitle(ActionEvent event) {
+        updateChatContext();
+        String title = titleField.getText().trim();
+        if (title.isEmpty()) {
+            addChatMessage("Système", "Veuillez d'abord entrer un Titre dans le formulaire.", false);
+            return;
+        }
+        sendToAI("Propose-moi 3 titres alternatifs plus percutants et commerciaux pour mon cours intitulé: " + title);
+    }
+
+    @FXML
+    private void handleAiModuleIdeas(ActionEvent event) {
+        updateChatContext();
+        String title = titleField.getText().trim();
+        String desc = descriptionArea.getText().trim();
+        if (title.isEmpty()) {
+            addChatMessage("Système", "Veuillez d'abord entrer un Titre dans le formulaire.", false);
+            return;
+        }
+        sendToAI("Propose-moi une structure en 4 modules pertinents pour mon cours '" + title + "'. " + (desc.isEmpty() ? "" : "Description actuelle: " + desc));
+    }
+
+    @FXML
+    private void handleAiAutoCreateCourse(ActionEvent event) {
+        String topic = chatInputField.getText().trim();
+        if (topic.isEmpty() && titleField != null) {
+            topic = titleField.getText().trim();
+        }
+        if (topic.isEmpty()) {
+            addChatMessage("Système", "Veuillez taper un sujet de cours dans la zone de texte, ou entrer un titre dans le formulaire, puis cliquez sur Créer Cours.", false);
+            return;
+        }
+
+        addChatMessage("Vous", "Auto-générer un cours complet sur : " + topic, true);
+        chatInputField.clear();
+        
+        loadingIndicatorBox.setVisible(true);
+        loadingIndicatorBox.setManaged(true);
+
+        final String finalTopic = topic;
+
+        String prompt = "Crée un cours structuré complet sur le sujet suivant: '" + finalTopic + "'. " +
+                "IMPORTANT: Renvoie UNIQUEMENT un objet JSON valide, sans aucun texte additionnel ni bloc markdown (ne commence pas par ```json). " +
+                "Utilise exactement ces 3 clés: " +
+                "\"title\" (String: un titre accrocheur), " +
+                "\"description\" (String: une description de 2 paragraphes), " +
+                "\"content\" (String: le contenu du cours divisé en chapitres).";
+
+        aiService.askAI(prompt, "Format JSON strict exigé sans formatage markdown.").thenAccept(response -> {
+            Platform.runLater(() -> {
+                loadingIndicatorBox.setVisible(false);
+                loadingIndicatorBox.setManaged(false);
+                
+                try {
+                    // Nettoyer d'éventuels tags markdown restants
+                    String json = response.trim();
+                    if (json.startsWith("```json")) {
+                        json = json.substring(7);
+                    }
+                    if (json.startsWith("```")) {
+                        json = json.substring(3);
+                    }
+                    if (json.endsWith("```")) {
+                        json = json.substring(0, json.length() - 3);
+                    }
+                    json = json.trim();
+
+                    com.google.gson.JsonObject obj = new com.google.gson.Gson().fromJson(json, com.google.gson.JsonObject.class);
+                    
+                    String newTitle = obj.has("title") ? obj.get("title").getAsString() : finalTopic;
+                    String newDesc = obj.has("description") ? obj.get("description").getAsString() : "";
+                    String newContent = obj.has("content") ? obj.get("content").getAsString() : "";
+
+                    Course newCourse = new Course();
+                    newCourse.setTitle(newTitle);
+                    newCourse.setDescription(newDesc);
+                    newCourse.setGeneratedContent(newContent);
+                    newCourse.setPrice(49.99); // Valeur par défaut recommandée
+                    newCourse.setCreatedAt(java.time.LocalDateTime.now());
+                    newCourse.setStatusValue("DRAFT");
+                    
+                    courseService.createCourse(newCourse);
+                    
+                    loadCourses(); // Rafraîchir la table UI
+                    addChatMessage("IA", "✅ Merveilleux ! Le cours **" + newTitle + "** a été entièrement généré (titre, description, contenu) et sauvegardé automatiquement dans votre base de données !", false);
+                    showToast("Cours auto-généré avec succès!", false);
+                    
+                } catch (Exception e) {
+                    addChatMessage("IA", "❌ Erreur de génération automatique. Assurez-vous que l'IA a bien renvoyé du JSON pur.\n\nErreur: " + e.getMessage() + "\n\nRéponse brute: " + response, false);
+                }
+            });
+        });
+    }
+
+    @FXML
+    private void handleSendChatMessage(ActionEvent event) {
+        String message = chatInputField.getText().trim();
+        if (!message.isEmpty()) {
+            chatInputField.clear();
+            sendToAI(message);
+        }
+    }
+
+    private void sendToAI(String message) {
+        addChatMessage("Vous", message, true);
+        
+        loadingIndicatorBox.setVisible(true);
+        loadingIndicatorBox.setManaged(true);
+        
+        String title = titleField.getText().trim();
+        String desc = descriptionArea.getText().trim();
+        String context = "Titre du cours en cours de création: " + title + "\nDescription: " + desc;
+
+        aiService.askAI(message, context).thenAccept(response -> {
+            Platform.runLater(() -> {
+                loadingIndicatorBox.setVisible(false);
+                loadingIndicatorBox.setManaged(false);
+                addChatMessage("IA", response, false);
+                
+                // Magic feature: If the AI returns a text that clearly looks like a description, we could auto-fill it, but for safety we just let the teacher copy it.
+            });
+        });
+    }
+
+    private void addChatMessage(String sender, String text, boolean isUser) {
+        VBox bubble = new VBox();
+        bubble.setPadding(new Insets(10));
+        bubble.setSpacing(4);
+        
+        Label senderLabel = new Label(sender);
+        senderLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-font-weight: bold;");
+        
+        Label textLabel = new Label(text);
+        textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (isUser ? "#FFFFFF" : "#1E293B") + ";");
+        
+        bubble.getChildren().addAll(senderLabel, textLabel);
+        
+        if (isUser) {
+            bubble.setStyle("-fx-background-color: #4F46E5; -fx-background-radius: 12 12 0 12;");
+            bubble.setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            bubble.setStyle("-fx-background-color: #F1F5F9; -fx-background-radius: 12 12 12 0;");
+            bubble.setAlignment(Pos.CENTER_LEFT);
+        }
+        
+        HBox row = new HBox(bubble);
+        row.setAlignment(isUser ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 0, 4, 0));
+        
+        chatMessagesContainer.getChildren().add(row);
     }
 
     // ── Drawer helpers ──────────────────────────────────────────
@@ -532,6 +743,10 @@ public class ManageCoursesController implements Initializable {
         if (statusComboBox != null && course.getStatusValue() != null) {
             statusComboBox.setValue(course.getStatusValue().toUpperCase());
         }
+        if (course.getCreatedAt() != null) {
+            if (datePicker != null) datePicker.setValue(course.getCreatedAt().toLocalDate());
+            if (timeField != null) timeField.setText(course.getCreatedAt().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        }
         reloadModuleComboItems(course.getModuleId());
     }
 
@@ -705,14 +920,26 @@ public class ManageCoursesController implements Initializable {
      */
     private Course buildCourseFromForm(boolean forCreate) {
         Course course = new Course();
+        
+        java.time.LocalDate date = datePicker != null && datePicker.getValue() != null ? datePicker.getValue() : java.time.LocalDate.now();
+        java.time.LocalTime time = java.time.LocalTime.of(10, 0);
+        if (timeField != null && !timeField.getText().trim().isEmpty()) {
+            try {
+                time = java.time.LocalTime.parse(timeField.getText().trim());
+            } catch (Exception e) {
+                // Ignore parse errors, use default 10:00
+            }
+        }
+        LocalDateTime scheduledDateTime = LocalDateTime.of(date, time);
+
         if (forCreate || selectedCourse == null) {
-            course.setCreatedAt(LocalDateTime.now());
+            course.setCreatedAt(scheduledDateTime);
             course.setThumbnailPath(null);
             course.setPdfPath(null);
             course.setGeneratedContent(null);
         } else {
             course.setId(selectedCourse.getId());
-            course.setCreatedAt(selectedCourse.getCreatedAt() != null ? selectedCourse.getCreatedAt() : LocalDateTime.now());
+            course.setCreatedAt(scheduledDateTime);
             course.setThumbnailPath(selectedCourse.getThumbnailPath());
             course.setPdfPath(selectedCourse.getPdfPath());
             course.setGeneratedContent(selectedCourse.getGeneratedContent());
@@ -751,6 +978,8 @@ public class ManageCoursesController implements Initializable {
         if (coefficientField != null) coefficientField.clear();
         if (descriptionArea != null) descriptionArea.clear();
         if (statusComboBox != null) statusComboBox.setValue("ACTIVE");
+        if (datePicker != null) datePicker.setValue(java.time.LocalDate.now());
+        if (timeField != null) timeField.setText("10:00");
         reloadModuleComboItems(null);
     }
 

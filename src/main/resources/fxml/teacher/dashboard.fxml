@@ -22,6 +22,7 @@
                 <Button text="📚   Gérer les Cours"    styleClass="nav-button"        onAction="#handleManageCourses"/>
                 <Button text="📦   Gérer les Modules"  styleClass="nav-button"        onAction="#handleManageModules"/>
                 <Button text="📝   Gérer Examens"      styleClass="nav-button"        onAction="#handleManageExams"/>
+                <Button text="📅   Calendrier"         styleClass="nav-button"        onAction="#handleCalendar"/>
                 <Button text="🛒   Boutique"           styleClass="nav-button"        onAction="#handleShopManagement"/>
                 <Button text="📊   Bulletins"          styleClass="nav-button"        onAction="#handleBulletins"/>
                 <Button text="🏆   Certifications"     styleClass="nav-button"        onAction="#handleCertifications"/>

@@ -70,7 +70,7 @@
                         <HBox spacing="8">
                             <Label text="Actif" styleClass="badge badge-success"/>
                         </HBox>
-                        <Button text="Voir le cours" styleClass="btn-primary" maxWidth="Infinity"/>
+                        <Button text="Voir le cours" styleClass="btn-primary" maxWidth="Infinity" onAction="#handleTestViewCourse"/>
                     </VBox>
 
                     <VBox styleClass="course-card" spacing="8">
@@ -117,4 +117,41 @@
 
         </VBox>
     </center>
+
+    <!-- AI Chat Panel -->
+    <right>
+        <VBox fx:id="chatPanel" styleClass="card" prefWidth="350" visible="false" managed="false" spacing="12" style="-fx-margin: 24 24 24 0;">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" styleClass="card-header">
+                <Label text="🤖 Assistant Pédagogique AI" styleClass="card-title" />
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Button text="✕" onAction="#handleCloseChat" styleClass="btn-secondary" style="-fx-padding: 2 8;"/>
+            </HBox>
+            
+            <Label fx:id="chatContextLabel" text="Contexte: " wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #64748B; -fx-padding: 4; -fx-background-color: rgba(0,0,0,0.03); -fx-background-radius: 4;"/>
+            
+            <!-- Quick Actions -->
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Button text="Résumé" onAction="#handleAiSummarize" style="-fx-font-size: 10px; -fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+                <Button text="Exercices" onAction="#handleAiExercises" style="-fx-font-size: 10px; -fx-background-color: #FEF3C7; -fx-text-fill: #92400E; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+                <Button text="Plus simple" onAction="#handleAiExplain" style="-fx-font-size: 10px; -fx-background-color: #D1FAE5; -fx-text-fill: #065F46; -fx-border-radius: 4; -fx-background-radius: 4;"/>
+            </HBox>
+
+            <!-- Messages Container -->
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="content-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="chatMessagesContainer" spacing="12" style="-fx-padding: 4;"/>
+            </ScrollPane>
+
+            <HBox fx:id="loadingIndicatorBox" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 4;">
+                <ProgressIndicator prefWidth="16" prefHeight="16"/>
+                <Label text="L'IA réfléchit..." style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+            </HBox>
+
+            <!-- Input -->
+            <HBox spacing="8" alignment="CENTER">
+                <TextField fx:id="chatInputField" promptText="Posez une question sur le cours..." HBox.hgrow="ALWAYS" styleClass="text-field" onAction="#handleSendChatMessage"/>
+                <Button text="➤" onAction="#handleSendChatMessage" styleClass="btn-primary" style="-fx-padding: 8 12;"/>
+            </HBox>
+        </VBox>
+    </right>
 </BorderPane>

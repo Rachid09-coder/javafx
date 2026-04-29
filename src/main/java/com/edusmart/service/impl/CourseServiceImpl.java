@@ -12,16 +12,22 @@ public class CourseServiceImpl implements CourseService {
     private final CourseDao courseDao;
     private com.edusmart.service.EmailService emailService;
     private com.edusmart.service.SubscriptionService subscriptionService;
+    private com.edusmart.service.CalendarService calendarService;
 
     public CourseServiceImpl(CourseDao courseDao) {
         this.courseDao = courseDao;
         this.emailService = new com.edusmart.service.impl.EmailServiceImpl();
         this.subscriptionService = new com.edusmart.service.impl.SubscriptionServiceImpl(new com.edusmart.dao.jdbc.JdbcSubscriberDao());
+        this.calendarService = new com.edusmart.service.impl.CalendarServiceImpl();
     }
 
     @Override
     public boolean createCourse(Course course) {
-        return courseDao.create(course);
+        boolean success = courseDao.create(course);
+        if (success) {
+            calendarService.addCourseToGoogleCalendar(course);
+        }
+        return success;
     }
 
     @Override
@@ -38,12 +44,15 @@ public class CourseServiceImpl implements CourseService {
     public boolean updateCourse(Course course) {
         Optional<Course> oldCourseOpt = courseDao.findById(course.getId());
         boolean success = courseDao.update(course);
-        if (success && oldCourseOpt.isPresent()) {
-            double oldPrice = oldCourseOpt.get().getPrice();
-            if (course.getPrice() < oldPrice) {
-                List<com.edusmart.model.Subscriber> subs = subscriptionService.getAllSubscribers();
-                if (!subs.isEmpty()) {
-                    emailService.sendPriceDropNotification(course, oldPrice, subs);
+        if (success) {
+            calendarService.updateCourseInGoogleCalendar(course);
+            if (oldCourseOpt.isPresent()) {
+                double oldPrice = oldCourseOpt.get().getPrice();
+                if (course.getPrice() < oldPrice) {
+                    List<com.edusmart.model.Subscriber> subs = subscriptionService.getAllSubscribers();
+                    if (!subs.isEmpty()) {
+                        emailService.sendPriceDropNotification(course, oldPrice, subs);
+                    }
                 }
             }
         }

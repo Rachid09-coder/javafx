@@ -6,7 +6,13 @@ module com.edusmart {
     requires java.prefs;
     requires itextpdf;
     requires jakarta.mail;
-
+    requires com.calendarfx.view;
+    requires google.api.client;
+    requires com.google.api.client;
+    requires com.google.api.services.calendar;
+    requires java.net.http;
+    requires com.google.gson;
+    requires com.google.api.client.json.gson;
 
     opens com.edusmart to javafx.fxml;
     opens com.edusmart.controller.auth to javafx.fxml;
