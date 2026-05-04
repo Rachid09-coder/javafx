@@ -112,12 +112,35 @@ public class JdbcCourseDao implements CourseDao {
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM course WHERE id = ?";
+        String sqlDeleteSubmissions = "DELETE FROM exam_submission WHERE exam_id IN (SELECT id FROM exam WHERE course_id = ?)";
+        String sqlDeleteExams = "DELETE FROM exam WHERE course_id = ?";
+        String sqlDeleteProgress = "DELETE FROM course_progress WHERE course_id = ?";
+        String sqlDeleteCourse = "DELETE FROM course WHERE id = ?";
 
-        try (Connection connection = DbConnection.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+        try (Connection connection = DbConnection.getConnection()) {
+            // Delete dependent exam submissions first
+            try (PreparedStatement psSubmissions = connection.prepareStatement(sqlDeleteSubmissions)) {
+                psSubmissions.setInt(1, id);
+                psSubmissions.executeUpdate();
+            }
+
+            // Then delete dependent exams
+            try (PreparedStatement psExams = connection.prepareStatement(sqlDeleteExams)) {
+                psExams.setInt(1, id);
+                psExams.executeUpdate();
+            }
+
+            // Delete course progress records
+            try (PreparedStatement psProgress = connection.prepareStatement(sqlDeleteProgress)) {
+                psProgress.setInt(1, id);
+                psProgress.executeUpdate();
+            }
+
+            // Finally, delete the course itself
+            try (PreparedStatement ps = connection.prepareStatement(sqlDeleteCourse)) {
+                ps.setInt(1, id);
+                return ps.executeUpdate() > 0;
+            }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to delete course", ex);
         }

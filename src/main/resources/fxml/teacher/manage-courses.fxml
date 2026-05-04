@@ -52,6 +52,8 @@
                            styleClass="search-bar" onAction="#handleSearch"/>
                 <Button text="🌙 Mode Sombre" onAction="#handleToggleTheme"
                         styleClass="btn-secondary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
+                <Button fx:id="toggleActivityBtn" text="⏱ Activité" onAction="#handleToggleActivity"
+                        styleClass="btn-secondary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
                 <Button text="🤖 Assistant AI" onAction="#handleOpenChat"
                         styleClass="btn-primary" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
             </HBox>
@@ -64,33 +66,52 @@
 
                     <!-- ── Analytics Dashboard ─────────────────────── -->
                     <HBox spacing="14">
-                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
-                            <Label text="📚" style="-fx-font-size: 20px;"/>
-                            <Label fx:id="totalCoursesStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                        <VBox styleClass="stat-card" spacing="6" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="📚" style="-fx-font-size: 22px; -fx-background-color: rgba(79,70,229,0.12); -fx-padding: 8; -fx-background-radius: 10;"/>
+                            <Label fx:id="totalCoursesStat" text="—" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #4F46E5;"/>
                             <Label text="Total Cours" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                         </VBox>
-                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
-                            <Label text="💰" style="-fx-font-size: 20px;"/>
-                            <Label fx:id="avgPriceStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                        <VBox styleClass="stat-card" spacing="6" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="💰" style="-fx-font-size: 22px; -fx-background-color: rgba(16,185,129,0.12); -fx-padding: 8; -fx-background-radius: 10;"/>
+                            <Label fx:id="avgPriceStat" text="—" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #059669;"/>
                             <Label text="Prix Moyen" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                         </VBox>
-                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
-                            <Label text="🏆" style="-fx-font-size: 20px;"/>
-                            <Label fx:id="topModuleStat" text="—" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                        <VBox styleClass="stat-card" spacing="6" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="🏆" style="-fx-font-size: 22px; -fx-background-color: rgba(245,158,11,0.12); -fx-padding: 8; -fx-background-radius: 10;"/>
+                            <Label fx:id="topModuleStat" text="—" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #B45309; -fx-wrap-text: true; -fx-text-alignment: center;"/>
                             <Label text="Module Populaire" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                         </VBox>
-                        <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS" alignment="CENTER">
-                            <Label text="⭐" style="-fx-font-size: 20px;"/>
-                            <Label fx:id="avgRatingStat" text="4.8" style="-fx-font-size: 18px; -fx-font-weight: bold; "/>
+                        <VBox styleClass="stat-card" spacing="6" HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="⭐" style="-fx-font-size: 22px; -fx-background-color: rgba(239,68,68,0.10); -fx-padding: 8; -fx-background-radius: 10;"/>
+                            <Label fx:id="avgRatingStat" text="—" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #DC2626;"/>
                             <Label text="Note Globale" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                         </VBox>
                     </HBox>
 
+                    <!-- ── Status Distribution Bar ─────────────────── -->
+                    <VBox styleClass="card" spacing="8" style="-fx-padding: 14 18;">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Répartition des statuts" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="activeCountLabel" text="0 actifs" style="-fx-font-size: 11px; -fx-text-fill: #059669;"/>
+                            <Label text="·" style="-fx-text-fill: #94A3B8;"/>
+                            <Label fx:id="draftCountLabel" text="0 brouillons" style="-fx-font-size: 11px; -fx-text-fill: #B45309;"/>
+                            <Label text="·" style="-fx-text-fill: #94A3B8;"/>
+                            <Label fx:id="inactiveCountLabel" text="0 inactifs" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </HBox>
+                        <HBox fx:id="statusDistBar" spacing="2" prefHeight="8" style="-fx-background-radius: 6;"/>
+                    </VBox>
+
                     <!-- Subscription Banner -->
-                    <HBox styleClass="card" spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 12 20; -fx-background-radius: 8;">
-                        <Label text="📬 Alertes baisses de prix :" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="subscriberEmailField" promptText="Entrez votre adresse email..." HBox.hgrow="ALWAYS" styleClass="text-field" style="-fx-pref-width: 200;"/>
-                        <Button text="S'abonner" onAction="#handleSubscribe" styleClass="btn-primary"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT"
+                          style="-fx-background-color: linear-gradient(to right, #0F172A, #4F46E5); -fx-padding: 14 20; -fx-background-radius: 10;">
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="📬  Alertes de baisses de prix" style="-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 13px;"/>
+                            <Label text="Soyez notifié dès qu'un cours baisse de prix" style="-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.65);"/>
+                        </VBox>
+                        <TextField fx:id="subscriberEmailField" promptText="votre@email.com"
+                                   style="-fx-pref-width: 200; -fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.45); -fx-border-color: rgba(255,255,255,0.25); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 12;"/>
+                        <Button text="S'abonner" onAction="#handleSubscribe"
+                                style="-fx-background-color: white; -fx-text-fill: #4F46E5; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 8 16; -fx-cursor: hand;"/>
                     </HBox>
 
                     <!-- Message label -->
@@ -160,56 +181,60 @@
                     </HBox>
                     <Separator/>
 
-                    <!-- Titre -->
-                    <VBox spacing="5">
-                        <Label text="TITRE *" styleClass="form-label"/>
-                        <TextField fx:id="titleField" promptText="Titre du cours" styleClass="text-field"/>
-                    </VBox>
+                    <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="content-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
+                        <VBox spacing="14" style="-fx-padding: 2;">
+                            <!-- Titre -->
+                            <VBox spacing="5">
+                                <Label text="TITRE *" styleClass="form-label"/>
+                                <TextField fx:id="titleField" promptText="Titre du cours" styleClass="text-field"/>
+                            </VBox>
 
-                    <!-- AI Suggestion label -->
-                    <Label fx:id="aiSuggestionLabel" text="💡 Astuce: Un prix entre 30€ et 50€ est recommandé."
-                           wrapText="true"
-                           style="-fx-font-size: 11px; -fx-text-fill: #4F46E5; -fx-background-color: rgba(79,70,229,0.1); -fx-padding: 6 10; -fx-background-radius: 6;"/>
+                            <!-- AI Suggestion label -->
+                            <Label fx:id="aiSuggestionLabel" text="💡 Astuce: Un prix entre 30€ et 50€ est recommandé."
+                                   wrapText="true"
+                                   style="-fx-font-size: 11px; -fx-text-fill: #4F46E5; -fx-background-color: rgba(79,70,229,0.1); -fx-padding: 6 10; -fx-background-radius: 6;"/>
 
-                    <!-- Prix -->
-                    <VBox spacing="5">
-                        <Label text="PRIX (€) *" styleClass="form-label"/>
-                        <TextField fx:id="priceField" promptText="ex: 99.99" styleClass="text-field"/>
-                    </VBox>
+                            <!-- Prix -->
+                            <VBox spacing="5">
+                                <Label text="PRIX (€) *" styleClass="form-label"/>
+                                <TextField fx:id="priceField" promptText="ex: 99.99" styleClass="text-field"/>
+                            </VBox>
 
-                    <!-- Coefficient -->
-                    <VBox spacing="5">
-                        <Label text="COEFFICIENT" styleClass="form-label"/>
-                        <TextField fx:id="coefficientField" promptText="ex: 1.5" styleClass="text-field"/>
-                    </VBox>
+                            <!-- Coefficient -->
+                            <VBox spacing="5">
+                                <Label text="COEFFICIENT" styleClass="form-label"/>
+                                <TextField fx:id="coefficientField" promptText="ex: 1.5" styleClass="text-field"/>
+                            </VBox>
 
-                    <!-- Description -->
-                    <VBox spacing="5" VBox.vgrow="ALWAYS">
-                        <Label text="DESCRIPTION" styleClass="form-label"/>
-                        <TextArea fx:id="descriptionArea" promptText="Description du cours..."
-                                  styleClass="text-area" prefHeight="80" wrapText="true"/>
-                    </VBox>
+                            <!-- Description -->
+                            <VBox spacing="5" VBox.vgrow="ALWAYS">
+                                <Label text="DESCRIPTION" styleClass="form-label"/>
+                                <TextArea fx:id="descriptionArea" promptText="Description du cours..."
+                                          styleClass="text-area" prefHeight="80" wrapText="true"/>
+                            </VBox>
 
-                    <!-- Module -->
-                    <VBox spacing="5">
-                        <Label text="MODULE" styleClass="form-label"/>
-                        <ComboBox fx:id="moduleComboBox" maxWidth="Infinity" styleClass="combo-box"/>
-                    </VBox>
+                            <!-- Module -->
+                            <VBox spacing="5">
+                                <Label text="MODULE" styleClass="form-label"/>
+                                <ComboBox fx:id="moduleComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                            </VBox>
 
-                    <!-- Statut -->
-                    <VBox spacing="5">
-                        <Label text="STATUT" styleClass="form-label"/>
-                        <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
-                    </VBox>
+                            <!-- Statut -->
+                            <VBox spacing="5">
+                                <Label text="STATUT" styleClass="form-label"/>
+                                <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                            </VBox>
 
-                    <!-- Date Planifiée -->
-                    <VBox spacing="5">
-                        <Label text="DATE PLANIFIÉE *" styleClass="form-label"/>
-                        <HBox spacing="8">
-                            <DatePicker fx:id="datePicker" promptText="JJ/MM/AAAA" styleClass="date-picker" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                            <TextField fx:id="timeField" promptText="HH:mm" styleClass="text-field" prefWidth="80"/>
-                        </HBox>
-                    </VBox>
+                            <!-- Date Planifiée -->
+                            <VBox spacing="5">
+                                <Label text="DATE PLANIFIÉE *" styleClass="form-label"/>
+                                <HBox spacing="8">
+                                    <DatePicker fx:id="datePicker" promptText="JJ/MM/AAAA" styleClass="date-picker" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <TextField fx:id="timeField" promptText="HH:mm" styleClass="text-field" prefWidth="80"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
 
                     <Separator/>
 
@@ -221,17 +246,25 @@
                                 styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                     </HBox>
                     <HBox spacing="8">
+                        <Button text="📋  Dupliquer" onAction="#handleDuplicate"
+                                styleClass="btn-secondary"  HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                                style="-fx-text-fill: #7C3AED; -fx-border-color: #7C3AED;"/>
                         <Button text="🗑  Supprimer" onAction="#handleDelete"
                                 styleClass="btn-danger"    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                     </HBox>
                 </VBox>
 
                 <!-- ── Activity Panel ────────────────────────────────── -->
-                <VBox styleClass="card" spacing="10" minWidth="260" prefWidth="260" maxWidth="260" VBox.vgrow="ALWAYS"
-                      style="-fx-padding: 14; -fx-background-radius: 14; -fx-border-radius: 14;">
-                    <Label text="⏱  Activité Récente" style="-fx-font-size: 14px; -fx-font-weight: bold; "/>
+                <VBox fx:id="activityPanel" styleClass="card" spacing="10"
+                      minWidth="260" prefWidth="260" maxWidth="260" VBox.vgrow="ALWAYS"
+                      style="-fx-padding: 14; -fx-background-radius: 14; -fx-border-radius: 14;"
+                      opacity="0">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="⏱" style="-fx-font-size: 16px;"/>
+                        <Label text="Activité Récente" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    </HBox>
                     <Separator/>
-                    <ListView fx:id="activityList" VBox.vgrow="ALWAYS" 
+                    <ListView fx:id="activityList" VBox.vgrow="ALWAYS"
                               style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
                 </VBox>
 

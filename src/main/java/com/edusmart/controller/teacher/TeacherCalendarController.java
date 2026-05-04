@@ -1,13 +1,7 @@
 package com.edusmart.controller.teacher;
 
-import com.calendarfx.model.Calendar;
-import com.calendarfx.model.CalendarSource;
-import com.calendarfx.model.Entry;
-import com.calendarfx.view.CalendarView;
 import com.edusmart.model.Course;
-import com.edusmart.service.CalendarService;
 import com.edusmart.service.CourseService;
-import com.edusmart.service.impl.CalendarServiceImpl;
 import com.edusmart.service.impl.CourseServiceImpl;
 import com.edusmart.dao.jdbc.JdbcCourseDao;
 import com.edusmart.util.SceneManager;
@@ -15,163 +9,264 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.layout.BorderPane;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.client.util.DateTime;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TeacherCalendarController implements Initializable {
 
-    @FXML private BorderPane calendarPane;
+    @FXML private GridPane calendarGrid;
+    @FXML private Label monthYearLabel;
+    @FXML private Label selectedDateLabel;
+    @FXML private VBox eventsListPane;
+    @FXML private VBox emptyEventsPane;
 
-    private CalendarView calendarView;
-    private CourseService courseService;
-    private CalendarService googleCalendarService;
+    private YearMonth currentMonth;
+    private LocalDate selectedDate;
+    private List<Course> allCourses = new ArrayList<>();
+    private final CourseService courseService = new CourseServiceImpl(new JdbcCourseDao());
 
-    public TeacherCalendarController() {
-        this.courseService = new CourseServiceImpl(new JdbcCourseDao());
-        this.googleCalendarService = new CalendarServiceImpl();
-    }
+    private static final String[] ROW_HEIGHTS = {"80", "80", "80", "80", "80", "80"};
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        calendarView = new CalendarView();
-
-        // Hide unwanted CalendarFX UI controls to make it cleaner
-        calendarView.setShowAddCalendarButton(false);
-        calendarView.setShowPrintButton(false);
-        calendarView.setShowSearchField(false);
-        calendarView.setShowSearchResultsTray(false);
-        calendarView.setShowSourceTrayButton(true);
-
-        Calendar activeCalendar = new Calendar("Cours Actifs");
-        activeCalendar.setStyle(Calendar.Style.STYLE3); // Green
-
-        Calendar draftCalendar = new Calendar("Brouillons");
-        draftCalendar.setStyle(Calendar.Style.STYLE4); // Orange
-
-        Calendar inactiveCalendar = new Calendar("Inactifs/Archivés");
-        inactiveCalendar.setStyle(Calendar.Style.STYLE7); // Gray
-
-        CalendarSource myCalendarSource = new CalendarSource("Statut des Cours");
-        myCalendarSource.getCalendars().addAll(activeCalendar, draftCalendar, inactiveCalendar);
-        
-        calendarView.getCalendarSources().setAll(myCalendarSource);
-        calendarView.setRequestedTime(LocalTime.now());
-
-        // Event click handler
-        calendarView.setEntryDetailsCallback(param -> {
-            Entry<?> entry = param.getEntry();
-            showCourseDetails(entry);
-            return null;
-        });
-
-        calendarPane.setCenter(calendarView);
-
-        // Load data in background to prevent UI freeze
+        currentMonth = YearMonth.now();
+        selectedDate = LocalDate.now();
         Platform.runLater(() -> {
-            loadLocalCourses(activeCalendar, draftCalendar, inactiveCalendar);
-            // Optionally load from Google Calendar if wanted
-            // loadGoogleCalendarEvents(activeCalendar);
+            allCourses = courseService.getAllCourses();
+            renderCalendar();
+            showEventsForDate(selectedDate);
         });
     }
 
-    private void loadLocalCourses(Calendar activeCalendar, Calendar draftCalendar, Calendar inactiveCalendar) {
-        List<Course> courses = courseService.getAllCourses();
-        for (Course course : courses) {
-            Entry<Course> entry = new Entry<>(course.getTitle());
-            entry.setUserObject(course);
-            
-            if (course.getPrice() > 0) {
-                entry.setLocation(course.getPrice() + " €");
-            } else {
-                entry.setLocation("Gratuit");
-            }
-            
-            ZonedDateTime start = (course.getCreatedAt() != null)
-                ? course.getCreatedAt().atZone(ZoneId.systemDefault())
-                : ZonedDateTime.now().plusDays((long)(Math.random() * 10 - 5));
-                
-            entry.changeStartDate(start.toLocalDate());
-            entry.changeStartTime(start.toLocalTime());
-            entry.changeEndDate(start.toLocalDate());
-            entry.changeEndTime(start.toLocalTime().plusHours(2));
-            
-            String st = course.getStatusValue() != null ? course.getStatusValue().toUpperCase() : "DRAFT";
-            switch (st) {
-                case "ACTIVE":
-                    activeCalendar.addEntry(entry);
-                    break;
-                case "DRAFT":
-                    draftCalendar.addEntry(entry);
-                    break;
-                default:
-                    inactiveCalendar.addEntry(entry);
-                    break;
-            }
-        }
-    }
+    // ── Build the monthly grid ───────────────────────────────────
+    private void renderCalendar() {
+        calendarGrid.getChildren().clear();
+        calendarGrid.getRowConstraints().clear();
 
-    private void loadGoogleCalendarEvents(Calendar calendar) {
-        List<Event> googleEvents = googleCalendarService.getEventsFromGoogleCalendar();
-        for (Event event : googleEvents) {
-            Entry<Event> entry = new Entry<>(event.getSummary());
-            entry.setUserObject(event);
-            
-            DateTime start = event.getStart().getDateTime();
-            if (start == null) {
-                // All-day event.
-                start = event.getStart().getDate();
-                LocalDate date = LocalDate.parse(start.toStringRfc3339());
-                entry.changeStartDate(date);
-                entry.changeEndDate(date);
-                entry.setFullDay(true);
-            } else {
-                ZonedDateTime zdtStart = ZonedDateTime.parse(start.toStringRfc3339());
-                entry.changeStartDate(zdtStart.toLocalDate());
-                entry.changeStartTime(zdtStart.toLocalTime());
-                
-                DateTime end = event.getEnd().getDateTime();
-                if (end != null) {
-                    ZonedDateTime zdtEnd = ZonedDateTime.parse(end.toStringRfc3339());
-                    entry.changeEndDate(zdtEnd.toLocalDate());
-                    entry.changeEndTime(zdtEnd.toLocalTime());
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
+        monthYearLabel.setText(currentMonth.format(fmt).substring(0, 1).toUpperCase()
+                + currentMonth.format(fmt).substring(1));
+
+        LocalDate firstDay = currentMonth.atDay(1);
+        int startDow = firstDay.getDayOfWeek().getValue() % 7; // Sun=0
+        int daysInMonth = currentMonth.lengthOfMonth();
+
+        // Add 6 rows max
+        for (int r = 0; r < 6; r++) {
+            RowConstraints rc = new RowConstraints();
+            rc.setMinHeight(78);
+            rc.setPrefHeight(78);
+            calendarGrid.getRowConstraints().add(rc);
+        }
+
+        // Build a map: date -> courses
+        Map<LocalDate, List<Course>> coursesByDate = buildCourseMap();
+
+        int day = 1;
+        for (int row = 0; row < 6; row++) {
+            for (int col = 0; col < 7; col++) {
+                int cellIndex = row * 7 + col;
+                if (cellIndex < startDow || day > daysInMonth) {
+                    // Empty cell
+                    VBox empty = new VBox();
+                    empty.setStyle("-fx-background-color: transparent;");
+                    calendarGrid.add(empty, col, row);
+                    continue;
                 }
+
+                LocalDate date = currentMonth.atDay(day);
+                List<Course> dayCourses = coursesByDate.getOrDefault(date, Collections.emptyList());
+
+                VBox cell = buildDayCell(date, dayCourses);
+                calendarGrid.add(cell, col, row);
+                day++;
             }
-            
-            calendar.addEntry(entry);
         }
     }
 
-    private void showCourseDetails(Entry<?> entry) {
-        Object userObject = entry.getUserObject();
-        String title = entry.getTitle();
-        String content = "Date: " + entry.getStartDate() + " " + entry.getStartTime() + "\n";
+    private VBox buildDayCell(LocalDate date, List<Course> courses) {
+        VBox cell = new VBox(4);
+        cell.setPadding(new Insets(6, 6, 4, 6));
+        cell.setAlignment(Pos.TOP_LEFT);
+        cell.setPrefHeight(78);
 
-        if (userObject instanceof Course) {
-            Course course = (Course) userObject;
-            content += "Prix: " + course.getPrice() + " €\n";
-            content += "Description: " + (course.getDescription() != null ? course.getDescription() : "N/A");
-        } else if (userObject instanceof Event) {
-            Event event = (Event) userObject;
-            content += "Description: " + (event.getDescription() != null ? event.getDescription() : "N/A");
+        boolean isToday = date.equals(LocalDate.now());
+        boolean isSelected = date.equals(selectedDate);
+
+        // Style the cell
+        String bg = isSelected ? "#EEF2FF" : "transparent";
+        String border = isSelected ? "rgba(79,70,229,0.4)" : "#E2E8F0";
+        cell.setStyle(String.format(
+                "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-cursor: hand;",
+                bg, border));
+
+        // Day number label
+        Label dayNum = new Label(String.valueOf(date.getDayOfMonth()));
+        if (isToday) {
+            dayNum.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: white; -fx-background-color: #4F46E5; " +
+                    "-fx-background-radius: 20; -fx-min-width: 24; -fx-min-height: 24; " +
+                    "-fx-alignment: center; -fx-padding: 0 4;");
+        } else if (isSelected) {
+            dayNum.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4F46E5;");
+        } else {
+            dayNum.setStyle("-fx-font-size: 12px; -fx-font-weight: normal; -fx-text-fill: #0F172A;");
+        }
+        cell.getChildren().add(dayNum);
+
+        // Show up to 2 course pills
+        for (int i = 0; i < Math.min(courses.size(), 2); i++) {
+            Course c = courses.get(i);
+            Label pill = new Label(c.getTitle().length() > 14 ? c.getTitle().substring(0, 12) + "…" : c.getTitle());
+            String pillColor = getPillColor(c.getStatusValue());
+            pill.setStyle("-fx-font-size: 10px; -fx-text-fill: white; " +
+                    "-fx-background-color: " + pillColor + "; " +
+                    "-fx-background-radius: 4; -fx-padding: 1 5; -fx-max-width: infinity;");
+            pill.setMaxWidth(Double.MAX_VALUE);
+            cell.getChildren().add(pill);
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, content, ButtonType.OK);
-        alert.setTitle("Détails du Cours");
-        alert.setHeaderText(title);
-        alert.showAndWait();
+        // "+N more" if overflow
+        if (courses.size() > 2) {
+            Label more = new Label("+" + (courses.size() - 2) + " autres");
+            more.setStyle("-fx-font-size: 9px; -fx-text-fill: #64748B;");
+            cell.getChildren().add(more);
+        }
+
+        // Click handler
+        cell.setOnMouseClicked(e -> {
+            selectedDate = date;
+            renderCalendar();
+            showEventsForDate(date);
+        });
+
+        return cell;
     }
 
+    private String getPillColor(String status) {
+        if (status == null) return "#6366F1";
+        switch (status.toUpperCase()) {
+            case "ACTIVE": return "#10B981";
+            case "DRAFT":  return "#F59E0B";
+            default:       return "#94A3B8";
+        }
+    }
+
+    // ── Right panel: events for selected day ─────────────────────
+    private void showEventsForDate(LocalDate date) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH);
+        String label = fmt.format(date);
+        selectedDateLabel.setText(label.substring(0, 1).toUpperCase() + label.substring(1));
+
+        Map<LocalDate, List<Course>> map = buildCourseMap();
+        List<Course> courses = map.getOrDefault(date, Collections.emptyList());
+
+        eventsListPane.getChildren().clear();
+
+        if (courses.isEmpty()) {
+            eventsListPane.setVisible(false);
+            emptyEventsPane.setVisible(true);
+            emptyEventsPane.setManaged(true);
+            eventsListPane.setManaged(false);
+        } else {
+            eventsListPane.setVisible(true);
+            eventsListPane.setManaged(true);
+            emptyEventsPane.setVisible(false);
+            emptyEventsPane.setManaged(false);
+
+            for (Course c : courses) {
+                VBox card = buildEventCard(c);
+                eventsListPane.getChildren().add(card);
+            }
+        }
+    }
+
+    private VBox buildEventCard(Course course) {
+        VBox card = new VBox(5);
+        card.setPadding(new Insets(12, 14, 12, 14));
+        String accent = getPillColor(course.getStatusValue());
+        card.setStyle("-fx-background-color: #FFFFFF; " +
+                "-fx-border-color: " + accent + "; " +
+                "-fx-border-width: 0 0 0 4; " +
+                "-fx-background-radius: 8; " +
+                "-fx-border-radius: 8; " +
+                "-fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 8, 0, 0, 2);");
+
+        Label title = new Label("📚  " + course.getTitle());
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #0F172A; -fx-wrap-text: true;");
+        title.setWrapText(true);
+
+        HBox meta = new HBox(10);
+        meta.setAlignment(Pos.CENTER_LEFT);
+
+        if (course.getCreatedAt() != null) {
+            LocalTime t = course.getCreatedAt().toLocalTime();
+            Label time = new Label("🕐  " + t.format(DateTimeFormatter.ofPattern("HH:mm"))
+                    + " – " + t.plusHours(2).format(DateTimeFormatter.ofPattern("HH:mm")));
+            time.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748B;");
+            meta.getChildren().add(time);
+        }
+
+        String statusText = course.getStatusValue() != null ? course.getStatusValue() : "Brouillon";
+        Label badge = new Label(statusText.toUpperCase());
+        badge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: white; " +
+                "-fx-background-color: " + accent + "; " +
+                "-fx-background-radius: 4; -fx-padding: 2 7;");
+        meta.getChildren().add(badge);
+
+        if (course.getPrice() > 0) {
+            Label price = new Label(String.format("%.0f €", course.getPrice()));
+            price.setStyle("-fx-font-size: 11px; -fx-text-fill: #10B981; -fx-font-weight: bold;");
+            meta.getChildren().add(price);
+        }
+
+        card.getChildren().addAll(title, meta);
+        return card;
+    }
+
+    // ── Utility ──────────────────────────────────────────────────
+    private Map<LocalDate, List<Course>> buildCourseMap() {
+        Map<LocalDate, List<Course>> map = new HashMap<>();
+        for (Course c : allCourses) {
+            LocalDate d = (c.getCreatedAt() != null)
+                    ? c.getCreatedAt().toLocalDate()
+                    : LocalDate.now();
+            map.computeIfAbsent(d, k -> new ArrayList<>()).add(c);
+        }
+        return map;
+    }
+
+    // ── Navigation ───────────────────────────────────────────────
+    @FXML private void handlePrevMonth(ActionEvent e) {
+        currentMonth = currentMonth.minusMonths(1);
+        renderCalendar();
+        showEventsForDate(selectedDate);
+    }
+
+    @FXML private void handleNextMonth(ActionEvent e) {
+        currentMonth = currentMonth.plusMonths(1);
+        renderCalendar();
+        showEventsForDate(selectedDate);
+    }
+
+    @FXML private void handleToday(ActionEvent e) {
+        currentMonth = YearMonth.now();
+        selectedDate = LocalDate.now();
+        renderCalendar();
+        showEventsForDate(selectedDate);
+    }
+
+    // ── Sidebar Navigation ────────────────────────────────────────
     @FXML private void handleDashboard(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_DASHBOARD);
     }
@@ -184,9 +279,7 @@ public class TeacherCalendarController implements Initializable {
     @FXML private void handleManageExams(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_MANAGE_EXAMS);
     }
-    @FXML private void handleCalendar(ActionEvent event) {
-        // Already here
-    }
+    @FXML private void handleCalendar(ActionEvent event) { /* already here */ }
     @FXML private void handleShopManagement(ActionEvent event) {
         SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_SHOP_MANAGEMENT);
     }

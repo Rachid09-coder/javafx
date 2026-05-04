@@ -24,7 +24,7 @@ public class AIServiceImpl implements AIService {
     private final ExecutorService executor;
 
     public AIServiceImpl() {
-        this.apiKey = "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";
+        this.apiKey = System.getenv("OPENAI_API_KEY");
         this.httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)
                 .build();

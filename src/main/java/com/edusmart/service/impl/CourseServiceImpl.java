@@ -45,15 +45,33 @@ public class CourseServiceImpl implements CourseService {
         Optional<Course> oldCourseOpt = courseDao.findById(course.getId());
         boolean success = courseDao.update(course);
         if (success) {
-            calendarService.updateCourseInGoogleCalendar(course);
+            // Calendar update is isolated — any failure must NOT block email notification
+            try {
+                calendarService.updateCourseInGoogleCalendar(course);
+            } catch (Exception e) {
+                System.err.println("[CourseService] Calendar update failed (non-fatal): " + e.getMessage());
+            }
+
             if (oldCourseOpt.isPresent()) {
                 double oldPrice = oldCourseOpt.get().getPrice();
-                if (course.getPrice() < oldPrice) {
+                double newPrice = course.getPrice();
+                System.out.println("[CourseService] Price check — old: " + oldPrice + ", new: " + newPrice);
+
+                if (newPrice < oldPrice) {
+                    System.out.println("[CourseService] Price drop detected! Fetching subscribers...");
                     List<com.edusmart.model.Subscriber> subs = subscriptionService.getAllSubscribers();
+                    System.out.println("[CourseService] Found " + subs.size() + " subscriber(s).");
                     if (!subs.isEmpty()) {
+                        System.out.println("[CourseService] Sending price-drop notification emails...");
                         emailService.sendPriceDropNotification(course, oldPrice, subs);
+                    } else {
+                        System.out.println("[CourseService] No subscribers found — skipping email.");
                     }
+                } else {
+                    System.out.println("[CourseService] No price drop — email not triggered.");
                 }
+            } else {
+                System.err.println("[CourseService] Old course not found in DB for id=" + course.getId() + " — cannot compare prices.");
             }
         }
         return success;

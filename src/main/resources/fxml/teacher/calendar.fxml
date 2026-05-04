@@ -38,17 +38,94 @@
     <!-- ══ Main Content ═════════════════════════════════════════ -->
     <center>
         <VBox style="-fx-background-color: #F1F5F9;">
+
             <!-- Top header -->
             <HBox styleClass="top-header" alignment="CENTER_LEFT">
                 <VBox HBox.hgrow="ALWAYS">
-                    <Label text="Calendrier" styleClass="page-title"/>
+                    <Label text="📅  Calendrier" styleClass="page-title"/>
                     <Label text="Planification de vos cours et événements" styleClass="page-subtitle"/>
                 </VBox>
+                <!-- Navigation Controls -->
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnPrev" text="‹" styleClass="cal-nav-btn" onAction="#handlePrevMonth"/>
+                    <Label fx:id="monthYearLabel" text="Avril 2026" styleClass="cal-month-label"/>
+                    <Button fx:id="btnNext" text="›" styleClass="cal-nav-btn" onAction="#handleNextMonth"/>
+                    <Button fx:id="btnToday" text="Aujourd'hui" styleClass="btn-primary" onAction="#handleToday"
+                            style="-fx-padding: 6 14; -fx-font-size: 12px;"/>
+                </HBox>
             </HBox>
 
-            <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 24;">
-                <BorderPane fx:id="calendarPane" VBox.vgrow="ALWAYS" styleClass="calendar-container"/>
-            </VBox>
+            <!-- Scrollable body -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background: #F1F5F9; -fx-background-color: #F1F5F9; -fx-border-color: transparent;">
+                <VBox styleClass="content-area" spacing="20">
+
+                    <!-- Two-column layout: Calendar Grid + Upcoming Events -->
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+
+                        <!-- ── Left: Monthly Grid ──────────────────────── -->
+                        <VBox styleClass="card" spacing="0" HBox.hgrow="ALWAYS">
+                            <!-- Day-of-week headers -->
+                            <GridPane fx:id="dayHeaderGrid" styleClass="cal-day-header-grid">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                </columnConstraints>
+                                <Label text="Dim" styleClass="cal-dow" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label text="Lun" styleClass="cal-dow" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <Label text="Mar" styleClass="cal-dow" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                <Label text="Mer" styleClass="cal-dow" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                                <Label text="Jeu" styleClass="cal-dow" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                                <Label text="Ven" styleClass="cal-dow" GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+                                <Label text="Sam" styleClass="cal-dow" GridPane.columnIndex="6" GridPane.rowIndex="0"/>
+                            </GridPane>
+
+                            <!-- Day Cells Grid (populated by controller) -->
+                            <GridPane fx:id="calendarGrid" VBox.vgrow="ALWAYS" styleClass="cal-grid">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                    <ColumnConstraints percentWidth="14.28" halignment="CENTER"/>
+                                </columnConstraints>
+                            </GridPane>
+                        </VBox>
+
+                        <!-- ── Right: Upcoming Events Panel ───────────── -->
+                        <VBox styleClass="card" spacing="16" minWidth="280" maxWidth="320">
+                            <!-- Header -->
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="📋" style="-fx-font-size: 18px;"/>
+                                <VBox>
+                                    <Label text="Événements à venir" styleClass="card-title"/>
+                                    <Label fx:id="selectedDateLabel" text="Sélectionnez une date" styleClass="page-subtitle"/>
+                                </VBox>
+                            </HBox>
+                            <Separator/>
+                            <!-- Events List -->
+                            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+                                <VBox fx:id="eventsListPane" spacing="10"/>
+                            </ScrollPane>
+                            <!-- Empty state (shown when no events) -->
+                            <VBox fx:id="emptyEventsPane" alignment="CENTER" spacing="8" style="-fx-padding: 30 0;">
+                                <Label text="📭" style="-fx-font-size: 36px;"/>
+                                <Label text="Aucun cours ce jour" styleClass="page-subtitle" style="-fx-text-alignment: center;"/>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+
+                </VBox>
+            </ScrollPane>
         </VBox>
     </center>
+
 </BorderPane>

@@ -6,6 +6,7 @@ module com.edusmart {
     requires java.prefs;
     requires itextpdf;
     requires jakarta.mail;
+    requires org.eclipse.angus.mail;
     requires com.calendarfx.view;
     requires google.api.client;
     requires com.google.api.client;

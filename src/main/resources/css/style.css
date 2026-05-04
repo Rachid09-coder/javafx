@@ -842,3 +842,133 @@
     -fx-font-weight: bold;
     -fx-text-fill: #0F172A;
 }
+
+/* ── Premium DatePicker Popup ────────────────────────────── */
+.date-picker-popup {
+    -fx-background-color: -edu-surface;
+    -fx-border-color: -edu-border;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(79, 70, 229, 0.15), 20, 0, 4, 8);
+    -fx-padding: 4;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 10 10 6 10;
+}
+
+.date-picker-popup .month-year-pane .label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -edu-indigo;
+}
+
+.date-picker-popup .spinner .button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 4 8;
+}
+
+.date-picker-popup .spinner .button:hover {
+    -fx-background-color: rgba(79, 70, 229, 0.1);
+    -fx-background-radius: 6;
+}
+
+.date-picker-popup .calendar-grid {
+    -fx-background-color: transparent;
+    -fx-padding: 4 8 8 8;
+}
+
+.date-picker-popup .day-name-cell {
+    -fx-text-fill: -edu-text-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 4 10 4;
+}
+
+.date-picker-popup .day-cell {
+    -fx-text-fill: -edu-text;
+    -fx-font-size: 12px;
+    -fx-padding: 8;
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: rgba(79, 70, 229, 0.12);
+    -fx-text-fill: -edu-indigo;
+}
+
+.date-picker-popup .today {
+    -fx-background-color: rgba(79, 70, 229, 0.08);
+    -fx-text-fill: -edu-indigo;
+    -fx-font-weight: bold;
+    -fx-border-color: -edu-indigo;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+}
+
+.date-picker-popup .day-cell:selected {
+    -fx-background-color: linear-gradient(to bottom right, -edu-indigo, -edu-purple);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(79, 70, 229, 0.4), 8, 0, 0, 3);
+}
+
+.date-picker-popup .day-cell:disabled {
+    -fx-text-fill: -edu-text-light;
+    -fx-opacity: 0.5;
+}
+
+/* ── Custom Calendar Styles ────────────────────────────────── */
+
+/* Navigation pill button */
+.cal-nav-btn {
+    -fx-background-color: -edu-surface;
+    -fx-border-color: -edu-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-font-size: 18px;
+    -fx-text-fill: -edu-text;
+    -fx-cursor: hand;
+    -fx-padding: 2 14;
+    -fx-min-width: 36;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.05), 4, 0, 0, 1);
+}
+.cal-nav-btn:hover {
+    -fx-background-color: rgba(79, 70, 229, 0.06);
+    -fx-border-color: -edu-indigo;
+    -fx-text-fill: -edu-indigo;
+}
+
+/* Month/Year label */
+.cal-month-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -edu-text;
+    -fx-padding: 0 10;
+}
+
+/* Day-of-week header row */
+.cal-day-header-grid {
+    -fx-padding: 10 0 6 0;
+    -fx-border-color: transparent transparent -edu-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.cal-dow {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -edu-text-muted;
+    -fx-padding: 4 0;
+    -fx-alignment: center;
+}
+
+/* Calendar day grid */
+.cal-grid {
+    -fx-padding: 4 0 0 0;
+}

@@ -64,6 +64,10 @@ public class ManageCoursesController implements Initializable {
     @FXML private Label avgPriceStat;
     @FXML private Label topModuleStat;
     @FXML private Label avgRatingStat;
+    @FXML private Label activeCountLabel;
+    @FXML private Label draftCountLabel;
+    @FXML private Label inactiveCountLabel;
+    @FXML private javafx.scene.layout.HBox statusDistBar;
     
     @FXML private ComboBox<String> filterStatusBox;
     @FXML private ComboBox<Module> filterModuleBox;
@@ -84,7 +88,11 @@ public class ManageCoursesController implements Initializable {
     @FXML private Label messageLabel;
     @FXML private Label countLabel;
     @FXML private VBox formPanel;
+    @FXML private VBox activityPanel;
+    @FXML private Button toggleActivityBtn;
     @FXML private Label formPanelTitle;
+
+    private boolean activityPanelVisible = true;
 
     // AI Chat UI Elements
     @FXML private VBox chatPanel;
@@ -131,7 +139,74 @@ public class ManageCoursesController implements Initializable {
                 ThemeManager.applyTheme(coursesTable.getScene());
                 updateThemeButton();
             }
+            animateActivityPanel();
         });
+    }
+
+    /** Slide the Activity Panel in from the right with a smooth entrance. */
+    private void animateActivityPanel() {
+        if (activityPanel == null) return;
+        activityPanel.setTranslateX(300);
+        activityPanel.setOpacity(0);
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(480), activityPanel);
+        slide.setFromX(300);
+        slide.setToX(0);
+        slide.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(400), activityPanel);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+
+        javafx.animation.ParallelTransition entrance = new javafx.animation.ParallelTransition(slide, fade);
+        entrance.setDelay(Duration.millis(180)); // slight delay so the table loads first
+        entrance.play();
+    }
+
+    @FXML
+    private void handleToggleActivity(ActionEvent event) {
+        if (activityPanel == null) return;
+
+        if (activityPanelVisible) {
+            // Slide OUT to the right
+            TranslateTransition slide = new TranslateTransition(Duration.millis(320), activityPanel);
+            slide.setToX(320);
+            slide.setInterpolator(javafx.animation.Interpolator.EASE_IN);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(280), activityPanel);
+            fade.setToValue(0);
+
+            javafx.animation.ParallelTransition exit = new javafx.animation.ParallelTransition(slide, fade);
+            exit.setOnFinished(e -> {
+                activityPanel.setVisible(false);
+                activityPanel.setManaged(false);
+            });
+            exit.play();
+
+            if (toggleActivityBtn != null)
+                toggleActivityBtn.setText("⏱ Afficher Activité");
+            activityPanelVisible = false;
+
+        } else {
+            // Slide IN from the right
+            activityPanel.setManaged(true);
+            activityPanel.setVisible(true);
+            activityPanel.setTranslateX(320);
+            activityPanel.setOpacity(0);
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(400), activityPanel);
+            slide.setToX(0);
+            slide.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(360), activityPanel);
+            fade.setToValue(1);
+
+            new javafx.animation.ParallelTransition(slide, fade).play();
+
+            if (toggleActivityBtn != null)
+                toggleActivityBtn.setText("⏱ Masquer Activité");
+            activityPanelVisible = true;
+        }
     }
     
     private void updateThemeButton() {
@@ -231,11 +306,18 @@ public class ManageCoursesController implements Initializable {
     @FXML
     private void handleAiAutoCreateCourse(ActionEvent event) {
         String topic = chatInputField.getText().trim();
-        if (topic.isEmpty() && titleField != null) {
-            topic = titleField.getText().trim();
+        chatInputField.clear();
+        
+        // Si le texte est très générique (ex: "ajoute ce cours"), on utilise plutôt le Titre du formulaire
+        String tLower = topic.toLowerCase();
+        if (tLower.equals("ajoute ce cours") || tLower.equals("ajouter cette cours au table") || tLower.equals("créer un cours") || topic.isEmpty()) {
+            if (titleField != null && !titleField.getText().trim().isEmpty()) {
+                topic = titleField.getText().trim();
+            }
         }
+        
         if (topic.isEmpty()) {
-            addChatMessage("Système", "Veuillez taper un sujet de cours dans la zone de texte, ou entrer un titre dans le formulaire, puis cliquez sur Créer Cours.", false);
+            addChatMessage("Système", "Veuillez taper un sujet de cours dans la zone de texte, ou entrer un titre dans le formulaire.", false);
             return;
         }
 
@@ -287,9 +369,22 @@ public class ManageCoursesController implements Initializable {
                     newCourse.setCreatedAt(java.time.LocalDateTime.now());
                     newCourse.setStatusValue("DRAFT");
                     
-                    courseService.createCourse(newCourse);
+                    // Remplir visuellement le formulaire
+                    if (titleField != null) titleField.setText(newTitle);
+                    if (descriptionArea != null) descriptionArea.setText(newDesc);
+                    if (priceField != null) priceField.setText("49.99");
+                    if (statusComboBox != null) statusComboBox.setValue("DRAFT");
                     
-                    loadCourses(); // Rafraîchir la table UI
+                    // Sauvegarder dans la table CRUD
+                    boolean success = courseService.createCourse(newCourse);
+                    
+                    if (success) {
+                        loadCourses(); // Rafraîchir la table UI
+                        // Sélectionner le nouveau cours généré
+                        courseList.stream().filter(c -> c.getTitle().equals(newTitle)).findFirst().ifPresent(c -> {
+                            populateForm(c);
+                        });
+                    }
                     addChatMessage("IA", "✅ Merveilleux ! Le cours **" + newTitle + "** a été entièrement généré (titre, description, contenu) et sauvegardé automatiquement dans votre base de données !", false);
                     showToast("Cours auto-généré avec succès!", false);
                     
@@ -304,6 +399,16 @@ public class ManageCoursesController implements Initializable {
     private void handleSendChatMessage(ActionEvent event) {
         String message = chatInputField.getText().trim();
         if (!message.isEmpty()) {
+            String msgLower = message.toLowerCase();
+            
+            // Intercepter les demandes d'ajout/création de cours en langage naturel
+            if (msgLower.contains("ajoute") || msgLower.contains("ajouter") || msgLower.contains("crée") || msgLower.contains("créer") || msgLower.contains("génère") || msgLower.contains("générer")) {
+                if (msgLower.contains("cours") || msgLower.contains("table")) {
+                    handleAiAutoCreateCourse(new ActionEvent());
+                    return;
+                }
+            }
+            
             chatInputField.clear();
             sendToAI(message);
         }
@@ -476,11 +581,11 @@ public class ManageCoursesController implements Initializable {
                     Label badge = new Label(value);
                     badge.getStyleClass().add("badge");
                     switch (value.toUpperCase()) {
-                        case "ACTIVE"   -> badge.getStyleClass().add("badge-success");
-                        case "INACTIVE" -> badge.getStyleClass().add("badge-danger");
-                        case "DRAFT"    -> badge.getStyleClass().add("badge-warning");
-                        case "ARCHIVED" -> badge.getStyleClass().add("badge-gray");
-                        default         -> badge.getStyleClass().add("badge-blue");
+                        case "ACTIVE":   badge.getStyleClass().add("badge-success"); break;
+                        case "INACTIVE": badge.getStyleClass().add("badge-danger");  break;
+                        case "DRAFT":    badge.getStyleClass().add("badge-warning"); break;
+                        case "ARCHIVED": badge.getStyleClass().add("badge-gray");    break;
+                        default:         badge.getStyleClass().add("badge-blue");    break;
                     }
                     setGraphic(badge);
                     setText(null);
@@ -709,6 +814,32 @@ public class ManageCoursesController implements Initializable {
             double avgRat = list.stream().mapToDouble(Course::getRating).average().orElse(0.0);
             avgRatingStat.setText(String.format("%.1f / 5", avgRat));
         }
+
+        // Status distribution bar
+        long active   = list.stream().filter(c -> "ACTIVE".equalsIgnoreCase(c.getStatusValue())).count();
+        long draft    = list.stream().filter(c -> "DRAFT".equalsIgnoreCase(c.getStatusValue())).count();
+        long inactive = list.size() - active - draft;
+
+        if (activeCountLabel != null)   activeCountLabel.setText(active + " actifs");
+        if (draftCountLabel != null)    draftCountLabel.setText(draft + " brouillons");
+        if (inactiveCountLabel != null) inactiveCountLabel.setText(inactive + " inactifs");
+
+        if (statusDistBar != null && !list.isEmpty()) {
+            statusDistBar.getChildren().clear();
+            double total = list.size();
+            if (active > 0)   addDistSegment(active / total, "#10B981");
+            if (draft > 0)    addDistSegment(draft / total, "#F59E0B");
+            if (inactive > 0) addDistSegment(inactive / total, "#94A3B8");
+        }
+    }
+
+    private void addDistSegment(double ratio, String color) {
+        javafx.scene.layout.Region seg = new javafx.scene.layout.Region();
+        seg.setPrefHeight(8);
+        seg.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
+        javafx.scene.layout.HBox.setHgrow(seg, javafx.scene.layout.Priority.SOMETIMES);
+        seg.setPrefWidth(ratio * 400);
+        statusDistBar.getChildren().add(seg);
     }
 
     private void updateAiSuggestion(String priceText) {
@@ -875,6 +1006,34 @@ public class ManageCoursesController implements Initializable {
             showMessage("Export PDF réussi : " + file.getAbsolutePath(), false);
         } catch (Exception e) {
             showMessage("Erreur d'exportation : " + e.getMessage(), true);
+        }
+    }
+
+    @FXML
+    private void handleDuplicate(ActionEvent event) {
+        if (selectedCourse == null) {
+            showMessage("Sélectionnez un cours à dupliquer.", true);
+            return;
+        }
+        try {
+            Course copy = new Course();
+            copy.setTitle(selectedCourse.getTitle() + " (Copie)");
+            copy.setDescription(selectedCourse.getDescription());
+            copy.setPrice(selectedCourse.getPrice());
+            copy.setCoefficient(selectedCourse.getCoefficient());
+            copy.setModuleId(selectedCourse.getModuleId());
+            copy.setStatusValue("DRAFT");
+            copy.setCreatedAt(java.time.LocalDateTime.now());
+            copy.setGeneratedContent(selectedCourse.getGeneratedContent());
+            if (courseService.createCourse(copy)) {
+                ActivityLogger.log("Cours", "dupliqué", copy.getTitle());
+                showMessage("Cours dupliqué avec succès !", false);
+                loadCourses();
+            } else {
+                showMessage("Duplication échouée.", true);
+            }
+        } catch (RuntimeException ex) {
+            showMessage("Erreur duplication: " + rootCauseMessage(ex), true);
         }
     }
 

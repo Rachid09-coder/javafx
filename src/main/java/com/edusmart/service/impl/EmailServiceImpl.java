@@ -17,8 +17,8 @@ public class EmailServiceImpl implements EmailService {
 
     public EmailServiceImpl() {
         // Fetch credentials from env variables or defaults (for demo purposes)
-        this.username = System.getenv().getOrDefault("EDUSMART_EMAIL", "firas.guizawi@gmail.com");
-        this.password = System.getenv().getOrDefault("EDUSMART_PASSWORD", "stpfrutqcwiibsdw");
+        this.username = "firas.guizawi@gmail.com";
+        this.password = "mfhwqweskgpbiepg";
 
         props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -30,11 +30,17 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmail(String to, String subject, String content) {
+        System.out.println("[EmailService] Attempting to send email to: " + to);
+        System.out.println("[EmailService] Using SMTP account: " + username);
+        System.out.println("[EmailService] SMTP host: " + props.getProperty("mail.smtp.host")
+                + " port: " + props.getProperty("mail.smtp.port"));
+
         Session session = Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(username, password);
             }
         });
+        session.setDebug(true); // logs the full SMTP handshake to stdout
 
         try {
             Message message = new MimeMessage(session);
@@ -51,18 +57,23 @@ public class EmailServiceImpl implements EmailService {
             message.setContent(multipart);
 
             Transport.send(message);
-            System.out.println("Email sent successfully to: " + to);
+            System.out.println("[EmailService] ✅ Email sent successfully to: " + to);
 
         } catch (MessagingException e) {
+            System.err.println("[EmailService] ❌ Failed to send email to " + to
+                    + " — Cause: " + e.getMessage());
             e.printStackTrace();
-            System.err.println("Failed to send email to " + to);
         }
     }
 
     @Override
     public void sendPriceDropNotification(Course course, double oldPrice, List<Subscriber> subscribers) {
+        System.out.println("[EmailService] sendPriceDropNotification called for course '"
+                + course.getTitle() + "' — oldPrice=" + oldPrice + ", newPrice=" + course.getPrice()
+                + ", subscribers=" + subscribers.size());
+
         String subject = "Price Drop Alert 🚀: " + course.getTitle();
-        
+
         String htmlContent = "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;\">"
                 + "<h2 style=\"color: #4F46E5;\">Good news! 🎉</h2>"
                 + "<p>The course <strong>\"" + course.getTitle() + "\"</strong> has dropped in price.</p>"
@@ -75,7 +86,7 @@ public class EmailServiceImpl implements EmailService {
                 + "</div>";
 
         for (Subscriber sub : subscribers) {
-            // Using a new thread to not block the UI
+            System.out.println("[EmailService] Spawning thread to notify: " + sub.getEmail());
             new Thread(() -> sendEmail(sub.getEmail(), subject, htmlContent)).start();
         }
     }
