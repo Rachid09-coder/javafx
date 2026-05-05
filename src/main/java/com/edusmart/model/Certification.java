@@ -27,6 +27,7 @@ public class Certification {
     private String revocationReason;
     private int studentId;
     private Integer bulletinId;
+    private String metier;
 
     public Certification() {}
 
@@ -158,5 +159,13 @@ public class Certification {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public String getMetier() {
+        return metier;
+    }
+
+    public void setMetier(String metier) {
+        this.metier = metier;
     }
 }

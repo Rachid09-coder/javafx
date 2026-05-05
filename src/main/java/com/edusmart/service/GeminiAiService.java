@@ -3,10 +3,13 @@ package com.edusmart.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import okhttp3.*;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
 /**
  * Service to interact with Google Gemini AI API for student performance
@@ -17,13 +20,12 @@ public class GeminiAiService {
     // Si la clé est révoquée, le service utilisera des données simulées.
     private static final String API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
-    private final OkHttpClient client;
+    private final HttpClient client;
     private final Gson gson;
 
     public GeminiAiService() {
-        this.client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+        this.client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(30))
                 .build();
         this.gson = new Gson();
     }
@@ -43,26 +45,29 @@ public class GeminiAiService {
         contents.add(contentObj);
         requestBody.add("contents", contents);
 
-        RequestBody body = RequestBody.create(
-                gson.toJson(requestBody),
-                MediaType.get("application/json; charset=utf-8"));
+        String bodyJson = gson.toJson(requestBody);
 
-        Request request = new Request.Builder()
-                .url(API_URL + "?key=" + API_KEY)
-                .post(body)
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(API_URL + "?key=" + API_KEY))
+                .header("Content-Type", "application/json; charset=utf-8")
+                .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
+                .timeout(Duration.ofSeconds(30))
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+
+            if (statusCode != 200) {
                 // Fallback to simulated response if API key is invalid or quota exceeded
-                if (response.code() == 403 || response.code() == 400 || response.code() == 429) {
+                if (statusCode == 403 || statusCode == 400 || statusCode == 429) {
                     System.err.println("API Key issue or quota exceeded. Using simulated AI response.");
                     return getSimulatedResponse(prompt);
                 }
-                throw new IOException("Unexpected code " + response + " | " + response.body().string());
+                throw new IOException("Unexpected code " + statusCode + " | " + response.body());
             }
 
-            String responseData = response.body().string();
+            String responseData = response.body();
             JsonObject jsonResponse = gson.fromJson(responseData, JsonObject.class);
 
             // Extract the generated text
@@ -73,6 +78,9 @@ public class GeminiAiService {
                     .getAsJsonArray("parts")
                     .get(0).getAsJsonObject()
                     .get("text").getAsString();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Request interrupted", e);
         }
     }
 

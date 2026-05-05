@@ -26,6 +26,7 @@ public class Bulletin {
     private int studentId;
     private Integer validatedById;
     private Integer publishedById;
+    private String metier;
 
     public Bulletin() {}
 
@@ -181,5 +182,13 @@ public class Bulletin {
 
     public void setPublishedById(Integer publishedById) {
         this.publishedById = publishedById;
+    }
+
+    public String getMetier() {
+        return metier;
+    }
+
+    public void setMetier(String metier) {
+        this.metier = metier;
     }
 }

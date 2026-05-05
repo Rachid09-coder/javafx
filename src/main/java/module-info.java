@@ -5,6 +5,8 @@ module com.edusmart {
     requires transitive java.sql;
     requires java.desktop;
     requires java.net.http;
+    requires java.prefs;
+    requires jdk.httpserver;
     requires jakarta.mail;
     requires com.github.librepdf.openpdf;
     requires com.google.zxing;

@@ -1,20 +1,27 @@
 package com.edusmart.service;
 
+import com.edusmart.model.Course;
+import com.edusmart.model.Subscriber;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 
-public class EmailService {
+public interface EmailService {
+
+    void sendEmail(String to, String subject, String content);
+
+    void sendPriceDropNotification(Course course, double oldPrice, List<Subscriber> subscribers);
 
     // IMPORTANT: Remplacez ces valeurs par vos vrais identifiants SMTP (ex: Gmail, Outlook)
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final String SMTP_PORT = "587";
+    static void sendOrderConfirmationEmail(String toEmail, String studentName, int orderId, String trackingNumber, File invoicePdf) throws Exception {
+        final String SMTP_HOST = "smtp.gmail.com";
+        final String SMTP_PORT = "587";
 
-    public static void sendOrderConfirmationEmail(String toEmail, String studentName, int orderId, String trackingNumber, File invoicePdf) throws Exception {
         String SMTP_USERNAME = System.getenv("SMTP_USERNAME");
         String SMTP_PASSWORD = System.getenv("SMTP_PASSWORD");
         if (SMTP_USERNAME == null || SMTP_PASSWORD == null) {
