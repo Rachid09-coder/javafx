@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.StudentManagementController">
+
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
+                <Button text="Gerer les Cours" styleClass="nav-button" onAction="#handleManageCourses"/>
+                <Button text="Gerer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
+                <Button text="Gerer Examens" styleClass="nav-button" onAction="#handleManageExams"/>
+                <Button text="Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
+                <Button text="Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
+                <Button text="Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
+                <Button text="Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="Gestion des Eleves" styleClass="nav-button active" onAction="#handleStudentManagement"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="Deconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" pannable="true" styleClass="content-scroll">
+            <HBox styleClass="content-area" spacing="16">
+
+                <VBox spacing="16" HBox.hgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Gestion des utilisateurs" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="searchField" promptText="Rechercher..." styleClass="search-bar" onAction="#handleSearch"/>
+                    </HBox>
+
+                    <Label fx:id="messageLabel" visible="false" wrapText="true"/>
+
+                    <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="idColumn" text="ID" prefWidth="55"/>
+                            <TableColumn fx:id="firstNameColumn" text="Prenom" prefWidth="110"/>
+                            <TableColumn fx:id="lastNameColumn" text="Nom" prefWidth="110"/>
+                            <TableColumn fx:id="emailColumn" text="Email" prefWidth="200"/>
+                            <TableColumn fx:id="roleColumn" text="Role" prefWidth="90"/>
+                            <TableColumn fx:id="numtelColumn" text="Telephone" prefWidth="120"/>
+                            <TableColumn fx:id="activeColumn" text="Actif" prefWidth="55"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="Aucun utilisateur" style="-fx-text-fill: #94A3B8;"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+
+                <VBox styleClass="card" spacing="10" minWidth="320" prefWidth="360" maxWidth="400">
+                    <Label text="Formulaire utilisateur" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+                    <Separator/>
+
+                    <HBox spacing="8">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Prenom *" styleClass="form-label"/>
+                            <TextField fx:id="firstNameField" styleClass="text-field"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Nom *" styleClass="form-label"/>
+                            <TextField fx:id="lastNameField" styleClass="text-field"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Email *" styleClass="form-label"/>
+                        <TextField fx:id="emailField" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Role *" styleClass="form-label"/>
+                        <ComboBox fx:id="roleComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Mot de passe *" styleClass="form-label"/>
+                        <PasswordField fx:id="passwordField" promptText="Creation: obligatoire. Modification: vide = inchangé" styleClass="password-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Telephone (numtel) *" styleClass="form-label"/>
+                        <TextField fx:id="numtelField" styleClass="text-field"/>
+                    </VBox>
+
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <CheckBox fx:id="activeCheckBox" text="Compte actif (is_active)" selected="true"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Reset token" styleClass="form-label"/>
+                        <TextField fx:id="resetTokenField" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Expiration reset token (yyyy-MM-dd HH:mm:ss)" styleClass="form-label"/>
+                        <TextField fx:id="resetTokenExpiresField" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Google ID" styleClass="form-label"/>
+                        <TextField fx:id="googleIdField" styleClass="text-field"/>
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label text="Face descriptor (JSON)" styleClass="form-label"/>
+                        <TextArea fx:id="faceDescriptorArea" prefRowCount="3" wrapText="true" styleClass="text-area"/>
+                    </VBox>
+
+                    <Separator/>
+                    <HBox spacing="8">
+                        <Button text="Creer" onAction="#handleCreate" styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="Modifier" onAction="#handleUpdate" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Button text="Supprimer" onAction="#handleDelete" styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="Effacer" onAction="#handleClear" styleClass="btn-secondary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                </VBox>
+
+            </HBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

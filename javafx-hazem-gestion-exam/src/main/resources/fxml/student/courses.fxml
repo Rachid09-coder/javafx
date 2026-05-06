@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.CoursesController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="📚  Mes Cours" styleClass="nav-button active" onAction="#handleCourses"/>
+                <Button text="📝  Examens" styleClass="nav-button" onAction="#handleExams"/>
+                <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
+                <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <VBox styleClass="content-area" spacing="20">
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="16" styleClass="top-header">
+                <Label text="Gestion des Cours" styleClass="page-title"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Label fx:id="coursesCountLabel" style="-fx-text-fill: #64748B;"/>
+            </HBox>
+
+            <!-- Search & Filters -->
+            <HBox spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 0 0 4 0;">
+                <TextField fx:id="searchField" promptText="🔍  Rechercher un cours..."
+                           styleClass="search-bar" onAction="#handleSearch"/>
+                <ComboBox fx:id="categoryFilter" promptText="Catégorie" onAction="#handleFilterChange"
+                          styleClass="combo-box"/>
+                <ComboBox fx:id="statusFilter" promptText="Statut" onAction="#handleFilterChange"
+                          styleClass="combo-box"/>
+            </HBox>
+
+            <!-- Courses Grid (FlowPane) -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color: transparent; -fx-background: transparent;">
+                <FlowPane fx:id="coursesContainer" hgap="16" vgap="16"
+                          style="-fx-background-color: transparent; -fx-padding: 4;">
+
+                    <!-- Course cards are added programmatically by the controller -->
+                    <!-- Sample placeholder card -->
+                    <VBox styleClass="course-card" spacing="8">
+                        <Label text="Introduction à Java" styleClass="course-title"/>
+                        <Label text="👤 Prof. Martin" styleClass="course-instructor"/>
+                        <HBox spacing="16">
+                            <Label text="📦 8 modules" styleClass="course-meta"/>
+                            <Label text="⏱ 40h" styleClass="course-meta"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="Actif" styleClass="badge badge-success"/>
+                        </HBox>
+                        <Button text="Voir le cours" styleClass="btn-primary" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <VBox styleClass="course-card" spacing="8">
+                        <Label text="Mathématiques Avancées" styleClass="course-title"/>
+                        <Label text="👤 Prof. Dupont" styleClass="course-instructor"/>
+                        <HBox spacing="16">
+                            <Label text="📦 12 modules" styleClass="course-meta"/>
+                            <Label text="⏱ 60h" styleClass="course-meta"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="Actif" styleClass="badge badge-success"/>
+                        </HBox>
+                        <Button text="Voir le cours" styleClass="btn-primary" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <VBox styleClass="course-card" spacing="8">
+                        <Label text="Physique Quantique" styleClass="course-title"/>
+                        <Label text="👤 Prof. Bernard" styleClass="course-instructor"/>
+                        <HBox spacing="16">
+                            <Label text="📦 10 modules" styleClass="course-meta"/>
+                            <Label text="⏱ 50h" styleClass="course-meta"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="Actif" styleClass="badge badge-success"/>
+                        </HBox>
+                        <Button text="Voir le cours" styleClass="btn-primary" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <VBox styleClass="course-card" spacing="8">
+                        <Label text="Anglais Professionnel" styleClass="course-title"/>
+                        <Label text="👤 Prof. Smith" styleClass="course-instructor"/>
+                        <HBox spacing="16">
+                            <Label text="📦 6 modules" styleClass="course-meta"/>
+                            <Label text="⏱ 30h" styleClass="course-meta"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="Brouillon" styleClass="badge badge-warning"/>
+                        </HBox>
+                        <Button text="Voir le cours" styleClass="btn-secondary" maxWidth="Infinity"/>
+                    </VBox>
+
+                </FlowPane>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+</BorderPane>
