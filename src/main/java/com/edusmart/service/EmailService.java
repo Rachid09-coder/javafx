@@ -1,41 +1,43 @@
 package com.edusmart.service;
 
+import com.edusmart.model.Course;
+import com.edusmart.model.Subscriber;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 
-public class EmailService {
+public interface EmailService {
+    void sendEmail(String to, String subject, String content);
+    void sendPriceDropNotification(Course course, double oldPrice, List<Subscriber> subscribers);
 
-    // IMPORTANT: Remplacez ces valeurs par vos vrais identifiants SMTP (ex: Gmail, Outlook)
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final String SMTP_PORT = "587";
-
-    public static void sendOrderConfirmationEmail(String toEmail, String studentName, int orderId, String trackingNumber, File invoicePdf) throws Exception {
-        String SMTP_USERNAME = System.getenv("SMTP_USERNAME");
-        String SMTP_PASSWORD = System.getenv("SMTP_PASSWORD");
-        if (SMTP_USERNAME == null || SMTP_PASSWORD == null) {
+    static void sendOrderConfirmationEmail(String toEmail, String studentName, int orderId, String trackingNumber, File invoicePdf) throws Exception {
+        String smtpUsername = System.getenv("SMTP_USERNAME");
+        String smtpPassword = System.getenv("SMTP_PASSWORD");
+        if (smtpUsername == null || smtpPassword == null) {
             throw new Exception("Variables d'environnement SMTP_USERNAME et SMTP_PASSWORD non définies.");
         }
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", SMTP_PORT);
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
 
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SMTP_USERNAME, SMTP_PASSWORD);
+                return new PasswordAuthentication(smtpUsername, smtpPassword);
             }
         });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SMTP_USERNAME, "Boutique EduSmart"));
+        message.setFrom(new InternetAddress(smtpUsername, "Boutique EduSmart"));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject("Confirmation de votre commande #" + orderId);
 
@@ -60,7 +62,7 @@ public class EmailService {
 
         message.setContent(multipart);
 
-        if (!SMTP_USERNAME.equals("votre.email@gmail.com")) {
+        if (!smtpUsername.equals("votre.email@gmail.com")) {
             Transport.send(message);
             System.out.println("Email envoyé avec succès à " + toEmail);
         } else {

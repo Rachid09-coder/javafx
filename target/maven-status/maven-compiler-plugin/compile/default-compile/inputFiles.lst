@@ -30,6 +30,7 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/controller/teacher/ShopManagementController.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/controller/teacher/StudentFormController.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/controller/teacher/StudentManagementController.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/controller/teacher/TeacherCalendarController.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/controller/teacher/TeacherDashboardController.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/BulletinDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/CategoryDao.java
@@ -41,6 +42,7 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/OrderDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/ProductDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/PromoCodeDao.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/SubscriberDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/UserDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcBulletinDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcCategoryDao.java
@@ -53,6 +55,7 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcOrderDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcProductDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcPromoCodeDao.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcSubscriberDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/dao/jdbc/JdbcUserDao.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/Bulletin.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/CartItem.java
@@ -66,8 +69,11 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/OrderItem.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/Product.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/PromoCode.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/Subscriber.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/model/User.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/AIService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/BulletinService.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/CalendarService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/CategoryService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/CertificationService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/CourseService.java
@@ -79,18 +85,25 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/OrderService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/ProductService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/PromoCodeService.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/SubscriptionService.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/UserService.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/AIServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/BulletinServiceImpl.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/CalendarServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/CategoryServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/CertificationServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/CourseServiceImpl.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/EmailServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/ExamServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/GradeServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/ModuleServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/OrderServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/ProductServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/PromoCodeServiceImpl.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/SubscriptionServiceImpl.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/service/impl/UserServiceImpl.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/test/TestEmail.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/ActivityLogger.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/DbConnection.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/MailSender.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/ModernActionCell.java
@@ -99,4 +112,5 @@
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/StripeCheckoutClient.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/StripeKeys.java
 /home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/StudentShopCart.java
+/home/runner/work/javafx/javafx/src/main/java/com/edusmart/util/ThemeManager.java
 /home/runner/work/javafx/javafx/src/main/java/module-info.java

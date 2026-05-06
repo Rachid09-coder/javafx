@@ -10,7 +10,11 @@ module com.edusmart {
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires com.google.gson;
-
+    requires google.api.client;
+    requires com.google.api.client;
+    requires com.google.api.client.json.gson;
+    requires com.google.api.services.calendar;
+    requires java.prefs;
 
     opens com.edusmart to javafx.fxml;
     opens com.edusmart.controller.auth to javafx.fxml;

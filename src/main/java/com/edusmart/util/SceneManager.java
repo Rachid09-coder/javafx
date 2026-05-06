@@ -39,6 +39,7 @@ public class SceneManager {
         TEACHER_SHOP_ANALYSIS_AI,
         TEACHER_STUDENT_MANAGEMENT,
         TEACHER_GRADE_MANAGEMENT,
+        TEACHER_CALENDAR,
         PROFILE
     }
 
@@ -131,6 +132,7 @@ public class SceneManager {
             case TEACHER_SHOP_ANALYSIS_AI     -> "/fxml/teacher/shop-analysis-ai.fxml";
             case TEACHER_STUDENT_MANAGEMENT   -> "/fxml/teacher/student-management.fxml";
             case TEACHER_GRADE_MANAGEMENT     -> "/fxml/teacher/grade-management.fxml";
+            case TEACHER_CALENDAR             -> "/fxml/teacher/calendar.fxml";
             case PROFILE                     -> "/fxml/shared/profile.fxml";
         };
     }
