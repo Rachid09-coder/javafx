@@ -1,0 +1,37 @@
+module com.edusmart {
+    requires transitive javafx.controls;
+    requires transitive javafx.fxml;
+    requires transitive javafx.graphics;
+    requires transitive java.sql;
+    requires java.desktop;
+    requires java.net.http;
+    requires java.prefs;
+    requires jakarta.mail;
+    requires com.github.librepdf.openpdf;
+    requires itextpdf;
+    requires com.google.zxing;
+    requires com.google.zxing.javase;
+    requires com.google.gson;
+    requires com.google.api.client;
+    requires com.google.api.services.calendar;
+    requires com.google.api.client.json.gson;
+    requires okhttp3;
+    requires twilio;
+
+
+    opens com.edusmart to javafx.fxml;
+    opens com.edusmart.controller.auth to javafx.fxml;
+    opens com.edusmart.controller.student to javafx.fxml;
+    opens com.edusmart.controller.teacher to javafx.fxml;
+    opens com.edusmart.controller.shared to javafx.fxml;
+    opens com.edusmart.model to javafx.base;
+    opens com.edusmart.util to javafx.fxml;
+
+    exports com.edusmart;
+    exports com.edusmart.controller.auth;
+    exports com.edusmart.controller.student;
+    exports com.edusmart.controller.teacher;
+    exports com.edusmart.controller.shared;
+    exports com.edusmart.model;
+    exports com.edusmart.util;
+}
