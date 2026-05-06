@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.edusmart.controller.teacher.CertificationFormController"
+      spacing="16" prefWidth="480" style="-fx-padding:24; -fx-background-color:#F8FAFC;">
+
+    <Label fx:id="titleLabel" text="Nouvelle Certification"
+           style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1E3A8A;"/>
+
+    <Separator/>
+
+    <VBox spacing="4">
+        <Label text="Type de certification *" styleClass="form-label"/>
+        <TextField fx:id="typeField" promptText="Ex: Licence, Master, Certificat..."
+                   styleClass="text-field"/>
+        <Label fx:id="typeError" styleClass="error-label" visible="false" managed="false"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Étudiant *" styleClass="form-label"/>
+            <ComboBox fx:id="studentComboBox" maxWidth="Infinity" styleClass="combo-box"
+                      promptText="Choisir l'étudiant..."/>
+            <Label fx:id="studentError" styleClass="error-label" visible="false" managed="false"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Statut *" styleClass="form-label"/>
+            <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Bulletin lié" styleClass="form-label"/>
+            <ComboBox fx:id="bulletinComboBox" maxWidth="Infinity" styleClass="combo-box"
+                      promptText="Optionnel..."/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Valide jusqu'au" styleClass="form-label"/>
+            <DatePicker fx:id="validUntilPicker" maxWidth="Infinity" styleClass="date-picker"/>
+        </VBox>
+    </HBox>
+
+    <Label fx:id="globalError" styleClass="error-label" wrapText="true"
+           visible="false" managed="false"/>
+
+    <Separator/>
+
+    <HBox spacing="12" alignment="CENTER_RIGHT">
+        <Button text="✖ Annuler" onAction="#handleCancel" styleClass="btn-secondary"/>
+        <Button text="✔ Enregistrer" onAction="#handleSave" styleClass="btn-primary"/>
+    </HBox>
+</VBox>

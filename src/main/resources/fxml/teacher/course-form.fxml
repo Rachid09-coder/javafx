@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.edusmart.controller.teacher.CourseFormController"
+      spacing="16" prefWidth="480" style="-fx-padding:24; -fx-background-color:#F8FAFC;">
+
+    <Label fx:id="titleLabel" text="Nouveau Cours"
+           style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1E3A8A;"/>
+
+    <Separator/>
+
+    <!-- Titre -->
+    <VBox spacing="4">
+        <Label text="Titre *" styleClass="form-label"/>
+        <TextField fx:id="titleField" promptText="Titre du cours" styleClass="text-field"/>
+        <Label fx:id="titleError" styleClass="error-label" visible="false" managed="false"/>
+    </VBox>
+
+    <!-- Description -->
+    <VBox spacing="4">
+        <Label text="Description" styleClass="form-label"/>
+        <TextArea fx:id="descriptionArea" promptText="Description du cours..."
+                  styleClass="text-area" prefHeight="80" wrapText="true"/>
+    </VBox>
+
+    <!-- Prix + Coefficient -->
+    <HBox spacing="12">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Prix (DT) *" styleClass="form-label"/>
+            <TextField fx:id="priceField" promptText="Ex: 99.99" styleClass="text-field"/>
+            <Label fx:id="priceError" styleClass="error-label" visible="false" managed="false"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Coefficient" styleClass="form-label"/>
+            <TextField fx:id="coefficientField" promptText="Ex: 2.0" styleClass="text-field"/>
+            <Label fx:id="coefficientError" styleClass="error-label" visible="false" managed="false"/>
+        </VBox>
+    </HBox>
+
+    <!-- Statut + Module -->
+    <HBox spacing="12">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Statut *" styleClass="form-label"/>
+            <ComboBox fx:id="statusComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Module" styleClass="form-label"/>
+            <ComboBox fx:id="moduleComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+        </VBox>
+    </HBox>
+
+    <!-- Message global -->
+    <Label fx:id="globalError" styleClass="error-label" wrapText="true"
+           visible="false" managed="false"/>
+
+    <Separator/>
+
+    <!-- Boutons -->
+    <HBox spacing="12" alignment="CENTER_RIGHT">
+        <Button text="✖ Annuler" onAction="#handleCancel" styleClass="btn-secondary"/>
+        <Button text="✔ Enregistrer" onAction="#handleSave" styleClass="btn-primary"/>
+    </HBox>
+</VBox>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.OrderCheckoutController">
+
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🛒  Boutique" styleClass="nav-button active" onAction="#handleShop"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox styleClass="content-area" spacing="16">
+            <HBox alignment="CENTER_LEFT" styleClass="top-header" spacing="12">
+                <Button text="← Retour" styleClass="btn-secondary" onAction="#handleBackToShop"/>
+                <Label text="Vérification de commande" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <Label fx:id="publishableKeyHint" styleClass="course-meta" wrapText="true"/>
+
+            <TableView fx:id="itemsTable" VBox.vgrow="ALWAYS" prefHeight="320" styleClass="table-view">
+                <columns>
+                    <TableColumn fx:id="nameCol" text="Produit" prefWidth="260"/>
+                    <TableColumn fx:id="qtyCol" text="Qté" prefWidth="70"/>
+                    <TableColumn fx:id="unitCol" text="Prix unitaire" prefWidth="120"/>
+                    <TableColumn fx:id="lineCol" text="Total ligne" prefWidth="120"/>
+                </columns>
+            </TableView>
+
+            <VBox spacing="8" styleClass="card">
+                <Label text="Code promo" styleClass="course-meta"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="promoCodeField" promptText="EX: EDU10" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="applyPromoButton" text="Appliquer le code promo" onAction="#handleApplyPromo" styleClass="btn-secondary"/>
+                </HBox>
+                <Label fx:id="promoStatusLabel" text="" styleClass="course-meta" visible="false" managed="false"/>
+
+                <Separator/>
+
+                <Label fx:id="subtotalLabel" text="Sous-total: 0.00 €" styleClass="course-meta"/>
+                <Label fx:id="discountLabel" text="Remise: -0.00 €" styleClass="course-meta"/>
+                <Label fx:id="totalLabel" text="Total: 0.00 €"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1E3A8A;"/>
+
+                <Button fx:id="payButton" text="💳 Payer avec Stripe" onAction="#handlePayStripe" styleClass="btn-primary" maxWidth="Infinity" prefHeight="44"/>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>
