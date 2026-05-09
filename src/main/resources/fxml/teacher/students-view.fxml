@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.edusmart.controller.teacher.StudentsController"
+            styleClass="main-container">
+
+    <stylesheets>
+        <URL value="@../../css/style.css" />
+    </stylesheets>
+
+    <center>
+        <VBox spacing="20" style="-fx-padding: 30;">
+            <VBox>
+                <Label text="Gestion des Étudiants" styleClass="page-title"/>
+                <Label text="Liste complète des élèves inscrits au système" styleClass="page-subtitle"/>
+            </VBox>
+
+            <VBox styleClass="card" VBox.vgrow="ALWAYS" spacing="15">
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label text="Annuaire des Étudiants" styleClass="card-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="searchField" promptText="Rechercher un étudiant..." prefWidth="300" styleClass="form-control"/>
+                </HBox>
+
+                <TableView fx:id="studentTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colName"   text="Nom"    prefWidth="150"/>
+                        <TableColumn fx:id="colPrenom" text="Prénom" prefWidth="150"/>
+                        <TableColumn fx:id="colEmail"  text="Email"  prefWidth="250"/>
+                        <TableColumn fx:id="colRole"   text="Rôle"   prefWidth="100"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.edusmart.controller.teacher.ExamGradingController"
+      style="-fx-background-color:#0F172A;" VBox.vgrow="ALWAYS">
+
+    <!-- Header -->
+    <HBox style="-fx-background-color:#1E293B;-fx-padding:16 24;-fx-border-color:#334155;-fx-border-width:0 0 1 0;" alignment="CENTER_LEFT" spacing="16">
+        <VBox>
+            <Label text="🤖 Correction Intelligente des Examens" style="-fx-text-fill:white;-fx-font-size:20;-fx-font-weight:bold;"/>
+            <Label text="Correction IA • Détection de Plagiat • Notification par Email" style="-fx-text-fill:#64748B;-fx-font-size:12;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel" style="-fx-text-fill:#10B981;-fx-font-size:12;" visible="false"/>
+    </HBox>
+
+    <!-- Selectors row -->
+    <HBox style="-fx-background-color:#1E293B;-fx-padding:12 24;-fx-border-color:#334155;-fx-border-width:0 0 1 0;" spacing="16" alignment="CENTER_LEFT">
+        <Label text="Examen:" style="-fx-text-fill:#94A3B8;-fx-font-size:13;"/>
+        <ComboBox fx:id="examComboBox" prefWidth="280" onAction="#handleExamSelected"
+                  style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
+        <Label text="Question:" style="-fx-text-fill:#94A3B8;-fx-font-size:13;"/>
+        <ComboBox fx:id="questionComboBox" prefWidth="380" onAction="#handleQuestionSelected"
+                  style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="🔍 Plagiat" onAction="#handlePlagiarismCheck"
+                style="-fx-background-color:#7C3AED;-fx-text-fill:white;-fx-font-size:12;-fx-font-weight:bold;-fx-padding:8 16;-fx-background-radius:8;-fx-cursor:hand;"/>
+        <Button text="🤖 Corriger Tout" onAction="#handleAiGradeAll"
+                style="-fx-background-color:#4F46E5;-fx-text-fill:white;-fx-font-size:12;-fx-font-weight:bold;-fx-padding:8 16;-fx-background-radius:8;-fx-cursor:hand;"/>
+    </HBox>
+
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Body: table + detail panel -->
+        <HBox style="-fx-padding:16;" spacing="16">
+
+            <!-- ── Submissions table ── -->
+            <VBox prefWidth="360" style="-fx-background-color:#1E293B;-fx-border-radius:12;-fx-background-radius:12;-fx-padding:0;" spacing="0">
+                <Label text="Copies des Étudiants" style="-fx-text-fill:#CBD5E1;-fx-font-size:14;-fx-font-weight:bold;-fx-padding:14 16 10 16;"/>
+                <TableView fx:id="submissionsTable" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color:transparent;-fx-border-color:#334155;-fx-border-width:1 0 0 0;">
+                    <columns>
+                        <TableColumn fx:id="colStudentName" text="Étudiant" prefWidth="150"/>
+                        <TableColumn fx:id="colStatus"      text="Statut"   prefWidth="110"/>
+                        <TableColumn fx:id="colScore"       text="Note"     prefWidth="55"/>
+                        <TableColumn fx:id="colPlagiarism"  text="Plagiat%" prefWidth="65"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Sélectionnez un examen et une question" style="-fx-text-fill:#475569;-fx-font-size:13;"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- ── Detail Panel ── -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12">
+
+                <!-- Student answer card -->
+                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="8">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label fx:id="lblStudentName" text="—" style="-fx-text-fill:#E2E8F0;-fx-font-size:15;-fx-font-weight:bold;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🤖 Corriger" onAction="#handleAiGradeSingle"
+                                style="-fx-background-color:#4F46E5;-fx-text-fill:white;-fx-font-size:11;-fx-padding:6 14;-fx-background-radius:6;-fx-cursor:hand;"/>
+                        <Button text="📧 Email" onAction="#handleSendEmail"
+                                style="-fx-background-color:#0EA5E9;-fx-text-fill:white;-fx-font-size:11;-fx-padding:6 14;-fx-background-radius:6;-fx-cursor:hand;"/>
+                    </HBox>
+                    <Label fx:id="lblQuestionText" text="Question : —" wrapText="true"
+                           style="-fx-text-fill:#94A3B8;-fx-font-size:12;-fx-font-style:italic;"/>
+                    <Label text="Réponse de l'étudiant:" style="-fx-text-fill:#64748B;-fx-font-size:11;"/>
+                    <TextArea fx:id="taStudentAnswer" prefHeight="90" editable="false" wrapText="true"
+                              style="-fx-background-color:#0F172A;-fx-text-fill:#CBD5E1;-fx-font-size:12;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
+                </VBox>
+
+                <!-- AI Result card -->
+                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="10">
+                    <Label text="🤖 Résultat de la Correction IA" style="-fx-text-fill:#818CF8;-fx-font-size:13;-fx-font-weight:bold;"/>
+                    <HBox spacing="24" alignment="CENTER_LEFT">
+                        <VBox spacing="4">
+                            <Label text="Note IA" style="-fx-text-fill:#64748B;-fx-font-size:10;"/>
+                            <Label fx:id="lblAiScore" text="—" style="-fx-text-fill:#4F46E5;-fx-font-size:22;-fx-font-weight:bold;"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label fx:id="lblConfidence" text="Confiance IA: —" style="-fx-text-fill:#94A3B8;-fx-font-size:11;"/>
+                            <ProgressBar fx:id="pbAiConfidence" progress="0" maxWidth="Infinity"
+                                         style="-fx-accent:#4F46E5;" prefHeight="6"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label fx:id="lblPlagiarismScore" text="Plagiat: —" style="-fx-text-fill:#94A3B8;-fx-font-size:11;"/>
+                            <ProgressBar fx:id="pbPlagiarism" progress="0" prefWidth="120"
+                                         style="-fx-accent:#10B981;" prefHeight="6"/>
+                        </VBox>
+                    </HBox>
+                    <Label text="Feedback IA:" style="-fx-text-fill:#64748B;-fx-font-size:11;"/>
+                    <TextArea fx:id="taAiFeedback" prefHeight="70" editable="false" wrapText="true"
+                              style="-fx-background-color:#0F172A;-fx-text-fill:#CBD5E1;-fx-font-size:12;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
+                </VBox>
+
+                <!-- Manual override card -->
+                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="10">
+                    <Label text="✏️ Correction Manuelle" style="-fx-text-fill:#F59E0B;-fx-font-size:13;-fx-font-weight:bold;"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="Note manuelle:" style="-fx-text-fill:#94A3B8;-fx-font-size:12;"/>
+                        <TextField fx:id="tfManualScore" prefWidth="90" promptText="Ex: 15.5"
+                                   style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:6 10;"/>
+                        <Button text="💾 Sauvegarder" onAction="#handleSaveManualScore"
+                                style="-fx-background-color:#10B981;-fx-text-fill:white;-fx-font-size:12;-fx-padding:6 16;-fx-background-radius:6;-fx-cursor:hand;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </HBox>
+
+        <!-- Loading overlay (hidden by default) -->
+        <StackPane fx:id="loadingOverlay" visible="false"
+                   style="-fx-background-color:rgba(0,0,0,0.6);">
+            <VBox alignment="CENTER" spacing="12">
+                <ProgressIndicator style="-fx-progress-color:#4F46E5;" prefWidth="48" prefHeight="48"/>
+                <Label text="Traitement en cours…" style="-fx-text-fill:white;-fx-font-size:14;"/>
+            </VBox>
+        </StackPane>
+    </StackPane>
+</VBox>

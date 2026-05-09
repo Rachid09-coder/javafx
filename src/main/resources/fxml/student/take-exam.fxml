@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.edusmart.controller.student.TakeExamController"
+            styleClass="main-container">
+
+    <stylesheets>
+        <URL value="@../../css/style.css" />
+    </stylesheets>
+
+    <top>
+        <HBox styleClass="top-header" alignment="CENTER_LEFT" spacing="20">
+            <Button text="⬅ Retour" onAction="#handleBack" styleClass="btn-secondary"/>
+            <VBox>
+                <Label fx:id="examTitleLabel" text="Titre de l'Examen" styleClass="page-title"/>
+                <Label fx:id="examInfoLabel" text="Informations sur l'examen" styleClass="page-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="timerLabel" text="00:00" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #4F46E5;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane styleClass="content-area">
+            <!-- QCM View -->
+            <VBox fx:id="qcmContainer" spacing="20" visible="false" managed="false">
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="edge-to-edge">
+                    <VBox fx:id="questionsList" spacing="25" style="-fx-padding: 10;">
+                        <!-- Questions will be added dynamically -->
+                    </VBox>
+                </ScrollPane>
+                <HBox alignment="CENTER_RIGHT" spacing="15">
+                    <Button text="Soumettre mes réponses" onAction="#handleSubmitQCM" styleClass="btn-primary" prefHeight="45" prefWidth="250"/>
+                </HBox>
+            </VBox>
+
+            <!-- PDF View -->
+            <VBox fx:id="pdfContainer" alignment="CENTER" spacing="30" visible="false" managed="false">
+                <VBox alignment="CENTER" spacing="10" styleClass="card" maxWidth="500">
+                    <Label text="📄 Sujet d'Examen (PDF)" styleClass="card-title"/>
+                    <Label text="Téléchargez le sujet, préparez votre réponse en PDF, puis déposez-la ici." styleClass="page-subtitle" wrapText="true" alignment="CENTER"/>
+                    <Button text="📥 Télécharger le sujet" onAction="#handleDownloadSujet" styleClass="btn-purple" prefWidth="300"/>
+                </VBox>
+                
+                <VBox alignment="CENTER" spacing="15" styleClass="card" maxWidth="500">
+                    <Label text="📤 Déposer ma copie" styleClass="card-title"/>
+                    <HBox spacing="10" alignment="CENTER">
+                        <TextField fx:id="submissionPathField" editable="false" prefWidth="300" promptText="Aucun fichier sélectionné..."/>
+                        <Button text="Parcourir" onAction="#handleBrowseSubmission" styleClass="btn-secondary"/>
+                    </HBox>
+                    <Button text="🚀 Envoyer ma copie" onAction="#handleSubmitPDF" styleClass="btn-primary" prefWidth="300" prefHeight="40"/>
+                </VBox>
+            </VBox>
+
+            <!-- Results/Success View -->
+            <VBox fx:id="successContainer" alignment="CENTER" spacing="20" visible="false" managed="false">
+                <Label text="🎉 Examen Terminé !" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #10B981;"/>
+                <Label text="Votre travail a été enregistré avec succès." styleClass="page-subtitle"/>
+                <Button text="Retour aux examens" onAction="#handleBack" styleClass="btn-primary"/>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>
