@@ -1,128 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-<?import javafx.geometry.*?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.edusmart.controller.teacher.ExamGradingController"
-      style="-fx-background-color:#0F172A;" VBox.vgrow="ALWAYS">
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.edusmart.controller.teacher.ExamGradingController"
+           styleClass="main-container">
 
-    <!-- Header -->
-    <HBox style="-fx-background-color:#1E293B;-fx-padding:16 24;-fx-border-color:#334155;-fx-border-width:0 0 1 0;" alignment="CENTER_LEFT" spacing="16">
-        <VBox>
-            <Label text="🤖 Correction Intelligente des Examens" style="-fx-text-fill:white;-fx-font-size:20;-fx-font-weight:bold;"/>
-            <Label text="Correction IA • Détection de Plagiat • Notification par Email" style="-fx-text-fill:#64748B;-fx-font-size:12;"/>
-        </VBox>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="statusLabel" style="-fx-text-fill:#10B981;-fx-font-size:12;" visible="false"/>
-    </HBox>
+    <VBox styleClass="content-area" spacing="16">
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <VBox HBox.hgrow="ALWAYS" spacing="2">
+                <Label text="Correction &amp; IA" styleClass="page-title"/>
+                <Label text="Correction automatique, detection de plagiat et notification des etudiants" styleClass="page-subtitle"/>
+            </VBox>
+            <Label fx:id="statusLabel" visible="false" styleClass="form-label"/>
+        </HBox>
 
-    <!-- Selectors row -->
-    <HBox style="-fx-background-color:#1E293B;-fx-padding:12 24;-fx-border-color:#334155;-fx-border-width:0 0 1 0;" spacing="16" alignment="CENTER_LEFT">
-        <Label text="Examen:" style="-fx-text-fill:#94A3B8;-fx-font-size:13;"/>
-        <ComboBox fx:id="examComboBox" prefWidth="250" onAction="#handleExamSelected"
-                  style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
-        
-        <Label text="Question:" style="-fx-text-fill:#94A3B8;-fx-font-size:13;"/>
-        <ComboBox fx:id="questionComboBox" prefWidth="250" onAction="#handleQuestionSelected"
-                  style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
-        
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button text="📄 Rapport PDF" onAction="#handleGeneratePdfReport"
-                style="-fx-background-color:#0EA5E9;-fx-text-fill:white;-fx-font-size:12;-fx-font-weight:bold;-fx-padding:8 16;-fx-background-radius:8;-fx-cursor:hand;"/>
-        <Button text="🔍 Comparer Sélection" onAction="#handleCompareSelected"
-                style="-fx-background-color:#7C3AED;-fx-text-fill:white;-fx-font-size:12;-fx-font-weight:bold;-fx-padding:8 16;-fx-background-radius:8;-fx-cursor:hand;"/>
-        <Button text="🤖 Tout Corriger" onAction="#handleAiGradeAll"
-                style="-fx-background-color:#4F46E5;-fx-text-fill:white;-fx-font-size:12;-fx-font-weight:bold;-fx-padding:8 16;-fx-background-radius:8;-fx-cursor:hand;"/>
-    </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Examen" styleClass="form-label"/>
+            <ComboBox fx:id="examComboBox" prefWidth="260" onAction="#handleExamSelected"/>
+            <Label text="Question" styleClass="form-label"/>
+            <ComboBox fx:id="questionComboBox" prefWidth="280" onAction="#handleQuestionSelected"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Rapport PDF" onAction="#handleGeneratePdfReport" styleClass="btn-secondary"/>
+            <Button text="Comparer selection" onAction="#handleCompareSelected" styleClass="btn-purple"/>
+            <Button text="Tout corriger" onAction="#handleAiGradeAll" styleClass="btn-primary"/>
+        </HBox>
 
-    <StackPane VBox.vgrow="ALWAYS">
-        <!-- Body: table + detail panel -->
-        <HBox style="-fx-padding:16;" spacing="16">
-
-            <!-- Submissions table -->
-            <VBox prefWidth="360" style="-fx-background-color:#1E293B;-fx-border-radius:12;-fx-background-radius:12;-fx-padding:0;" spacing="0">
-                <Label text="Copies des Étudiants" style="-fx-text-fill:#CBD5E1;-fx-font-size:14;-fx-font-weight:bold;-fx-padding:14 16 10 16;"/>
-                <TableView fx:id="submissionsTable" VBox.vgrow="ALWAYS"
-                           style="-fx-background-color:transparent;-fx-border-color:#334155;-fx-border-width:1 0 0 0;">
+        <SplitPane dividerPositions="0.34" VBox.vgrow="ALWAYS">
+            <VBox spacing="10" styleClass="card">
+                <padding>
+                    <Insets top="16" right="16" bottom="16" left="16"/>
+                </padding>
+                <Label text="Copies des etudiants" styleClass="section-title"/>
+                <TableView fx:id="submissionsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
-                        <TableColumn fx:id="colStudentName" text="Étudiant" prefWidth="150"/>
-                        <TableColumn fx:id="colStatus"      text="Statut"   prefWidth="110"/>
-                        <TableColumn fx:id="colScore"       text="Note"     prefWidth="55"/>
-                        <TableColumn fx:id="colPlagiarism"  text="Plagiat%" prefWidth="65"/>
+                        <TableColumn fx:id="colStudentName" text="Etudiant" prefWidth="145"/>
+                        <TableColumn fx:id="colStatus" text="Statut" prefWidth="105"/>
+                        <TableColumn fx:id="colScore" text="Note" prefWidth="70"/>
+                        <TableColumn fx:id="colPlagiarism" text="Plagiat" prefWidth="80"/>
                     </columns>
                     <placeholder>
-                        <Label text="Sélectionnez un examen pour voir les copies" style="-fx-text-fill:#475569;-fx-font-size:13;"/>
+                        <Label text="Selectionnez un examen pour voir les copies"/>
                     </placeholder>
                 </TableView>
             </VBox>
 
-            <!-- Detail Panel -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12">
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox spacing="14">
+                    <VBox spacing="10" styleClass="card">
+                        <padding>
+                            <Insets top="16" right="16" bottom="16" left="16"/>
+                        </padding>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label fx:id="lblStudentName" text="-" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                            <Button text="Corriger" onAction="#handleAiGradeSingle" styleClass="btn-primary"/>
+                            <Button text="Email" onAction="#handleSendEmail" styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="lblQuestionText" text="Examen complet" wrapText="true" styleClass="form-label"/>
+                        <Label text="Reponse de l'etudiant" styleClass="form-label"/>
+                        <TextArea fx:id="taStudentAnswer" prefHeight="130" editable="false" wrapText="true"/>
+                    </VBox>
 
-                <!-- Student answer card -->
-                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="8">
-                    <HBox alignment="CENTER_LEFT" spacing="12">
-                        <Label fx:id="lblStudentName" text="—" style="-fx-text-fill:#E2E8F0;-fx-font-size:15;-fx-font-weight:bold;"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="🤖 Corriger" onAction="#handleAiGradeSingle"
-                                style="-fx-background-color:#4F46E5;-fx-text-fill:white;-fx-font-size:11;-fx-padding:6 14;-fx-background-radius:6;-fx-cursor:hand;"/>
-                        <Button text="📧 Email" onAction="#handleSendEmail"
-                                style="-fx-background-color:#0EA5E9;-fx-text-fill:white;-fx-font-size:11;-fx-padding:6 14;-fx-background-radius:6;-fx-cursor:hand;"/>
-                    </HBox>
-                    <Label fx:id="lblQuestionText" text="Examen complet" wrapText="true"
-                           style="-fx-text-fill:#94A3B8;-fx-font-size:12;-fx-font-style:italic;"/>
-                    <Label text="Réponse de l'étudiant:" style="-fx-text-fill:#64748B;-fx-font-size:11;"/>
-                    <TextArea fx:id="taStudentAnswer" prefHeight="90" editable="false" wrapText="true"
-                              style="-fx-background-color:#0F172A;-fx-text-fill:#CBD5E1;-fx-font-size:12;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
+                    <VBox spacing="10" styleClass="card">
+                        <padding>
+                            <Insets top="16" right="16" bottom="16" left="16"/>
+                        </padding>
+                        <Label text="Resultat de la correction IA" styleClass="section-title"/>
+                        <HBox spacing="24" alignment="CENTER_LEFT">
+                            <VBox spacing="4">
+                                <Label text="Note IA" styleClass="form-label"/>
+                                <Label fx:id="lblAiScore" text="-" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #4F46E5;"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label fx:id="lblConfidence" text="Confiance IA: -" styleClass="form-label"/>
+                                <ProgressBar fx:id="pbAiConfidence" progress="0" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Label fx:id="lblPlagiarismScore" text="Plagiat: -" styleClass="form-label"/>
+                                <ProgressBar fx:id="pbPlagiarism" progress="0" prefWidth="130"/>
+                            </VBox>
+                        </HBox>
+                        <Label text="Feedback IA" styleClass="form-label"/>
+                        <TextArea fx:id="taAiFeedback" prefHeight="110" editable="false" wrapText="true"/>
+                    </VBox>
+
+                    <VBox spacing="10" styleClass="card">
+                        <padding>
+                            <Insets top="16" right="16" bottom="16" left="16"/>
+                        </padding>
+                        <Label text="Correction manuelle" styleClass="section-title"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="Note manuelle" styleClass="form-label"/>
+                            <TextField fx:id="tfManualScore" prefWidth="110" promptText="Ex: 15.5"/>
+                            <Button text="Sauvegarder" onAction="#handleSaveManualScore" styleClass="btn-success"/>
+                        </HBox>
+                    </VBox>
                 </VBox>
+            </ScrollPane>
+        </SplitPane>
+    </VBox>
 
-                <!-- AI Result card -->
-                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="10">
-                    <Label text="🤖 Résultat de la Correction IA" style="-fx-text-fill:#818CF8;-fx-font-size:13;-fx-font-weight:bold;"/>
-                    <HBox spacing="24" alignment="CENTER_LEFT">
-                        <VBox spacing="4">
-                            <Label text="Note IA" style="-fx-text-fill:#64748B;-fx-font-size:10;"/>
-                            <Label fx:id="lblAiScore" text="—" style="-fx-text-fill:#4F46E5;-fx-font-size:22;-fx-font-weight:bold;"/>
-                        </VBox>
-                        <VBox spacing="4" HBox.hgrow="ALWAYS">
-                            <Label fx:id="lblConfidence" text="Confiance IA: —" style="-fx-text-fill:#94A3B8;-fx-font-size:11;"/>
-                            <ProgressBar fx:id="pbAiConfidence" progress="0" maxWidth="Infinity"
-                                         style="-fx-accent:#4F46E5;" prefHeight="6"/>
-                        </VBox>
-                        <VBox spacing="4">
-                            <Label fx:id="lblPlagiarismScore" text="Plagiat: —" style="-fx-text-fill:#94A3B8;-fx-font-size:11;"/>
-                            <ProgressBar fx:id="pbPlagiarism" progress="0" prefWidth="120"
-                                         style="-fx-accent:#10B981;" prefHeight="6"/>
-                        </VBox>
-                    </HBox>
-                    <Label text="Feedback IA:" style="-fx-text-fill:#64748B;-fx-font-size:11;"/>
-                    <TextArea fx:id="taAiFeedback" prefHeight="70" editable="false" wrapText="true"
-                              style="-fx-background-color:#0F172A;-fx-text-fill:#CBD5E1;-fx-font-size:12;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;"/>
-                </VBox>
-
-                <!-- Manual override card -->
-                <VBox style="-fx-background-color:#1E293B;-fx-background-radius:12;-fx-padding:16;" spacing="10">
-                    <Label text="✏️ Correction Manuelle" style="-fx-text-fill:#F59E0B;-fx-font-size:13;-fx-font-weight:bold;"/>
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Label text="Note manuelle:" style="-fx-text-fill:#94A3B8;-fx-font-size:12;"/>
-                        <TextField fx:id="tfManualScore" prefWidth="90" promptText="Ex: 15.5"
-                                   style="-fx-background-color:#0F172A;-fx-text-fill:white;-fx-border-color:#334155;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:6 10;"/>
-                        <Button text="💾 Sauvegarder" onAction="#handleSaveManualScore"
-                                style="-fx-background-color:#10B981;-fx-text-fill:white;-fx-font-size:12;-fx-padding:6 16;-fx-background-radius:6;-fx-cursor:hand;"/>
-                    </HBox>
-                </VBox>
-            </VBox>
-        </HBox>
-
-        <!-- Loading overlay -->
-        <StackPane fx:id="loadingOverlay" visible="false" style="-fx-background-color:rgba(0,0,0,0.6);">
-            <VBox alignment="CENTER" spacing="12">
-                <ProgressIndicator style="-fx-progress-color:#4F46E5;" prefWidth="48" prefHeight="48"/>
-                <Label text="Traitement en cours…" style="-fx-text-fill:white;-fx-font-size:14;"/>
-            </VBox>
-        </StackPane>
+    <StackPane fx:id="loadingOverlay" visible="false" style="-fx-background-color: rgba(15, 23, 42, 0.45);">
+        <VBox alignment="CENTER" spacing="12" styleClass="card">
+            <padding>
+                <Insets top="24" right="32" bottom="24" left="32"/>
+            </padding>
+            <ProgressIndicator prefWidth="44" prefHeight="44"/>
+            <Label text="Traitement en cours..." styleClass="section-title"/>
+        </VBox>
     </StackPane>
-</VBox>
+</StackPane>

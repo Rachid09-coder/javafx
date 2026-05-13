@@ -12,7 +12,10 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -22,9 +25,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
@@ -275,7 +281,27 @@ public class ManageExamsController implements Initializable {
 
     @FXML
     private void handleGenerateAiQuiz(ActionEvent event) {
-        SceneManager.getInstance().navigateTo(SceneManager.Scene.TEACHER_EXAM_GRADING);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/teacher/generate-quiz-dialog.fxml"));
+            Parent view = loader.load();
+
+            Stage dialog = new Stage();
+            dialog.setTitle("Generation QCM");
+            dialog.initOwner(SceneManager.getInstance().getPrimaryStage());
+            dialog.initModality(Modality.APPLICATION_MODAL);
+
+            Scene scene = new Scene(view);
+            URL cssUrl = getClass().getResource("/css/style.css");
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            }
+
+            dialog.setScene(scene);
+            dialog.setMinWidth(560);
+            dialog.showAndWait();
+        } catch (IOException ex) {
+            showMessage("Impossible d'ouvrir la generation QCM: " + ex.getMessage(), true);
+        }
     }
 
     @FXML
