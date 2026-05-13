@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.teacher.MetierManagementController">
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Button text="🏠  Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
+                <Button text="💼  Métiers" styleClass="nav-button active"/>
+                <!-- ... other buttons ... -->
+            </VBox>
+            <Button text="🚪 Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+        </VBox>
+    </left>
+    <center>
+        <VBox styleClass="content-area" spacing="20">
+            <Label text="Gestion des Métiers et Métiers Avancés" styleClass="page-title"/>
+            
+            <HBox spacing="20" VBox.vgrow="ALWAYS">
+                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="Métiers" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <TableView fx:id="metierTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="nomColumn" text="NOM" prefWidth="150" />
+                            <TableColumn fx:id="descColumn" text="DESCRIPTION" prefWidth="250" />
+                        </columns>
+                    </TableView>
+                    <Button text="+ Ajouter Métier" onAction="#handleAddMetier" styleClass="btn-primary"/>
+                </VBox>
+                
+                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="Métiers Avancés" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <TableView fx:id="metierAvanceTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="nomAvColumn" text="NOM" prefWidth="150" />
+                            <TableColumn fx:id="metierIdColumn" text="ID MÉTIER" prefWidth="100" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.OrderCheckoutController">
+
+    <center>
+        <VBox styleClass="content-area" spacing="20">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="🧾 Checkout Commande" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                <Button text="⬅ Retour boutique" onAction="#handleBackToShop" styleClass="btn-secondary"/>
+            </HBox>
+
+            <HBox spacing="16" VBox.vgrow="ALWAYS">
+                <VBox spacing="16" styleClass="form-card" HBox.hgrow="ALWAYS">
+                    <Label text="Résumé de la commande" styleClass="section-title"/>
+                    <ListView fx:id="orderSummaryListView" VBox.vgrow="ALWAYS"/>
+                </VBox>
+
+                <VBox spacing="14" styleClass="form-card" minWidth="360" prefWidth="360">
+                    <Label text="Paiement et validation" styleClass="section-title"/>
+                    <TextField fx:id="emailField" promptText="Adresse e-mail"/>
+                    <TextField fx:id="promoCodeField" promptText="Code promo"/>
+                    <ComboBox fx:id="paymentMethodComboBox" promptText="Méthode de paiement"/>
+                    <Button text="Appliquer le code promo" onAction="#handleApplyPromo" styleClass="btn-secondary" maxWidth="Infinity"/>
+                    <Button text="Générer la facture PDF" onAction="#handleGenerateInvoice" styleClass="btn-secondary" maxWidth="Infinity"/>
+                    <Separator/>
+                    <Label fx:id="subtotalLabel" text="Sous-total: 0.00 €"/>
+                    <Label fx:id="discountLabel" text="Réduction: 0.00 €"/>
+                    <Label fx:id="totalLabel" text="Total: 0.00 €" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Label fx:id="statusLabel" wrapText="true" style="-fx-text-fill: #64748B;"/>
+                    <Button text="Confirmer la commande" onAction="#handleConfirmOrder" styleClass="btn-primary" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

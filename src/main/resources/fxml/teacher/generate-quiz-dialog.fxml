@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21"
+      fx:controller="com.edusmart.controller.teacher.GenerateQuizController"
+      spacing="20" style="-fx-background-color: white; -fx-padding: 30;"
+      prefWidth="500">
+
+    <VBox spacing="8">
+        <Label text="Configuration de la Génération par IA" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
+        <Label text="L'IA va générer un quiz sur mesure selon vos critères." style="-fx-text-fill: #64748B;"/>
+    </VBox>
+
+    <Separator/>
+
+    <GridPane hgap="15" vgap="15">
+        <columnConstraints>
+            <ColumnConstraints prefWidth="150"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="Module / Matière" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="subjectField" promptText="Ex: Programmation Java, Histoire..." GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="text-field"/>
+
+        <Label text="Nombre de questions" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <Spinner fx:id="numQuestionsSpinner" GridPane.rowIndex="1" GridPane.columnIndex="1" editable="true"/>
+
+        <Label text="Difficulté" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="difficultyComboBox" GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="Infinity"/>
+
+        <Label text="Niveau des élèves" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="levelComboBox" GridPane.rowIndex="3" GridPane.columnIndex="1" maxWidth="Infinity" editable="true"/>
+    </GridPane>
+
+    <VBox spacing="10" style="-fx-background-color: #F8FAFC; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;">
+        <Label text="Note de l'Assistant :" style="-fx-font-weight: bold; -fx-text-fill: #3B82F6;"/>
+        <Label text="La génération peut prendre quelques secondes. Le quiz sera automatiquement ajouté à l'examen en cours." wrapText="true" style="-fx-font-size: 13px;"/>
+    </VBox>
+
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button text="Annuler" onAction="#handleCancel" styleClass="btn-secondary" style="-fx-padding: 10 20;"/>
+        <Button text="Générer maintenant 🚀" onAction="#handleGenerate" styleClass="btn-primary" style="-fx-padding: 10 25; -fx-font-weight: bold;"/>
+    </HBox>
+
+</VBox>

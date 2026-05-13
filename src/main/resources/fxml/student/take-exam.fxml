@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.TakeExamController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="SESSION D'EXAMEN" styleClass="sidebar-section-label"/>
+                <Label fx:id="timerLabel" text="00:00:00" style="-fx-text-fill: #10B981; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 10;"/>
+                <Separator style="-fx-background-color: rgba(255,255,255,0.1);"/>
+                <VBox fx:id="questionListNav" spacing="8" style="-fx-padding: 10;">
+                    <!-- Question numbers will be injected here -->
+                </VBox>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;" alignment="CENTER">
+                <Button text="Quitter" onAction="#handleExit" styleClass="btn-secondary" style="-fx-text-fill: #EF4444;"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <VBox styleClass="content-area" spacing="30" alignment="TOP_CENTER">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+            <!-- Exam Header -->
+            <VBox spacing="8" alignment="CENTER">
+                <Label fx:id="examTitleLabel" text="Titre de l'examen" styleClass="page-title" style="-fx-font-size: 28px;"/>
+                <Label fx:id="moduleLabel" text="Module : Informatique" style="-fx-text-fill: #64748B; -fx-font-size: 16px;"/>
+            </VBox>
+
+            <!-- Question Card -->
+            <VBox fx:id="questionCard" styleClass="card" spacing="25" maxWidth="800" VBox.vgrow="ALWAYS">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label fx:id="questionNumberLabel" text="Question 1/10" style="-fx-font-weight: bold; -fx-text-fill: #3B82F6; -fx-font-size: 18px;"/>
+                    <Pane HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="pointsLabel" text="2 pts" style="-fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF; -fx-padding: 4 12; -fx-background-radius: 12;"/>
+                </HBox>
+
+                <Text fx:id="questionText" text="Quelle est la capitale de la France ?" wrappingWidth="740" style="-fx-font-size: 20px; -fx-fill: #1E293B;"/>
+
+                <VBox fx:id="optionsContainer" spacing="12">
+                    <!-- Options for MCQ will be injected here -->
+                </VBox>
+
+                <TextArea fx:id="openAnswerArea" promptText="Saisissez votre réponse ici..." prefHeight="150" wrapText="true" styleClass="text-area" visible="false" managed="false"/>
+
+                <HBox spacing="20" alignment="CENTER">
+                    <Button fx:id="prevButton" text="Précédent" onAction="#handlePrev" styleClass="btn-secondary" prefWidth="120"/>
+                    <Button fx:id="nextButton" text="Suivant" onAction="#handleNext" styleClass="btn-primary" prefWidth="120"/>
+                    <Button fx:id="submitButton" text="Terminer" onAction="#handleSubmit" styleClass="btn-success" prefWidth="120" style="-fx-background-color: #10B981;"/>
+                </HBox>
+            </VBox>
+
+            <!-- Progress Bar -->
+            <VBox spacing="8" maxWidth="800">
+                <ProgressBar fx:id="progressBar" progress="0.1" maxWidth="Infinity" prefHeight="10"/>
+                <HBox alignment="CENTER_RIGHT">
+                    <Label fx:id="progressText" text="10% complété" style="-fx-text-fill: #94A3B8; -fx-font-size: 12px;"/>
+                </HBox>
+            </VBox>
+
+        </VBox>
+    </center>
+</BorderPane>

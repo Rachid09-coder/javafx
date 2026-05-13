@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            styleClass="main-container"
+            fx:controller="com.edusmart.controller.student.DashboardController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="🎓 EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Étudiant" styleClass="sidebar-logo-subtitle"/>
+            </VBox>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="🏠  Tableau de bord" styleClass="nav-button active" onAction="#handleDashboard"/>
+                <Button text="📚  Mes Cours" styleClass="nav-button" onAction="#handleCourses"/>
+                <Button text="📝  Examens" styleClass="nav-button" onAction="#handleExams"/>
+                <Button text="📊  Bulletin" styleClass="nav-button" onAction="#handleBulletin"/>
+                <Button text="🏆  Certifications" styleClass="nav-button" onAction="#handleCertification"/>
+                <Button text="🛒  Boutique" styleClass="nav-button" onAction="#handleShop"/>
+                <Button text="🤖  Assistant IA" styleClass="nav-button" onAction="#handleStudentAI"/>
+                <Button text="👤  Mon Profil" styleClass="nav-button" onAction="#handleProfile"/>
+            </VBox>
+            <VBox style="-fx-padding: 16 0 24 0;">
+                <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+                <Button text="🚪  Déconnexion" styleClass="nav-button" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox styleClass="content-area" spacing="30">
+                <padding><Insets top="32" right="40" bottom="32" left="40"/></padding>
+
+                <!-- Welcome Header -->
+                <HBox alignment="CENTER_LEFT">
+                    <VBox spacing="4">
+                        <Label fx:id="welcomeLabel" text="Bonjour, Étudiant !" styleClass="page-title"/>
+                        <Label text="Voici un aperçu de votre progression académique." style="-fx-text-fill: #64748B; -fx-font-size: 14px;"/>
+                    </VBox>
+                    <Pane HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="12" alignment="CENTER">
+                        <VBox alignment="CENTER_RIGHT">
+                            <Label fx:id="studentNameLabel" text="Nom de l'étudiant" style="-fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
+                            <Label text="Étudiant" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+                        </VBox>
+                        <Circle radius="20" fill="#4F46E5"/>
+                    </HBox>
+                </HBox>
+
+                <!-- Stats Overview -->
+                <HBox spacing="24">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" style="-fx-background-color: linear-gradient(to bottom right, #4F46E5, #7C3AED);">
+                        <Label text="Moyenne Générale" styleClass="stat-label" style="-fx-text-fill: rgba(255,255,255,0.8);"/>
+                        <Label fx:id="avgGradeLabel" text="15.5" styleClass="stat-value" style="-fx-text-fill: white;"/>
+                        <Label text="/ 20 points" styleClass="stat-meta" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Cours Suivis" styleClass="stat-label"/>
+                        <Label fx:id="coursesCountLabel" text="12" styleClass="stat-value" style="-fx-text-fill: #1E293B;"/>
+                        <Label text="Ce semestre" styleClass="stat-meta"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Examens à venir" styleClass="stat-label"/>
+                        <Label fx:id="upcomingExamsLabel" text="3" styleClass="stat-value" style="-fx-text-fill: #7C3AED;"/>
+                        <Label text="Prochain : Algorithmique" styleClass="stat-meta"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Crédits Boutique" styleClass="stat-label"/>
+                        <Label fx:id="creditsLabel" text="250 €" styleClass="stat-value" style="-fx-text-fill: #10B981;"/>
+                        <Label text="Disponibles pour achat" styleClass="stat-meta"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="30">
+                    <!-- Recent Grades -->
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" prefWidth="500">
+                        <HBox alignment="CENTER_LEFT" style="-fx-margin-bottom: 15;">
+                            <Label text="Dernières Notes" styleClass="section-title"/>
+                            <Pane HBox.hgrow="ALWAYS"/>
+                            <Button text="Tout voir" variant="ghost" style="-fx-text-fill: #4F46E5;" onAction="#handleBulletin"/>
+                        </HBox>
+                        <TableView fx:id="recentGradesTable" prefHeight="250" styleClass="simple-table">
+                            <columns>
+                                <TableColumn fx:id="colSubject" text="Matière" prefWidth="250"/>
+                                <TableColumn fx:id="colGrade" text="Note" prefWidth="100"/>
+                                <TableColumn fx:id="colStatus" text="Session" prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- Next Exam Countdown -->
+                    <VBox styleClass="card" prefWidth="320" spacing="16">
+                        <Label text="Prochain Examen" styleClass="section-title"/>
+                        <VBox spacing="12" alignment="CENTER" style="-fx-padding: 20 0;">
+                            <Label fx:id="nextExamTitle" text="Bases de Données" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
+                            <Label fx:id="nextExamDate" text="Mardi, 15 Mai à 09:00" style="-fx-text-fill: #4F46E5; -fx-font-weight: bold;"/>
+                            <Label text="Temps restant" style="-fx-font-size: 12px; -fx-text-fill: #64748B;"/>
+                            <HBox spacing="8" alignment="CENTER">
+                                <VBox alignment="CENTER" style="-fx-background-color: #F1F5F9; -fx-padding: 8; -fx-background-radius: 8;">
+                                    <Label text="04" style="-fx-font-weight: bold; -fx-font-size: 18px;"/>
+                                    <Label text="Jours" style="-fx-font-size: 10px;"/>
+                                </VBox>
+                                <VBox alignment="CENTER" style="-fx-background-color: #F1F5F9; -fx-padding: 8; -fx-background-radius: 8;">
+                                    <Label text="12" style="-fx-font-weight: bold; -fx-font-size: 18px;"/>
+                                    <Label text="Heures" style="-fx-font-size: 10px;"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        <Button text="Réviser avec l'Assistant IA" onAction="#handleStudentAI" 
+                                maxWidth="Infinity" style="-fx-background-color: #4F46E5; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 8;"/>
+                    </VBox>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

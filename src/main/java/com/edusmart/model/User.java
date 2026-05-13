@@ -1,0 +1,243 @@
+package com.edusmart.model;
+
+import java.time.LocalDateTime;
+
+/**
+ * User model — maps to the {@code user} table ({@code name} = nom, {@code prenom} = prénom).
+ */
+public class User {
+
+    public enum Role {
+        STUDENT, TEACHER, ADMIN
+    }
+
+    private int id;
+    /** Maps to column {@code prenom}. */
+    private String firstName;
+    /** Maps to column {@code name} (nom de famille). */
+    private String lastName;
+    private String email;
+    /** Maps to column {@code password}. */
+    private String password;
+    private Role role;
+    /** DB {@code role} varchar — kept in sync with {@link #role}. */
+    private String roleValue;
+    private String numtel;
+    private boolean active;
+    private String resetToken;
+    private LocalDateTime resetTokenExpiresAt;
+    private String googleId;
+    private String faceDescriptor;
+    private String emailAssoc;
+    private String signaturePath;
+
+    /** Legacy alias used by older code paths. */
+    private String avatarUrl;
+
+    public User() {}
+
+    public User(int id, String firstName, String lastName, String email, Role role) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.role = role;
+        this.roleValue = role != null ? role.name() : null;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /** @deprecated use {@link #getPassword()} — same column */
+    @Deprecated
+    public String getPasswordHash() {
+        return password;
+    }
+
+    /** @deprecated use {@link #setPassword(String)} */
+    @Deprecated
+    public void setPasswordHash(String passwordHash) {
+        this.password = passwordHash;
+    }
+
+    public Role getRole() {
+        if (role == null && roleValue != null) {
+            role = roleFromDatabaseValue(roleValue);
+        }
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+        this.roleValue = toDatabaseRole(role);
+    }
+
+    public String getRoleValue() {
+        return roleValue != null ? roleValue : (role != null ? role.name() : null);
+    }
+
+    public void setRoleValue(String roleValue) {
+        this.roleValue = normalizeDatabaseRole(roleValue);
+        if (roleValue != null && !roleValue.isBlank()) {
+            this.role = roleFromDatabaseValue(roleValue);
+        } else {
+            this.role = null;
+        }
+    }
+
+    public static String toDatabaseRole(Role role) {
+        if (role == null) {
+            return null;
+        }
+        return switch (role) {
+            case STUDENT -> "etudiant";
+            case TEACHER -> "professeur";
+            case ADMIN -> "admin";
+        };
+    }
+
+    public static String normalizeDatabaseRole(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().toLowerCase();
+        return switch (normalized) {
+            case "student", "etudiant", "étudiant" -> "etudiant";
+            case "teacher", "enseignant", "professeur", "professor" -> "professeur";
+            case "admin", "administrator" -> "admin";
+            default -> value.trim();
+        };
+    }
+
+    private static Role roleFromDatabaseValue(String value) {
+        String normalized = normalizeDatabaseRole(value);
+        if ("etudiant".equals(normalized)) {
+            return Role.STUDENT;
+        }
+        if ("professeur".equals(normalized)) {
+            return Role.TEACHER;
+        }
+        if ("admin".equals(normalized)) {
+            return Role.ADMIN;
+        }
+        return null;
+    }
+
+    public String getNumtel() {
+        return numtel;
+    }
+
+    public void setNumtel(String numtel) {
+        this.numtel = numtel;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public LocalDateTime getResetTokenExpiresAt() {
+        return resetTokenExpiresAt;
+    }
+
+    public void setResetTokenExpiresAt(LocalDateTime resetTokenExpiresAt) {
+        this.resetTokenExpiresAt = resetTokenExpiresAt;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getFaceDescriptor() {
+        return faceDescriptor;
+    }
+
+    public void setFaceDescriptor(String faceDescriptor) {
+        this.faceDescriptor = faceDescriptor;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getEmailAssoc() {
+        return emailAssoc;
+    }
+
+    public void setEmailAssoc(String emailAssoc) {
+        this.emailAssoc = emailAssoc;
+    }
+
+    public String getSignaturePath() {
+        return signaturePath;
+    }
+
+    public void setSignaturePath(String signaturePath) {
+        this.signaturePath = signaturePath;
+    }
+
+    public String getFullName() {
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
+
+    @Override
+    public String toString() {
+        return "User{id=" + id + ", name='" + getFullName() + "', email='" + email + "', role=" + getRoleValue() + "}";
+    }
+}
