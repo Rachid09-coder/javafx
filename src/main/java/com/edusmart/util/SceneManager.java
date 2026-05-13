@@ -29,6 +29,7 @@ public class SceneManager {
         STUDENT_ORDER_CHECKOUT,
         STUDENT_AI,
         STUDENT_TAKE_EXAM,
+        STUDENT_UPLOAD_EXAM,
         // Teacher
         TEACHER_DASHBOARD,
         TEACHER_MANAGE_COURSES,
@@ -177,6 +178,7 @@ public class SceneManager {
             case STUDENT_ORDER_CHECKOUT       -> "/fxml/student/order-checkout.fxml";
             case STUDENT_AI                   -> "/fxml/student/student-ai.fxml";
             case STUDENT_TAKE_EXAM            -> "/fxml/student/take-exam.fxml";
+            case STUDENT_UPLOAD_EXAM          -> "/fxml/student/upload_exam.fxml";
             case TEACHER_DASHBOARD            -> "/fxml/teacher/dashboard.fxml";
             case TEACHER_MANAGE_COURSES       -> "/fxml/teacher/manage-courses.fxml";
             case TEACHER_MANAGE_MODULES       -> "/fxml/teacher/manage-modules.fxml";

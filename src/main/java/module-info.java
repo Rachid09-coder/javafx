@@ -17,6 +17,7 @@ module com.edusmart {
     requires com.google.zxing.javase;
     requires com.google.gson;
     requires okhttp3;
+    requires org.json;
     requires twilio;
 
 
@@ -37,4 +38,5 @@ module com.edusmart {
     exports com.edusmart.model;
     exports com.edusmart.util;
     exports com.edusmart.service;
+    exports com.edusmart.service.impl;
 }
