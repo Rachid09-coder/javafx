@@ -23,11 +23,13 @@ import java.util.concurrent.TimeUnit;
  * 1. JVM property: -Dgemini.api.key=...
  * 2. Environment: GEMINI_API_KEY
  * 3. Local ignored file: local-ai.properties
+ * 4. Built-in fallback key
  */
 public class GeminiAiService {
     private static final String API_URL_TEMPLATE =
             "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
     private static final String DEFAULT_MODEL = "gemini-2.0-flash";
+    private static final String DEFAULT_API_KEY = "AIzaSyAix3euRl3krxoNagNjDriZkdjjhYcGMng";
 
     private final OkHttpClient client;
     private final Gson gson;
@@ -40,7 +42,7 @@ public class GeminiAiService {
                 .readTimeout(30, TimeUnit.SECONDS)
                 .build();
         this.gson = new Gson();
-        this.apiKey = getConfiguredValue("GEMINI_API_KEY", "gemini.api.key", null);
+        this.apiKey = getConfiguredValue("GEMINI_API_KEY", "gemini.api.key", DEFAULT_API_KEY);
         this.model = getConfiguredValue("GEMINI_MODEL", "gemini.model", DEFAULT_MODEL);
     }
 
