@@ -76,12 +76,8 @@ public class GeminiAiService {
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                if (response.code() == 400 || response.code() == 401 || response.code() == 403 || response.code() == 429) {
-                    System.err.println("Gemini API key issue or quota exceeded. Using simulated AI response.");
-                    return getSimulatedResponse(prompt);
-                }
                 String responseBody = response.body() != null ? response.body().string() : "";
-                throw new IOException("Unexpected Gemini response " + response.code() + ": " + responseBody);
+                throw new IOException("Gemini API error " + response.code() + ": " + extractGeminiError(responseBody));
             }
 
             String responseData = response.body() != null ? response.body().string() : "";
@@ -94,6 +90,27 @@ public class GeminiAiService {
                     .get(0).getAsJsonObject()
                     .get("text").getAsString();
         }
+    }
+
+    private String extractGeminiError(String responseBody) {
+        if (responseBody == null || responseBody.isBlank()) {
+            return "empty response from Gemini";
+        }
+
+        try {
+            JsonObject root = gson.fromJson(responseBody, JsonObject.class);
+            if (root != null && root.has("error")) {
+                JsonObject error = root.getAsJsonObject("error");
+                if (error.has("message")) {
+                    return error.get("message").getAsString();
+                }
+            }
+        } catch (Exception ignored) {
+            // Fall back to the raw response below.
+        }
+
+        String compact = responseBody.replaceAll("\\s+", " ").trim();
+        return compact.length() > 300 ? compact.substring(0, 300) + "..." : compact;
     }
 
     public String analyzeStudentPerformance(String studentName, String gradesJson) throws IOException {
@@ -166,6 +183,6 @@ public class GeminiAiService {
                     + "]";
         }
 
-        return "Assistant IA en mode simulation. Configurez GEMINI_API_KEY ou local-ai.properties pour utiliser Gemini.";
+        return "Gemini est configure dans l'application, mais la reponse IA n'a pas pu etre recuperee pour le moment.";
     }
 }

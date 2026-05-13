@@ -56,7 +56,10 @@ public class StudentAIController implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     chatContainer.getChildren().remove(loadingLabel);
-                    addMessageToChat("❌ Erreur", "Je n'ai pas pu vous répondre. (Peut-être utiliser le mode simulation?)", "#FEE2E2");
+                    String details = e.getMessage() != null && !e.getMessage().isBlank()
+                            ? e.getMessage()
+                            : "Erreur inconnue pendant l'appel Gemini.";
+                    addMessageToChat("❌ Erreur", details, "#FEE2E2");
                 });
             }
         }).start();
