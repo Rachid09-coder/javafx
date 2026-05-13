@@ -17,19 +17,17 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Shared Google Gemini client for all EduSmart AI features.
+ * Shared OpenRouter AI client for all EduSmart AI features.
  *
  * Key lookup order:
- * 1. JVM property: -Dgemini.api.key=...
- * 2. Environment: GEMINI_API_KEY
+ * 1. JVM property: -Dopenrouter.api.key=...
+ * 2. Environment: OPENROUTER_API_KEY
  * 3. Local ignored file: local-ai.properties
- * 4. Built-in fallback key
  */
 public class GeminiAiService {
-    private static final String API_URL_TEMPLATE =
-            "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
-    private static final String DEFAULT_MODEL = "gemini-2.0-flash";
-    private static final String DEFAULT_API_KEY = "AIzaSyAix3euRl3krxoNagNjDriZkdjjhYcGMng";
+    private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    private static final String DEFAULT_MODEL = "openai/gpt-4o-mini";
+    private static final String DEFAULT_API_KEY = null;
 
     private final OkHttpClient client;
     private final Gson gson;
@@ -42,59 +40,66 @@ public class GeminiAiService {
                 .readTimeout(30, TimeUnit.SECONDS)
                 .build();
         this.gson = new Gson();
-        this.apiKey = getConfiguredValue("GEMINI_API_KEY", "gemini.api.key", DEFAULT_API_KEY);
-        this.model = getConfiguredValue("GEMINI_MODEL", "gemini.model", DEFAULT_MODEL);
+        this.apiKey = getConfiguredValue("OPENROUTER_API_KEY", "openrouter.api.key", DEFAULT_API_KEY);
+        this.model = getConfiguredValue("OPENROUTER_MODEL", "openrouter.model", DEFAULT_MODEL);
     }
 
     public String generateContent(String prompt) throws IOException {
         if (apiKey == null || apiKey.isBlank()) {
-            System.err.println("Gemini API key missing. Using simulated AI response.");
+            System.err.println("OpenRouter API key missing. Using simulated AI response.");
             return getSimulatedResponse(prompt);
         }
 
         JsonObject requestBody = new JsonObject();
-        JsonArray parts = new JsonArray();
-        JsonObject textPart = new JsonObject();
-        textPart.addProperty("text", prompt);
-        parts.add(textPart);
+        requestBody.addProperty("model", model);
+        requestBody.addProperty("temperature", 0.7);
 
-        JsonObject content = new JsonObject();
-        content.add("parts", parts);
+        JsonObject message = new JsonObject();
+        message.addProperty("role", "user");
+        message.addProperty("content", prompt);
 
-        JsonArray contents = new JsonArray();
-        contents.add(content);
-        requestBody.add("contents", contents);
+        JsonArray messages = new JsonArray();
+        messages.add(message);
+        requestBody.add("messages", messages);
 
         RequestBody body = RequestBody.create(
                 gson.toJson(requestBody),
                 MediaType.get("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
-                .url(String.format(API_URL_TEMPLATE, model, apiKey))
+                .url(API_URL)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("HTTP-Referer", "https://edusmart.local")
+                .header("X-Title", "EduSmart")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String responseBody = response.body() != null ? response.body().string() : "";
-                throw new IOException("Gemini API error " + response.code() + ": " + extractGeminiError(responseBody));
+                throw new IOException("OpenRouter API error " + response.code() + ": " + extractApiError(responseBody));
             }
 
             String responseData = response.body() != null ? response.body().string() : "";
             JsonObject jsonResponse = gson.fromJson(responseData, JsonObject.class);
-            return jsonResponse
-                    .getAsJsonArray("candidates")
-                    .get(0).getAsJsonObject()
-                    .getAsJsonObject("content")
-                    .getAsJsonArray("parts")
-                    .get(0).getAsJsonObject()
-                    .get("text").getAsString();
+            JsonArray choices = jsonResponse.getAsJsonArray("choices");
+            if (choices == null || choices.isEmpty()) {
+                throw new IOException("OpenRouter returned no choices.");
+            }
+
+            JsonObject firstChoice = choices.get(0).getAsJsonObject();
+            JsonObject responseMessage = firstChoice.getAsJsonObject("message");
+            if (responseMessage == null || !responseMessage.has("content")) {
+                throw new IOException("OpenRouter returned an empty message.");
+            }
+
+            return responseMessage.get("content").getAsString();
         }
     }
 
-    private String extractGeminiError(String responseBody) {
+    private String extractApiError(String responseBody) {
         if (responseBody == null || responseBody.isBlank()) {
-            return "empty response from Gemini";
+            return "empty response from OpenRouter";
         }
 
         try {
@@ -183,6 +188,6 @@ public class GeminiAiService {
                     + "]";
         }
 
-        return "Gemini est configure dans l'application, mais la reponse IA n'a pas pu etre recuperee pour le moment.";
+        return "OpenRouter est configure dans l'application, mais la reponse IA n'a pas pu etre recuperee pour le moment.";
     }
 }

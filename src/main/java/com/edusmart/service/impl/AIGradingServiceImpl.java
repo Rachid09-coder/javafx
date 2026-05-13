@@ -39,10 +39,10 @@ public class AIGradingServiceImpl implements AIGradingService {
             double confidence = getDouble(resultJson, "confidence", 0.85);
 
             AIGradingResult result = new AIGradingResult(clamp(score, 0, maxPoints), feedback, clamp(confidence, 0, 1));
-            result.setModelUsed("Google Gemini");
+            result.setModelUsed("OpenRouter");
             return result;
         } catch (Exception ex) {
-            System.err.println("Gemini grading failed. Using local fallback: " + ex.getMessage());
+            System.err.println("OpenRouter grading failed. Using local fallback: " + ex.getMessage());
             return fallbackGrade(question, studentAnswer);
         }
     }
