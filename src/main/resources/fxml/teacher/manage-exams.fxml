@@ -6,155 +6,153 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             xmlns="http://javafx.com/javafx/21"
-            styleClass="exam-management-root"
+            styleClass="main-container"
             fx:controller="com.edusmart.controller.teacher.ManageExamsController">
 
     <left>
-        <VBox styleClass="exam-sidebar">
-            <VBox styleClass="exam-sidebar-brand" spacing="6">
-                <Label text="▱ EduSmart" styleClass="exam-sidebar-logo"/>
-                <Label text="Espace Enseignant" styleClass="exam-sidebar-subtitle"/>
+        <VBox styleClass="sidebar">
+            <VBox styleClass="sidebar-logo" spacing="2">
+                <Label text="EduSmart" styleClass="sidebar-logo-text"/>
+                <Label text="Espace Enseignant" styleClass="sidebar-logo-subtitle"/>
             </VBox>
 
-            <VBox styleClass="exam-sidebar-nav" VBox.vgrow="ALWAYS">
-                <Label text="NAVIGATION" styleClass="exam-sidebar-section"/>
-                <Button text="⌂  Tableau de bord" styleClass="exam-nav-button active" onAction="#handleDashboard"/>
-                <Button text="▥  Gérer les Cours" styleClass="exam-nav-button" onAction="#handleManageCourses"/>
-                <Button text="▣  Gérer les Modules" styleClass="exam-nav-button" onAction="#handleManageModules"/>
-                <Button text="▰  Gérer Examens" styleClass="exam-nav-button" onAction="#handleManageExams"/>
-                <Button text="☷  Boutique" styleClass="exam-nav-button" onAction="#handleShopManagement"/>
-                <Button text="▥  Bulletins" styleClass="exam-nav-button" onAction="#handleBulletins"/>
-                <Button text="♕  Certifications" styleClass="exam-nav-button" onAction="#handleCertifications"/>
-                <Button text="☸  Analyse AI" styleClass="exam-nav-button" onAction="#handleAnalysisAI"/>
-                <Button text="♟  Gestion des Élèves" styleClass="exam-nav-button" onAction="#handleStudentManagement"/>
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Label text="MENU" styleClass="sidebar-section-label"/>
+                <Button text="Tableau de bord" styleClass="nav-button" onAction="#handleDashboard"/>
+                <Button text="Gerer les Cours" styleClass="nav-button" onAction="#handleManageCourses"/>
+                <Button text="Gerer les Modules" styleClass="nav-button" onAction="#handleManageModules"/>
+                <Button text="Gerer Examens" styleClass="nav-button active" onAction="#handleManageExams"/>
+                <Button text="Notes" styleClass="nav-button" onAction="#handleGradeManagement"/>
+                <Button text="Boutique" styleClass="nav-button" onAction="#handleShopManagement"/>
+                <Button text="Bulletins" styleClass="nav-button" onAction="#handleBulletins"/>
+                <Button text="Certifications" styleClass="nav-button" onAction="#handleCertifications"/>
+                <Button text="Analyse AI" styleClass="nav-button" onAction="#handleAnalysisAI"/>
+                <Button text="Gestion des Eleves" styleClass="nav-button" onAction="#handleStudentManagement"/>
             </VBox>
 
-            <VBox styleClass="exam-sidebar-footer">
-                <Button text="▮  Déconnexion" styleClass="exam-nav-button" onAction="#handleLogout"/>
+            <VBox styleClass="sidebar-footer">
+                <Button text="Deconnexion" styleClass="nav-button" onAction="#handleLogout"/>
             </VBox>
         </VBox>
     </left>
 
     <center>
-        <VBox styleClass="exam-page">
-            <HBox styleClass="exam-header" alignment="CENTER_LEFT" spacing="20">
-                <VBox HBox.hgrow="ALWAYS">
-                    <Label text="Gestion des Examens" styleClass="exam-title"/>
-                    <Label text="Cycle de vie complet : Création, Correction, Publication" styleClass="exam-subtitle"/>
+        <VBox styleClass="content-area" spacing="16">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="2">
+                    <Label text="Gestion des Examens" styleClass="page-title"/>
+                    <Label text="Creation, publication et correction des examens" styleClass="page-subtitle"/>
                 </VBox>
-
-                <ComboBox fx:id="statusFilterComboBox" prefWidth="150" prefHeight="50" styleClass="exam-filter"/>
-                <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="260" prefHeight="38"
-                           styleClass="exam-search" onAction="#handleSearch"/>
-                <VBox alignment="CENTER_RIGHT" spacing="2">
-                    <Label text="Enseignant" styleClass="exam-user-name"/>
-                    <Label text="Online" styleClass="exam-user-status"/>
-                </VBox>
-                <Region styleClass="exam-avatar"/>
+                <ComboBox fx:id="statusFilterComboBox" prefWidth="150" promptText="Statut"/>
+                <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="240"
+                           styleClass="search-bar" onAction="#handleSearch"/>
+                <Button text="Actualiser" styleClass="btn-secondary" onAction="#handleRefresh"/>
             </HBox>
 
-            <VBox styleClass="exam-content" VBox.vgrow="ALWAYS">
-                <HBox styleClass="exam-tabs" alignment="CENTER_LEFT">
-                    <Button text="▰  Gestion &amp; Publication" styleClass="exam-tab active"/>
-                    <Button text="☸  Correction &amp; IA" styleClass="exam-tab" onAction="#handleExamGrading"/>
-                    <Button text="☸  Génération QCM" styleClass="exam-tab" onAction="#handleGenerateAiQuiz"/>
-                </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Button text="Gestion &amp; Publication" styleClass="btn-primary"/>
+                <Button text="Correction &amp; IA" styleClass="btn-secondary" onAction="#handleExamGrading"/>
+                <Button text="Generation QCM" styleClass="btn-secondary" onAction="#handleGenerateAiQuiz"/>
+            </HBox>
 
-                <HBox styleClass="exam-toolbar" alignment="CENTER_LEFT" spacing="10">
-                    <Button text="+ Ajouter" styleClass="exam-action-button primary" onAction="#handleAdd"/>
-                    <Button text="☞ Modifier" styleClass="exam-action-button outline" onAction="#handleEdit"/>
-                    <Button text="▣ Supprimer" styleClass="exam-action-button danger" onAction="#handleDelete"/>
-                    <Button text="▣ Voir PDF" styleClass="exam-action-button outline" onAction="#handleViewPdf"/>
-                    <Button text="☞ Publier" styleClass="exam-action-button purple" onAction="#handlePublish"/>
-                    <Button text="♣ Correction" styleClass="exam-action-button success" onAction="#handleCorrection"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="↻ Actualiser" styleClass="exam-action-button outline" onAction="#handleRefresh"/>
-                </HBox>
+            <FlowPane hgap="8" vgap="8">
+                <Button text="Ajouter" styleClass="btn-primary" onAction="#handleAdd"/>
+                <Button text="Modifier" styleClass="btn-secondary" onAction="#handleEdit"/>
+                <Button text="Supprimer" styleClass="btn-danger" onAction="#handleDelete"/>
+                <Button text="Voir PDF" styleClass="btn-secondary" onAction="#handleViewPdf"/>
+                <Button text="Publier" styleClass="btn-purple" onAction="#handlePublish"/>
+                <Button text="Correction" styleClass="btn-success" onAction="#handleCorrection"/>
+            </FlowPane>
 
-                <Label fx:id="messageLabel" visible="false" managed="false" wrapText="true" styleClass="exam-message"/>
+            <Label fx:id="messageLabel" visible="false" managed="false" wrapText="true"/>
 
-                <HBox spacing="16" VBox.vgrow="ALWAYS">
-                    <TableView fx:id="examsTable" HBox.hgrow="ALWAYS" styleClass="exam-table">
-                        <columns>
-                            <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
-                            <TableColumn fx:id="titleColumn" text="Titre" prefWidth="185"/>
-                            <TableColumn fx:id="typeColumn" text="Type" prefWidth="95"/>
-                            <TableColumn fx:id="subjectColumn" text="Sujet" prefWidth="110"/>
-                            <TableColumn fx:id="statusColumn" text="Statut" prefWidth="105"/>
-                            <TableColumn fx:id="durationColumn" text="Durée" prefWidth="80"/>
-                            <TableColumn fx:id="semesterColumn" text="Sem." prefWidth="65"/>
-                            <TableColumn fx:id="coefficientColumn" text="Coeff." prefWidth="75"/>
-                        </columns>
-                        <columnResizePolicy>
-                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                        </columnResizePolicy>
-                        <placeholder>
-                            <Label text="Aucun examen"/>
-                        </placeholder>
-                    </TableView>
+            <SplitPane dividerPositions="0.68" VBox.vgrow="ALWAYS">
+                <TableView fx:id="examsTable" minWidth="520" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="55"/>
+                        <TableColumn fx:id="titleColumn" text="Titre" prefWidth="190"/>
+                        <TableColumn fx:id="typeColumn" text="Type" prefWidth="90"/>
+                        <TableColumn fx:id="subjectColumn" text="Sujet" prefWidth="130"/>
+                        <TableColumn fx:id="statusColumn" text="Statut" prefWidth="115"/>
+                        <TableColumn fx:id="durationColumn" text="Duree" prefWidth="80"/>
+                        <TableColumn fx:id="semesterColumn" text="Sem." prefWidth="65"/>
+                        <TableColumn fx:id="coefficientColumn" text="Coeff." prefWidth="75"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucun examen"/>
+                    </placeholder>
+                </TableView>
 
-                    <VBox styleClass="exam-form-panel" spacing="12" minWidth="320" prefWidth="340" maxWidth="360">
-                        <Label text="Formulaire Examen" styleClass="exam-form-title"/>
+                <ScrollPane fitToWidth="true"
+                            minWidth="320"
+                            prefWidth="360"
+                            style="-fx-background-color: transparent; -fx-background: transparent;">
+                    <VBox spacing="12" styleClass="card">
+                        <padding>
+                            <Insets top="16" right="16" bottom="16" left="16"/>
+                        </padding>
 
-                        <VBox spacing="4">
+                        <Label text="Formulaire Examen" styleClass="section-title"/>
+
+                        <VBox spacing="5">
                             <Label text="Titre *" styleClass="form-label"/>
-                            <TextField fx:id="titleField" promptText="Titre de l'examen" styleClass="text-field"/>
+                            <TextField fx:id="titleField" promptText="Titre de l'examen"/>
                         </VBox>
 
-                        <VBox spacing="4">
+                        <VBox spacing="5">
                             <Label text="Type *" styleClass="form-label"/>
-                            <ComboBox fx:id="typeComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                            <ComboBox fx:id="typeComboBox" maxWidth="Infinity"/>
                         </VBox>
 
-                        <VBox spacing="4">
-                            <Label text="Durée (minutes)" styleClass="form-label"/>
-                            <TextField fx:id="durationField" promptText="ex: 90" styleClass="text-field"/>
+                        <VBox spacing="5">
+                            <Label text="Duree (minutes)" styleClass="form-label"/>
+                            <TextField fx:id="durationField" promptText="ex: 90"/>
                         </VBox>
 
-                        <VBox spacing="4">
-                            <Label text="Catégorie note" styleClass="form-label"/>
-                            <ComboBox fx:id="gradeCategoryComboBox" maxWidth="Infinity" styleClass="combo-box"/>
+                        <VBox spacing="5">
+                            <Label text="Categorie note" styleClass="form-label"/>
+                            <ComboBox fx:id="gradeCategoryComboBox" maxWidth="Infinity"/>
                         </VBox>
 
-                        <VBox spacing="4">
+                        <VBox spacing="5">
                             <Label text="Description" styleClass="form-label"/>
-                            <TextArea fx:id="descriptionArea" promptText="Description..." styleClass="text-area" prefHeight="76" wrapText="true"/>
+                            <TextArea fx:id="descriptionArea" promptText="Description..." prefHeight="90" wrapText="true"/>
                         </VBox>
 
-                        <VBox spacing="4">
-                            <Label text="Année académique" styleClass="form-label"/>
-                            <TextField fx:id="academicYearField" promptText="ex: 2025/2026" styleClass="text-field"/>
+                        <VBox spacing="5">
+                            <Label text="Annee academique" styleClass="form-label"/>
+                            <TextField fx:id="academicYearField" promptText="ex: 2025/2026"/>
                         </VBox>
 
                         <HBox spacing="8">
-                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
                                 <Label text="Semestre" styleClass="form-label"/>
-                                <TextField fx:id="semesterField" promptText="ex: 1" styleClass="text-field"/>
+                                <TextField fx:id="semesterField" promptText="ex: 1"/>
                             </VBox>
-                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
                                 <Label text="Coefficient" styleClass="form-label"/>
-                                <TextField fx:id="coefficientField" promptText="ex: 2" styleClass="text-field"/>
+                                <TextField fx:id="coefficientField" promptText="ex: 2"/>
                             </VBox>
                         </HBox>
 
-                        <VBox spacing="4">
+                        <VBox spacing="5">
                             <Label text="Chemin fichier" styleClass="form-label"/>
-                            <TextField fx:id="filePathField" promptText="file_path" styleClass="text-field"/>
+                            <TextField fx:id="filePathField" promptText="file_path"/>
                         </VBox>
 
-                        <VBox spacing="4">
+                        <VBox spacing="5">
                             <Label text="Lien externe" styleClass="form-label"/>
-                            <TextField fx:id="externalLinkField" promptText="external_link" styleClass="text-field"/>
+                            <TextField fx:id="externalLinkField" promptText="external_link"/>
                         </VBox>
 
                         <HBox spacing="8">
-                            <Button text="Créer" onAction="#handleCreate" styleClass="exam-action-button primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                            <Button text="Modifier" onAction="#handleUpdate" styleClass="exam-action-button outline" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button text="Creer" onAction="#handleCreate" styleClass="btn-primary" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                            <Button text="Modifier" onAction="#handleUpdate" styleClass="btn-secondary" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                         </HBox>
-                        <Button text="Effacer" onAction="#handleClear" styleClass="exam-action-button outline" maxWidth="Infinity"/>
+                        <Button text="Effacer" onAction="#handleClear" styleClass="btn-secondary" maxWidth="Infinity"/>
                     </VBox>
-                </HBox>
-            </VBox>
+                </ScrollPane>
+            </SplitPane>
         </VBox>
     </center>
 </BorderPane>
